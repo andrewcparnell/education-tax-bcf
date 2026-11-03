@@ -1,0 +1,1387 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.18">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Andrew C. Parnell (School of Mathematics and Statistics, University College Dublin)">
+<meta name="dcterms.date" content="2026-11-03">
+
+<title>Does Public University Funding Pay for Itself? Isolating the Short- and Long-Run Tax Dividend Using Multivariate and Longitudinal Bayesian Causal Forests</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="education_tax_bcf_paper_files/libs/clipboard/clipboard.min.js"></script>
+<script src="education_tax_bcf_paper_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="education_tax_bcf_paper_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="education_tax_bcf_paper_files/libs/quarto-html/popper.min.js"></script>
+<script src="education_tax_bcf_paper_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="education_tax_bcf_paper_files/libs/quarto-html/anchor.min.js"></script>
+<link href="education_tax_bcf_paper_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="education_tax_bcf_paper_files/libs/quarto-html/quarto-syntax-highlighting-64a204ab8560d761af7679ceaba22944.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="education_tax_bcf_paper_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="education_tax_bcf_paper_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="education_tax_bcf_paper_files/libs/bootstrap/bootstrap-917079515d91bccb85b543faf8aa8bb6.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script defer="" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="quarto-light">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#abstract" id="toc-abstract" class="nav-link active" data-scroll-target="#abstract">Abstract</a></li>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link" data-scroll-target="#introduction"><span class="header-section-number">1</span> Introduction</a></li>
+  <li><a href="#data-and-measuring-university-funding-and-tax-capacity" id="toc-data-and-measuring-university-funding-and-tax-capacity" class="nav-link" data-scroll-target="#data-and-measuring-university-funding-and-tax-capacity"><span class="header-section-number">2</span> Data and Measuring University Funding and Tax Capacity</a>
+  <ul class="collapse">
+  <li><a href="#global-5-year-panel-structure-and-quality-screening" id="toc-global-5-year-panel-structure-and-quality-screening" class="nav-link" data-scroll-target="#global-5-year-panel-structure-and-quality-screening"><span class="header-section-number">2.1</span> Global 5-Year Panel Structure and Quality Screening</a></li>
+  <li><a href="#why-we-track-four-separate-tax-channels" id="toc-why-we-track-four-separate-tax-channels" class="nav-link" data-scroll-target="#why-we-track-four-separate-tax-channels"><span class="header-section-number">2.2</span> Why We Track Four Separate Tax Channels</a></li>
+  <li><a href="#unbundling-the-unesco-denominator-trap" id="toc-unbundling-the-unesco-denominator-trap" class="nav-link" data-scroll-target="#unbundling-the-unesco-denominator-trap"><span class="header-section-number">2.3</span> Unbundling the UNESCO Denominator Trap</a></li>
+  </ul></li>
+  <li><a href="#how-our-causal-forest-approach-works" id="toc-how-our-causal-forest-approach-works" class="nav-link" data-scroll-target="#how-our-causal-forest-approach-works"><span class="header-section-number">3</span> How Our Causal Forest Approach Works</a>
+  <ul class="collapse">
+  <li><a href="#intuition-separating-baseline-trajectories-from-treatment-effects" id="toc-intuition-separating-baseline-trajectories-from-treatment-effects" class="nav-link" data-scroll-target="#intuition-separating-baseline-trajectories-from-treatment-effects"><span class="header-section-number">3.1</span> Intuition: Separating Baseline Trajectories from Treatment Effects</a></li>
+  <li><a href="#total-fiscal-effect-m1-vs-mediator-removed-direct-effect-m2" id="toc-total-fiscal-effect-m1-vs-mediator-removed-direct-effect-m2" class="nav-link" data-scroll-target="#total-fiscal-effect-m1-vs-mediator-removed-direct-effect-m2"><span class="header-section-number">3.2</span> Total Fiscal Effect (<code>M1</code>) vs Mediator-Removed Direct Effect (<code>M2</code>)</a></li>
+  </ul></li>
+  <li><a href="#main-results" id="toc-main-results" class="nav-link" data-scroll-target="#main-results"><span class="header-section-number">4</span> Main Results</a>
+  <ul class="collapse">
+  <li><a href="#total-vs-direct-effects-across-the-four-tax-channels" id="toc-total-vs-direct-effects-across-the-four-tax-channels" class="nav-link" data-scroll-target="#total-vs-direct-effects-across-the-four-tax-channels"><span class="header-section-number">4.1</span> Total vs Direct Effects Across the Four Tax Channels</a></li>
+  <li><a href="#unbundling-the-denominators-per-student-quality-vs-aggregate-budgets" id="toc-unbundling-the-denominators-per-student-quality-vs-aggregate-budgets" class="nav-link" data-scroll-target="#unbundling-the-denominators-per-student-quality-vs-aggregate-budgets"><span class="header-section-number">4.2</span> Unbundling the Denominators: Per-Student Quality vs Aggregate Budgets</a></li>
+  <li><a href="#how-fiscal-returns-vary-by-enrolment-access-and-financing-model" id="toc-how-fiscal-returns-vary-by-enrolment-access-and-financing-model" class="nav-link" data-scroll-target="#how-fiscal-returns-vary-by-enrolment-access-and-financing-model"><span class="header-section-number">4.3</span> How Fiscal Returns Vary by Enrolment Access and Financing Model</a></li>
+  <li><a href="#ten-year-compounding-trajectories-across-countries" id="toc-ten-year-compounding-trajectories-across-countries" class="nav-link" data-scroll-target="#ten-year-compounding-trajectories-across-countries"><span class="header-section-number">4.4</span> Ten-Year Compounding Trajectories Across Countries</a></li>
+  <li><a href="#robustness-checks-and-placebo-falsification-test" id="toc-robustness-checks-and-placebo-falsification-test" class="nav-link" data-scroll-target="#robustness-checks-and-placebo-falsification-test"><span class="header-section-number">4.5</span> Robustness Checks and Placebo Falsification Test</a></li>
+  </ul></li>
+  <li><a href="#policy-discussion-and-limitations" id="toc-policy-discussion-and-limitations" class="nav-link" data-scroll-target="#policy-discussion-and-limitations"><span class="header-section-number">5</span> Policy Discussion and Limitations</a>
+  <ul class="collapse">
+  <li><a href="#practical-takeaways-for-fiscal-and-education-policy" id="toc-practical-takeaways-for-fiscal-and-education-policy" class="nav-link" data-scroll-target="#practical-takeaways-for-fiscal-and-education-policy"><span class="header-section-number">5.1</span> Practical Takeaways for Fiscal and Education Policy</a></li>
+  <li><a href="#limitations-and-scope-conditions" id="toc-limitations-and-scope-conditions" class="nav-link" data-scroll-target="#limitations-and-scope-conditions"><span class="header-section-number">5.2</span> Limitations and Scope Conditions</a></li>
+  </ul></li>
+  <li><a href="#appendix-a-mathematical-specification-of-the-multivariate-and-longitudinal-bcf-models" id="toc-appendix-a-mathematical-specification-of-the-multivariate-and-longitudinal-bcf-models" class="nav-link" data-scroll-target="#appendix-a-mathematical-specification-of-the-multivariate-and-longitudinal-bcf-models"><span class="header-section-number">6</span> Appendix A: Mathematical Specification of the Multivariate and Longitudinal BCF Models</a>
+  <ul class="collapse">
+  <li><a href="#multivariate-bayesian-causal-forest-mvbcf" id="toc-multivariate-bayesian-causal-forest-mvbcf" class="nav-link" data-scroll-target="#multivariate-bayesian-causal-forest-mvbcf"><span class="header-section-number">6.1</span> Multivariate Bayesian Causal Forest (<code>mvbcf</code>)</a></li>
+  <li><a href="#three-wave-longitudinal-bayesian-causal-forest-lbcf" id="toc-three-wave-longitudinal-bayesian-causal-forest-lbcf" class="nav-link" data-scroll-target="#three-wave-longitudinal-bayesian-causal-forest-lbcf"><span class="header-section-number">6.2</span> Three-Wave Longitudinal Bayesian Causal Forest (<code>lbcf</code>)</a></li>
+  </ul></li>
+  <li><a href="#appendix-b-residual-correlation-matrix-and-mcmc-convergence-diagnostics" id="toc-appendix-b-residual-correlation-matrix-and-mcmc-convergence-diagnostics" class="nav-link" data-scroll-target="#appendix-b-residual-correlation-matrix-and-mcmc-convergence-diagnostics"><span class="header-section-number">7</span> Appendix B: Residual Correlation Matrix and MCMC Convergence Diagnostics</a>
+  <ul class="collapse">
+  <li><a href="#cross-outcome-residual-correlation-matrix-sigma" id="toc-cross-outcome-residual-correlation-matrix-sigma" class="nav-link" data-scroll-target="#cross-outcome-residual-correlation-matrix-sigma"><span class="header-section-number">7.1</span> Cross-Outcome Residual Correlation Matrix (<span class="math inline">\(\Sigma\)</span>)</a></li>
+  <li><a href="#mcmc-mixing-effective-sample-size-and-trace-plots" id="toc-mcmc-mixing-effective-sample-size-and-trace-plots" class="nav-link" data-scroll-target="#mcmc-mixing-effective-sample-size-and-trace-plots"><span class="header-section-number">7.2</span> MCMC Mixing, Effective Sample Size, and Trace Plots</a></li>
+  </ul></li>
+  </ul>
+<div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="education_tax_bcf_paper.html"><i class="bi bi-file-pdf"></i>Typst</a></li></ul></div></nav>
+</div>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Does Public University Funding Pay for Itself? Isolating the Short- and Long-Run Tax Dividend Using Multivariate and Longitudinal Bayesian Causal Forests</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Andrew C. Parnell (School of Mathematics and Statistics, University College Dublin) </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">November 3, 2026</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="abstract" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="abstract">Abstract</h2>
+<p>When a government increases public funding for university education, does that investment eventually pay for itself through a stronger national tax take? Answering this question with global macroeconomic data is difficult for three reasons. First, richer and faster-growing economies naturally collect more tax and spend more on universities, making it easy to confuse general economic growth with a genuine fiscal return to higher education. Second, standard international education indicators divide per-student spending by gross domestic product (GDP) per person and by student headcount, creating ratio distortions across countries at different stages of development. Third, university graduates take years to complete their degrees and enter peak earning brackets, so short-run and long-run tax effects look very different across tax channels.</p>
+<p>We address these challenges by building a harmonised global panel covering 1,736 five-year country-waves across 217 sovereign countries from 1985 to 2024 (with 372 complete four-outcome fiscal waves across 121 countries at the <span class="math inline">\(+5\)</span>-year horizon and 283 across 112 countries at the <span class="math inline">\(+10\)</span>-year horizon). Using Multivariate Bayesian Causal Forests (<code>mvbcf</code>) and a three-wave Longitudinal Bayesian Causal Forest (<code>lbcf</code>), we model four pure tax outcomes jointly while separating pre-treatment baseline conditions from mediating macroeconomic changes (such as overall GDP per person growth, university enrolment expansion, income inequality changes, and life expectancy changes over the follow-up window).</p>
+<p>We find three main results. First, higher per-student university funding produces a clear, direct shift in government revenue toward <strong>direct income, profit, and capital gains taxation</strong> of <strong><code>+1.43</code> percentage points</strong> (<code>95% CrI [+0.41, +2.48]</code>, posterior probability <span class="math inline">\(P(\tau &gt; 0) = 0.997\)</span>) after 5 years and <strong><code>+1.88</code> percentage points</strong> (<code>95% CrI [+0.37, +3.41]</code>, <span class="math inline">\(P(\tau &gt; 0) = 0.990\)</span>) after 10 years, even after removing contemporaneous GDP growth and other macroeconomic mediators. Second, while the overall <strong>non-resource tax-to-GDP ratio</strong> shows little movement after 5 years (<code>+0.04</code> percentage points of GDP) while students are still studying or newly graduated, it rises by <strong><code>+0.55</code> percentage points of GDP</strong> (<code>80% CrI [+0.04, +1.05]</code>, <span class="math inline">\(P(\tau &gt; 0) = 0.919\)</span>) after 10 years, driven by a <strong><code>+0.32</code> percentage point</strong> expansion in direct income and corporate tax revenue as a share of GDP (<span class="math inline">\(P(\tau &gt; 0) = 0.929\)</span>). By contrast, our negative-control channel - indirect goods and services (consumption and VAT) tax share - moves slightly downward (<code>-0.73</code> percentage points at <span class="math inline">\(+10\)</span> years), confirming that university investment specifically widens the formal direct tax base rather than reflecting an across-the-board tax hike. Third, unbundling the spending denominators shows that <strong>per-student funding intensity</strong> (whether measured in real purchasing-power-parity dollars per student at <strong><code>+1.15</code> percentage points of GDP</strong>, <span class="math inline">\(P = 0.994\)</span>, or observed within-country funding expansions at <strong><code>+0.82</code> percentage points of direct income tax to GDP</strong>, <span class="math inline">\(P = 0.997\)</span>) drives the fiscal return, whereas expanding aggregate education budgets without protecting per-student resources yields much smaller fiscal gains.</p>
+<hr>
+</section>
+<section id="introduction" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="introduction"><span class="header-section-number">1</span> Introduction</h2>
+<p>Public debates over university funding often centre on a simple fiscal question: is higher education a net cost to the taxpayer, or is it a productive investment that strengthens a country's future tax base? At an individual level, decades of labour economics research have shown that university graduates earn higher wages, experience lower unemployment, and work in more formalised jobs <span class="citation" data-cites="psacharopoulos2018returns bound2010have deming2017impact">(<a href="#ref-psacharopoulos2018returns" role="doc-biblioref">Psacharopoulos and Patrinos 2018</a>; <a href="#ref-bound2010have" role="doc-biblioref">Bound et al. 2010</a>; <a href="#ref-deming2017impact" role="doc-biblioref">Deming and Walters 2017</a>)</span>. In principle, those higher individual earnings and corporate productivity gains should translate at the national level into stronger income and corporate tax receipts.</p>
+<p>Yet demonstrating whether - and how quickly - national university spending raises a country's aggregate tax take has proved surprisingly difficult. Cross-country fiscal studies face three practical hurdles:</p>
+<ol type="1">
+<li><strong>Separating Direct Fiscal Returns from General Economic Growth:</strong> If a country's tax revenue rises over the decade following an expansion in university funding, is that simply because the whole economy grew richer, or did university funding specifically expand the formal tax base beyond general macroeconomic growth? Furthermore, if researchers measure tax revenue by multiplying the tax-to-GDP ratio by GDP per person, any effect on GDP automatically inflates the outcome by construction.</li>
+<li><strong>The UNESCO Denominator Trap:</strong> The most widely available international measure of university funding intensity - published by the UNESCO Institute for Statistics and the World Bank - expresses public spending per university student as a percentage of GDP per person. Because this indicator has student headcount in the denominator and GDP per person in the denominator, a low-income country with a tiny elite university sector (enrolling only 2% of young adults) can appear to spend <code>150%</code> of GDP per person per student, while a high-income country enrolling 60% of its young adults appears to spend <code>27%</code>, even though the high-income country spends nearly three times as many real dollars per student.</li>
+<li><strong>Maturation Lags and Tax Structure Specificity:</strong> University investments take time to mature. A funding increase in wave <span class="math inline">\(t\)</span> supports students who may take three to five years to graduate and another five years to reach peak earning and tax-paying brackets. Moreover, as economies develop a more skilled workforce, they typically shift away from hard-to-evade indirect consumption taxes (such as value-added tax and customs duties) toward direct personal income and corporate profit taxes <span class="citation" data-cites="gordon2009tax besley2014pillars">(<a href="#ref-gordon2009tax" role="doc-biblioref">Gordon and Li 2009</a>; <a href="#ref-besley2014pillars" role="doc-biblioref">Besley and Persson 2014</a>)</span>. Looking only at a single aggregate tax number can obscure this structural shift.</li>
+</ol>
+<div id="fig-schematic" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-schematic-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="figures/fig1_structural_schematic.png" class="img-fluid figure-img" style="width:100.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-schematic-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Study design illustrating how we compare three observed measures of university funding, separate baseline country context (Pathway 2A) from mediating macroeconomic changes (Pathway 2B), and track four disaggregated tax outcomes over +5 and +10 years.
+</figcaption>
+</figure>
+</div>
+<p><a href="#fig-schematic" class="quarto-xref">Figure&nbsp;1</a> summarises how our study is designed to overcome all three hurdles in a transparent, step-by-step framework:</p>
+<ul>
+<li><strong>Four Pure Disaggregated Tax Outcomes (Zero GDP Product Identities):</strong> Rather than multiplying tax ratios by GDP, we model four pure percentage-point fiscal outcomes jointly: (1) overall domestic non-resource tax revenue as a share of GDP (<span class="math inline">\(\Delta \text{Tax/GDP}\)</span>), (2) direct income, profit, and capital gains tax revenue as a share of GDP (<span class="math inline">\(\Delta \text{IncomeTax/GDP}\)</span>), (3) direct income and profit taxes as a share of total revenue (<span class="math inline">\(\Delta \text{IncomeTax/Rev}\)</span>), and (4) indirect goods and services (consumption/VAT) taxes as a share of total revenue (<span class="math inline">\(\Delta \text{GoodsTax/Rev}\)</span>). The fourth outcome acts as a built-in specificity check (negative control): if university funding strengthens the tax take by creating high-skill formal employment and profitable firms, it should raise direct income and profit taxes (Outcomes 2 and 3) rather than indirect consumption tax reliance (Outcome 4).</li>
+<li><strong>Unbundling the Spending Denominators:</strong> Instead of relying on a single composite ratio, we compare three strictly observed measures of university funding side by side (with zero proxy imputation): the per-student spending ratio (% of GDP per person), real 2021 purchasing-power-parity (PPP) dollars per university student (which removes GDP from the denominator), and the public university budget as a percentage of GDP (which removes student headcount from the denominator), alongside total public education spending across all schooling levels.</li>
+<li><strong>Isolating the Mediator-Removed Direct Effect:</strong> Using Multivariate Bayesian Causal Forests <span class="citation" data-cites="hahn2020bayesian mcjames2024mvbcf">(<a href="#ref-hahn2020bayesian" role="doc-biblioref">Hahn et al. 2020</a>; <a href="#ref-mcjames2024mvbcf" role="doc-biblioref">McJames et al. 2024</a>)</span> and a three-wave Longitudinal Bayesian Causal Forest, we compare a <strong>Total Fiscal Effect Model (<code>M1</code>)</strong> - which controls only for pre-treatment baseline conditions including lagged economic growth - against a <strong>Mediator-Removed Direct Fiscal Effect Model (<code>M2</code>)</strong>, which additionally removes the mediating pathways of forward GDP per person growth, university enrolment expansion, income inequality changes, and life expectancy changes over the follow-up window.</li>
+</ul>
+<hr>
+</section>
+<section id="data-and-measuring-university-funding-and-tax-capacity" class="level2" data-number="2">
+<h2 data-number="2" class="anchored" data-anchor-id="data-and-measuring-university-funding-and-tax-capacity"><span class="header-section-number">2</span> Data and Measuring University Funding and Tax Capacity</h2>
+<section id="global-5-year-panel-structure-and-quality-screening" class="level3" data-number="2.1">
+<h3 data-number="2.1" class="anchored" data-anchor-id="global-5-year-panel-structure-and-quality-screening"><span class="header-section-number">2.1</span> Global 5-Year Panel Structure and Quality Screening</h3>
+<p>Annual macroeconomic series for education spending and tax revenue contain substantial year-to-year reporting gaps and cyclical noise. Following standard practice in empirical growth and fiscal research, we aggregate annual observations from the World Bank World Development Indicators (WDI), UNESCO Institute for Statistics, the UNU-WIDER Government Revenue Dataset <span class="citation" data-cites="ictd2023grdv">(<a href="#ref-ictd2023grdv" role="doc-biblioref">ICTD/UNU-WIDER 2023</a>)</span>, the Standardized World Income Inequality Database <span class="citation" data-cites="solt2020swiid">(<a href="#ref-solt2020swiid" role="doc-biblioref">Solt 2020</a>)</span>, and the Worldwide Governance Indicators into eight non-overlapping five-year waves spanning 40 years: <code>1985-1989</code>, <code>1990-1994</code>, <code>1995-1999</code>, <code>2000-2004</code>, <code>2005-2009</code>, <code>2010-2014</code>, <code>2015-2019</code>, and <code>2020-2024</code>.</p>
+<p>Our full harmonised panel (<code>data/processed/clean_tax_panel.csv</code>) contains 1,736 country-wave observations across 217 sovereign territories (after removing regional and world aggregates). To ensure that extreme historical reporting errors in raw international statistics do not distort our estimates, we screen out impossible tax-to-GDP observations exceeding 60% of GDP (<code>&lt; 0.5%</code> of GDP). This quality filter catches two well-known raw WDI reporting anomalies: Sudan in <code>1995-1999</code> (where a historical currency-unit mismatch in WDI records tax revenue at <code>629.2%</code> of GDP) and Timor-Leste in <code>2010-2014</code> (where offshore petroleum fund accounting records tax revenue at <code>110.0%</code> of non-oil GDP). After screening these two anomalies, our complete four-outcome estimation sample comprises <strong>372 country-waves across 121 countries</strong> at the <span class="math inline">\(+5\)</span>-year horizon (<span class="math inline">\(t \to t+1\)</span>) and <strong>283 country-waves across 112 countries</strong> at the <span class="math inline">\(+10\)</span>-year horizon (<span class="math inline">\(t \to t+2\)</span>).</p>
+</section>
+<section id="why-we-track-four-separate-tax-channels" class="level3" data-number="2.2">
+<h3 data-number="2.2" class="anchored" data-anchor-id="why-we-track-four-separate-tax-channels"><span class="header-section-number">2.2</span> Why We Track Four Separate Tax Channels</h3>
+<p>A country's tax system is not a single monolith. To understand how university funding affects public finances, we track four distinct percentage-point changes over both <span class="math inline">\(+5\)</span> years (<span class="math inline">\(t+1\)</span>) and <span class="math inline">\(+10\)</span> years (<span class="math inline">\(t+2\)</span>):</p>
+<ol type="1">
+<li><strong>Overall Domestic Non-Resource Tax Revenue (<span class="math inline">\(\Delta \text{Tax/GDP}\)</span>, percentage points of GDP):</strong> Total tax revenue as a percentage of GDP, adjusted to remove volatile natural resource rents in petro-states and mineral exporters where oil or mining royalties otherwise mask domestic tax effort <span class="citation" data-cites="ictd2023grdv">(<a href="#ref-ictd2023grdv" role="doc-biblioref">ICTD/UNU-WIDER 2023</a>)</span>. (We also verify our results on pure, unadjusted World Bank WDI tax-to-GDP in our robustness checks.)</li>
+<li><strong>Direct Income, Profit, and Capital Gains Tax Revenue (<span class="math inline">\(\Delta \text{IncomeTax/GDP}\)</span>, percentage points of GDP):</strong> Revenue collected directly from individual wages, salaries, and corporate profits, expressed as a percentage of GDP (<code>GC.TAX.YPKG.GD.ZS</code>).</li>
+<li><strong>Direct Income and Profit Share of Revenue (<span class="math inline">\(\Delta \text{IncomeTax/Rev}\)</span>, percentage points of total revenue):</strong> The share of government revenue coming from direct taxes on income, profits, and capital gains (<code>GC.TAX.YPKG.ZS</code>). This measures whether the tax structure is modernising toward progressive, direct taxation <span class="citation" data-cites="besley2014pillars">(<a href="#ref-besley2014pillars" role="doc-biblioref">Besley and Persson 2014</a>)</span>.</li>
+<li><strong>Indirect Goods and Services Tax Share (<span class="math inline">\(\Delta \text{GoodsTax/Rev}\)</span>, percentage points of total revenue):</strong> The share of revenue coming from indirect consumption taxes such as VAT, sales taxes, and excise duties (<code>GC.TAX.GSRV.RV.ZS</code>). Because indirect consumption taxes do not specifically target high-skill formal earnings, this serves as our negative-control channel.</li>
+</ol>
+</section>
+<section id="unbundling-the-unesco-denominator-trap" class="level3" data-number="2.3">
+<h3 data-number="2.3" class="anchored" data-anchor-id="unbundling-the-unesco-denominator-trap"><span class="header-section-number">2.3</span> Unbundling the UNESCO Denominator Trap</h3>
+<p>Why is it so important to look beneath the standard UNESCO per-student university spending ratio? Mathematically, the UNESCO indicator (<code>SE.XPD.TERT.PC.ZS</code>) is defined as:</p>
+<p><span class="math display">\[
+\text{UNESCO Ratio}_{i,t} = \frac{\text{Public University Spending per Student}_{i,t}}{\text{GDP per Person}_{i,t}} \times 100 = \frac{\text{Public University Budget (\%\ of GDP)}_{i,t}}{\text{University Students per Person}_{i,t}}
+\]</span></p>
+<p><a href="#tbl-eda1" class="quarto-xref">Table&nbsp;1</a> shows what happens when we compare this ratio across the four World Bank income groups alongside our two unbundled measures: <strong>Real 2021 PPP Dollars per Student</strong> (which cancels GDP per person out of the denominator) and <strong>Public University Budget as a % of GDP</strong> (which cancels student headcount out of the denominator).</p>
+<div id="tbl-eda1" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-eda1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;1: University spending indicators and baseline tax structure across World Bank income groups (group medians for skewed spending and enrolment variables; group means for direct income tax share).
+</figcaption>
+<div aria-describedby="tbl-eda1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 11%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">World Bank Income Group</th>
+<th style="text-align: center;">Countries (Waves)</th>
+<th style="text-align: center;">UNESCO Ratio (% GDP/person)</th>
+<th style="text-align: center;"><strong>Real PPP $ / Student</strong></th>
+<th style="text-align: center;"><strong>University Budget (% GDP)</strong></th>
+<th style="text-align: center;">University Enrolment (%)</th>
+<th style="text-align: center;">Direct Income Tax Share (%)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong>Low income</strong></td>
+<td style="text-align: center;">21 (80)</td>
+<td style="text-align: center;"><strong>150.0%</strong></td>
+<td style="text-align: center;">$3,957</td>
+<td style="text-align: center;">0.47%</td>
+<td style="text-align: center;">2.3%</td>
+<td style="text-align: center;">29.2%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Lower middle income</strong></td>
+<td style="text-align: center;">41 (172)</td>
+<td style="text-align: center;">76.5%</td>
+<td style="text-align: center;">$3,258</td>
+<td style="text-align: center;">0.65%</td>
+<td style="text-align: center;">7.4%</td>
+<td style="text-align: center;">30.8%</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Upper middle income</strong></td>
+<td style="text-align: center;">54 (219)</td>
+<td style="text-align: center;">26.8%</td>
+<td style="text-align: center;">$3,521</td>
+<td style="text-align: center;">0.64%</td>
+<td style="text-align: center;">25.5%</td>
+<td style="text-align: center;">33.1%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>High income</strong></td>
+<td style="text-align: center;">69 (337)</td>
+<td style="text-align: center;">26.9%</td>
+<td style="text-align: center;"><strong>$11,148</strong></td>
+<td style="text-align: center;"><strong>0.94%</strong></td>
+<td style="text-align: center;"><strong>58.3%</strong></td>
+<td style="text-align: center;"><strong>38.4%</strong></td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>The contrast in <a href="#tbl-eda1" class="quarto-xref">Table&nbsp;1</a> is striking:</p>
+<ul>
+<li>In <strong>Low income</strong> countries, only <strong>2.3%</strong> of young adults attend university. Dividing a modest university budget (<strong>0.47%</strong> of GDP) by a tiny student headcount and a low GDP per person produces a median UNESCO ratio of <strong>150.0%</strong>.</li>
+<li>Once we unbundle the denominators, <strong>High income</strong> countries actually spend nearly three times as much per student in real purchasing power (<strong>$11,148</strong> vs <strong>$3,957</strong>) and twice as much of their national income (<strong>0.94%</strong> vs <strong>0.47%</strong> of GDP), while collecting a much larger share of their revenue from direct income and profit taxes (<strong>38.4%</strong> vs <strong>29.2%</strong>).</li>
+</ul>
+<p>To ensure that our causal estimates are never fooled by this cross-income-group inversion, our primary per-student regime indicator (<span class="math inline">\(Z_{i,t} = 1\)</span>) compares each country strictly against the median of <strong>its own World Bank income group</strong>, and we test all five spending definitions side by side in Section 4.2.</p>
+<hr>
+</section>
+</section>
+<section id="how-our-causal-forest-approach-works" class="level2" data-number="3">
+<h2 data-number="3" class="anchored" data-anchor-id="how-our-causal-forest-approach-works"><span class="header-section-number">3</span> How Our Causal Forest Approach Works</h2>
+<section id="intuition-separating-baseline-trajectories-from-treatment-effects" class="level3" data-number="3.1">
+<h3 data-number="3.1" class="anchored" data-anchor-id="intuition-separating-baseline-trajectories-from-treatment-effects"><span class="header-section-number">3.1</span> Intuition: Separating Baseline Trajectories from Treatment Effects</h3>
+<p>In an ideal experiment, we would randomly assign some countries to increase university funding and others to hold funding steady. In reality, governments choose their university budgets based on economic conditions, demographics, and political priorities. Standard linear regressions struggle in this setting because the relationship between economic development, tax capacity, and education spending is highly non-linear, and because rich and poor countries respond differently to funding changes.</p>
+<p><strong>Bayesian Causal Forests (BCF)</strong> <span class="citation" data-cites="hahn2020bayesian">(<a href="#ref-hahn2020bayesian" role="doc-biblioref">Hahn et al. 2020</a>)</span> solve this problem by splitting the prediction of future tax changes into two distinct parts, each modelled flexibly using ensembles of decision trees <span class="citation" data-cites="chipman2010bart">(<a href="#ref-chipman2010bart" role="doc-biblioref">Chipman et al. 2010</a>)</span>:</p>
+<p><span class="math display">\[
+\Delta Y_{i, t+h} = \underbrace{\mu\bigl(X_{i,t}, \hat{\pi}(X_{i,t})\bigr)}_{\text{Baseline Tax Trajectory if } Z=0} + \underbrace{\tau\bigl(W_{i,t}\bigr)}_{\text{Causal Effect of University Funding}} \cdot Z_{i,t} + \varepsilon_{i, t+h}
+\]</span></p>
+<p>Here is the intuition behind each piece of the equation:</p>
+<ol type="1">
+<li><strong>The Baseline Trajectory <span class="math inline">\(\mu(X_{i,t}, \hat{\pi}_{i,t})\)</span>:</strong> A flexible forest of 200 trees learns how a country's starting conditions <span class="math inline">\(X_{i,t}\)</span> (such as its starting GDP per person, starting tax structure, prior 5-year economic growth, population size, unemployment, inflation, governance quality, and natural resource rents) predict how its tax take would evolve naturally over the next 5 or 10 years without high university funding. Including the estimated propensity score <span class="math inline">\(\hat{\pi}(X_{i,t})\)</span> - each country's predicted probability of choosing high university funding - directly inside <span class="math inline">\(\mu(\cdot)\)</span> guards against "regularisation-induced confounding", ensuring that baseline differences between high-spending and low-spending countries are absorbed by <span class="math inline">\(\mu(\cdot)\)</span> rather than bleeding into the treatment effect.</li>
+<li><strong>The Heterogeneous Causal Effect <span class="math inline">\(\tau(W_{i,t})\)</span>:</strong> A second, more conservative forest of 50 trees estimates how the causal return to university funding varies across country contexts <span class="math inline">\(W_{i,t}\)</span> - such as whether a country has an elite (<code>&lt;20%</code>), massifying (<code>20-50%</code>), or universal (<code>&gt;=50%</code>) university system, its income group, and its public-versus-private tuition mix. Because <span class="math inline">\(\tau(\cdot)\)</span> is shrunk toward a constant average effect unless the data show clear differences across subgroups, BCF avoids overfitting noisy macroeconomic data.</li>
+<li><strong>Borrowing Strength Across Tax Outcomes (<code>mvbcf</code>) and Across Time (<code>lbcf</code>):</strong> Instead of fitting each tax outcome in isolation, our <strong>Multivariate BCF (<code>mvbcf</code>)</strong> models all four tax outcomes together with a shared residual covariance matrix <span class="math inline">\(\Sigma\)</span> <span class="citation" data-cites="mcjames2024mvbcf">(<a href="#ref-mcjames2024mvbcf" role="doc-biblioref">McJames et al. 2024</a>)</span>. And to track how fiscal returns build over time within the same country, our <strong>Three-Wave Longitudinal BCF (<code>lbcf</code>)</strong> jointly models the initial <span class="math inline">\(+5\)</span>-year step (<span class="math inline">\(t \to t+1\)</span>) and the subsequent <span class="math inline">\(+5\text{ to }+10\)</span>-year maturation step (<span class="math inline">\(t+1 \to t+2\)</span>) while accounting for intermediate economic changes at wave <span class="math inline">\(t+1\)</span>. (Full mathematical details and MCMC convergence diagnostics are provided in Appendices A and B.)</li>
+</ol>
+</section>
+<section id="total-fiscal-effect-m1-vs-mediator-removed-direct-effect-m2" class="level3" data-number="3.2">
+<h3 data-number="3.2" class="anchored" data-anchor-id="total-fiscal-effect-m1-vs-mediator-removed-direct-effect-m2"><span class="header-section-number">3.2</span> Total Fiscal Effect (<code>M1</code>) vs Mediator-Removed Direct Effect (<code>M2</code>)</h3>
+<p>To answer whether university funding improves the tax take <em>once mediating macroeconomic variables are separated out</em>, we estimate two core specifications for every outcome and horizon:</p>
+<ul>
+<li><strong>Model <code>M1</code> (Total Fiscal Effect):</strong> Controls strictly for <strong>pre-treatment baseline covariates</strong> measured at or before wave <span class="math inline">\(t\)</span> (critically using <em>lagged</em> <span class="math inline">\(t-1\)</span> GDP per person growth rather than contemporaneous wave-<span class="math inline">\(t\)</span> growth, so that economic growth caused by current spending is never controlled away by mistake).</li>
+<li><strong>Model <code>M2</code> (Mediator-Removed Direct Fiscal Effect):</strong> Controls for all pre-treatment baseline covariates in <code>M1</code> <strong>plus four contemporaneous macroeconomic mediators</strong> measured over the follow-up window <span class="math inline">\([t, t+h]\)</span>: (i) forward log GDP per person growth, (ii) forward change in gross university enrolment, (iii) forward change in disposable income inequality (Gini), and (iv) forward change in life expectancy.</li>
+</ul>
+<p>If the positive effect of university funding on tax revenue disappears in Model <code>M2</code>, then university spending only raises taxes indirectly by boosting general GDP growth. Conversely, if the effect remains strong in Model <code>M2</code>, then university funding produces a <strong>direct structural shift</strong> toward higher tax capacity above and beyond general macroeconomic growth.</p>
+<hr>
+</section>
+</section>
+<section id="main-results" class="level2" data-number="4">
+<h2 data-number="4" class="anchored" data-anchor-id="main-results"><span class="header-section-number">4</span> Main Results</h2>
+<section id="total-vs-direct-effects-across-the-four-tax-channels" class="level3" data-number="4.1">
+<h3 data-number="4.1" class="anchored" data-anchor-id="total-vs-direct-effects-across-the-four-tax-channels"><span class="header-section-number">4.1</span> Total vs Direct Effects Across the Four Tax Channels</h3>
+<p><a href="#tbl-main-ate" class="quarto-xref">Table&nbsp;2</a> and <a href="#fig-posteriors" class="quarto-xref">Figure&nbsp;2</a> present our headline findings comparing the <strong>Total Fiscal Effect (<code>M1</code>)</strong> and the <strong>Mediator-Removed Direct Fiscal Effect (<code>M2</code>)</strong> across all four tax channels at <span class="math inline">\(+5\)</span> years (<span class="math inline">\(N = 372\)</span> country-waves across <span class="math inline">\(121\)</span> countries) and <span class="math inline">\(+10\)</span> years (<span class="math inline">\(N = 283\)</span> country-waves across <span class="math inline">\(112\)</span> countries). All posterior probabilities and credible intervals are reported alongside country-clustered block-bootstrap posteriors to account for repeated observations within the same country.</p>
+<div id="tbl-main-ate" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-main-ate-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;2: Posterior mean treatment effects (in percentage points) and country-clustered posterior probabilities <span class="math inline">\(P(\tau &gt; 0)\)</span> from the joint Multivariate Bayesian Causal Forest (<code>mvbcf</code>). Bold highlights effects with <span class="math inline">\(P(\tau &gt; 0) &gt; 0.90\)</span>.
+</figcaption>
+<div aria-describedby="tbl-main-ate-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 16%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Disaggregated Tax Outcome</th>
+<th style="text-align: center;"><span class="math inline">\(+5\text{y}\)</span> Total (<code>M1</code>)</th>
+<th style="text-align: center;"><strong><span class="math inline">\(+5\text{y}\)</span> Direct (<code>M2</code>)</strong></th>
+<th style="text-align: center;"><span class="math inline">\(+10\text{y}\)</span> Total (<code>M1</code>)</th>
+<th style="text-align: center;"><strong><span class="math inline">\(+10\text{y}\)</span> Direct (<code>M2</code>)</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong>1. Non-Resource Tax / GDP (pp)</strong></td>
+<td style="text-align: center;"><code>-0.02</code> (<span class="math inline">\(P=0.47\)</span>)</td>
+<td style="text-align: center;"><code>+0.04</code> (<span class="math inline">\(P=0.55\)</span>)</td>
+<td style="text-align: center;"><code>+0.38</code> (<span class="math inline">\(P=0.82\)</span>)</td>
+<td style="text-align: center;"><strong><code>+0.55</code> (<span class="math inline">\(P=0.92\)</span>)</strong></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>2. Direct Income &amp; Profit Tax / GDP (pp)</strong></td>
+<td style="text-align: center;"><code>+0.19</code> (<span class="math inline">\(P=0.93\)</span>)</td>
+<td style="text-align: center;"><strong><code>+0.21</code> (<span class="math inline">\(P=0.94\)</span>)</strong></td>
+<td style="text-align: center;"><code>+0.31</code> (<span class="math inline">\(P=0.93\)</span>)</td>
+<td style="text-align: center;"><strong><code>+0.32</code> (<span class="math inline">\(P=0.93\)</span>)</strong></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>3. Direct Income Tax Share of Revenue (pp)</strong></td>
+<td style="text-align: center;"><strong><code>+1.34</code> (<span class="math inline">\(P=0.99\)</span>)</strong></td>
+<td style="text-align: center;"><strong><code>+1.43</code> (<span class="math inline">\(P=0.997\)</span>)</strong></td>
+<td style="text-align: center;"><strong><code>+1.77</code> (<span class="math inline">\(P=0.99\)</span>)</strong></td>
+<td style="text-align: center;"><strong><code>+1.88</code> (<span class="math inline">\(P=0.990\)</span>)</strong></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>4. Goods &amp; Services Tax Share (pp, Neg. Control)</strong></td>
+<td style="text-align: center;"><code>-0.28</code> (<span class="math inline">\(P=0.31\)</span>)</td>
+<td style="text-align: center;"><code>-0.13</code> (<span class="math inline">\(P=0.41\)</span>)</td>
+<td style="text-align: center;"><code>-0.74</code> (<span class="math inline">\(P=0.18\)</span>)</td>
+<td style="text-align: center;"><code>-0.73</code> (<span class="math inline">\(P=0.19\)</span>)</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<div id="fig-posteriors" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-posteriors-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="figures/fig2_total_vs_direct_tax_posteriors.png" class="img-fluid figure-img" style="width:100.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-posteriors-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: Posterior mean treatment effects (with thick 80% and thin 95% credible intervals) comparing the Total Fiscal Effect (M1, blue) and the Mediator-Removed Direct Fiscal Effect (M2, green) across the four tax outcomes at +5 and +10 years.
+</figcaption>
+</figure>
+</div>
+<p>Three clear messages emerge from <a href="#tbl-main-ate" class="quarto-xref">Table&nbsp;2</a> and <a href="#fig-posteriors" class="quarto-xref">Figure&nbsp;2</a>:</p>
+<ol type="1">
+<li><strong>An Immediate and Lasting Shift Toward Direct Income and Profit Taxation:</strong> Even after separating out forward GDP growth, enrolment growth, inequality changes, and life expectancy changes (<code>M2</code>), investing above the income-group benchmark per university student increases the <strong>Direct Income and Profit Share of Revenue</strong> by <strong><code>+1.43</code> percentage points</strong> (<code>95% CrI [+0.41, +2.48]</code>, country-clustered <span class="math inline">\(P(\tau &gt; 0) = 0.997\)</span>) at <span class="math inline">\(+5\)</span> years and <strong><code>+1.88</code> percentage points</strong> (<code>95% CrI [+0.37, +3.41]</code>, <span class="math inline">\(P(\tau &gt; 0) = 0.990\)</span>) at <span class="math inline">\(+10\)</span> years. Notably, the direct effect (<code>M2</code>) is slightly <em>larger</em> and more precise than the total effect (<code>M1</code>), showing that university funding directly accelerates the transition toward formal income and corporate taxation.</li>
+<li><strong>A Decade-Long Maturation Lag for Total Tax-to-GDP:</strong> Over the first 5 years (<code>+5y</code>), overall <strong>Non-Resource Tax / GDP</strong> scarcely moves (<code>+0.04</code> percentage points, <span class="math inline">\(P = 0.553\)</span>). This makes intuitive sense: during the first five years after a funding wave, much of the supported student cohort is still in university or only entering entry-level jobs. By <span class="math inline">\(+10\)</span> years (<code>+10y</code>), as graduates move into more productive, higher-salaried careers, the direct effect on <strong>Non-Resource Tax / GDP</strong> rises to <strong><code>+0.55</code> percentage points of GDP</strong> (<code>80% CrI [+0.04, +1.05]</code>, <span class="math inline">\(P(\tau &gt; 0) = 0.919\)</span>), driven by a <strong><code>+0.32</code> percentage point</strong> increase in <strong>Direct Income and Profit Tax / GDP</strong> (<code>80% CrI [+0.05, +0.59]</code>, <span class="math inline">\(P(\tau &gt; 0) = 0.929\)</span>).</li>
+<li><strong>Specificity Confirmed by the Negative-Control Channel:</strong> On our fourth outcome - <strong>Goods and Services (Consumption / VAT) Tax Share</strong> - the estimated effect is near zero at <span class="math inline">\(+5\)</span> years (<code>-0.13</code> pp) and turns moderately negative at <span class="math inline">\(+10\)</span> years (<strong><code>-0.73</code> percentage points</strong>, <span class="math inline">\(P(\tau &gt; 0) = 0.194\)</span>, meaning an <code>80.6%</code> posterior probability of a <em>reduction</em> in consumption tax reliance). As direct income and corporate tax receipts expand, governments rely relatively less on regressive consumption taxes.</li>
+</ol>
+</section>
+<section id="unbundling-the-denominators-per-student-quality-vs-aggregate-budgets" class="level3" data-number="4.2">
+<h3 data-number="4.2" class="anchored" data-anchor-id="unbundling-the-denominators-per-student-quality-vs-aggregate-budgets"><span class="header-section-number">4.2</span> Unbundling the Denominators: Per-Student Quality vs Aggregate Budgets</h3>
+<p>Does the fiscal dividend come from spending more <strong>per student</strong> (protecting instructional and research quality), or simply from spending a larger share of GDP on university or general education budgets regardless of student numbers? <a href="#tbl-horserace" class="quarto-xref">Table&nbsp;3</a> and <a href="#fig-horserace" class="quarto-xref">Figure&nbsp;3</a> compare five distinct spending exposures side by side at the <span class="math inline">\(+10\)</span>-year horizon (all estimated under the Mediator-Removed Direct Effect specification <code>M2</code>).</p>
+<div id="tbl-horserace" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-horserace-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;3: Comparison of <span class="math inline">\(+10\)</span>-year Mediator-Removed Direct Fiscal Effects across five university and general education spending definitions.
+</figcaption>
+<div aria-describedby="tbl-horserace-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 16%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Spending Exposure Definition (<span class="math inline">\(+10\text{y}\)</span> Direct Effect)</th>
+<th style="text-align: center;"><span class="math inline">\(N\)</span> (Countries)</th>
+<th style="text-align: center;"><strong><span class="math inline">\(\Delta\)</span> Non-Resource Tax / GDP (pp)</strong></th>
+<th style="text-align: center;"><strong><span class="math inline">\(\Delta\)</span> Direct Income Tax / GDP (pp)</strong></th>
+<th style="text-align: center;"><strong><span class="math inline">\(\Delta\)</span> Direct Income Tax Share (pp)</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong>1. Per-Student Ratio Regime (<code>Z_regime_inc</code>)</strong></td>
+<td style="text-align: center;">283 (112)</td>
+<td style="text-align: center;"><strong><code>+0.55</code> (<span class="math inline">\(P=0.92\)</span>)</strong></td>
+<td style="text-align: center;"><strong><code>+0.32</code> (<span class="math inline">\(P=0.93\)</span>)</strong></td>
+<td style="text-align: center;"><strong><code>+1.88</code> (<span class="math inline">\(P=0.990\)</span>)</strong></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>2. Observed Within-Country Expansion (<span class="math inline">\(\ge +2.5\text{ pp}\)</span>)</strong></td>
+<td style="text-align: center;">176 (86)</td>
+<td style="text-align: center;"><code>+0.55</code> (<span class="math inline">\(P=0.81\)</span>)</td>
+<td style="text-align: center;"><strong><code>+0.82</code> (<span class="math inline">\(P=0.997\)</span>)</strong></td>
+<td style="text-align: center;"><strong><code>+2.53</code> (<span class="math inline">\(P=0.996\)</span>)</strong></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>3. Real 2021 PPP Dollars per Student (No GDP Denom.)</strong></td>
+<td style="text-align: center;">283 (112)</td>
+<td style="text-align: center;"><strong><code>+1.15</code> (<span class="math inline">\(P=0.994\)</span>)</strong></td>
+<td style="text-align: center;"><strong><code>+0.35</code> (<span class="math inline">\(P=0.937\)</span>)</strong></td>
+<td style="text-align: center;"><code>+0.65</code> (<span class="math inline">\(P=0.75\)</span>)</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>4. University Budget % of GDP (No Enrolment Denom.)</strong></td>
+<td style="text-align: center;">269 (109)</td>
+<td style="text-align: center;"><code>+0.19</code> (<span class="math inline">\(P=0.70\)</span>)</td>
+<td style="text-align: center;"><code>+0.07</code> (<span class="math inline">\(P=0.64\)</span>)</td>
+<td style="text-align: center;"><code>+0.57</code> (<span class="math inline">\(P=0.78\)</span>)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>5. Total Education Budget % of GDP (All Levels)</strong></td>
+<td style="text-align: center;">280 (112)</td>
+<td style="text-align: center;"><code>+0.16</code> (<span class="math inline">\(P=0.63\)</span>)</td>
+<td style="text-align: center;"><code>-0.00</code> (<span class="math inline">\(P=0.50\)</span>)</td>
+<td style="text-align: center;"><code>+0.42</code> (<span class="math inline">\(P=0.60\)</span>)</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<div id="fig-horserace" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-horserace-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="figures/fig3_denominator_unbundling_horserace.png" class="img-fluid figure-img" style="width:100.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-horserace-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: Comparison of +10-year Mediator-Removed Direct Fiscal Effects across five spending definitions (with country-clustered 95% and 80% credible intervals).
+</figcaption>
+</figure>
+</div>
+<p><a href="#tbl-horserace" class="quarto-xref">Table&nbsp;3</a> and <a href="#fig-horserace" class="quarto-xref">Figure&nbsp;3</a> resolve the denominator debate with a clear substantive lesson:</p>
+<ul>
+<li><strong>Removing GDP from the Denominator Strengthens the Overall Tax-to-GDP Return:</strong> When we define treatment using <strong>Real 2021 PPP Dollars per University Student</strong> (Row 3, which completely removes GDP per person from the treatment denominator), the <span class="math inline">\(+10\)</span>-year direct effect on <strong>Non-Resource Tax / GDP</strong> doubles to <strong><code>+1.15</code> percentage points of GDP</strong> (<code>95% CrI [+0.25, +2.08]</code>, country-clustered <span class="math inline">\(P(\tau &gt; 0) = 0.994\)</span>), alongside a <strong><code>+0.35</code> percentage point</strong> increase in <strong>Direct Income Tax / GDP</strong> (<span class="math inline">\(P = 0.937\)</span>).</li>
+<li><strong>Strictly Observed Within-Country Expansions Produce the Largest Direct Income Tax Gain:</strong> When we compare countries experiencing an observed within-country jump in per-student funding (<span class="math inline">\(\ge +2.5\)</span> percentage points and <span class="math inline">\(\ge +2.5\%\)</span> over the wave, Row 2, <span class="math inline">\(N = 176\)</span> with zero proxy imputation), <strong>Direct Income and Profit Tax / GDP</strong> rises by <strong><code>+0.82</code> percentage points of GDP</strong> (<code>95% CrI [+0.27, +1.39]</code>, <span class="math inline">\(P = 0.997\)</span>) and <strong>Direct Income Tax Share</strong> rises by <strong><code>+2.53</code> percentage points</strong> (<code>95% CrI [+0.43, +4.58]</code>, <span class="math inline">\(P = 0.996\)</span>).</li>
+<li><strong>Per-Student Intensity Matters More Than Unscaled Budget Shares:</strong> When we ignore student headcount and look only at the aggregate <strong>University Budget % of GDP</strong> (Row 4) or <strong>Total Education Budget % of GDP</strong> across primary, secondary, and tertiary schooling combined (Row 5), the <span class="math inline">\(+10\)</span>-year fiscal effects shrink to <code>+0.19</code> and <code>+0.16</code> percentage points of GDP. In plain terms, expanding enrolment rapidly without increasing funding in line with student numbers dilutes resources per student - a phenomenon known in the higher education literature as "institutional crowding" <span class="citation" data-cites="bound2010have deming2017impact">(<a href="#ref-bound2010have" role="doc-biblioref">Bound et al. 2010</a>; <a href="#ref-deming2017impact" role="doc-biblioref">Deming and Walters 2017</a>)</span>. Sustaining funding <em>per student</em> is what equips graduates for high-productivity, formal-sector careers that expand the direct tax base.</li>
+</ul>
+</section>
+<section id="how-fiscal-returns-vary-by-enrolment-access-and-financing-model" class="level3" data-number="4.3">
+<h3 data-number="4.3" class="anchored" data-anchor-id="how-fiscal-returns-vary-by-enrolment-access-and-financing-model"><span class="header-section-number">4.3</span> How Fiscal Returns Vary by Enrolment Access and Financing Model</h3>
+<p>Does high per-student university spending only pay off in elite systems, or does it continue to generate fiscal returns as university access expands? <a href="#fig-moderation" class="quarto-xref">Figure&nbsp;4</a> plots each country-wave's <span class="math inline">\(+10\)</span>-year direct effect on the Direct Income and Profit Tax Share against its baseline gross university enrolment ratio, coloured by World Bank income group, while <a href="#tbl-subgroups" class="quarto-xref">Table&nbsp;4</a> summarises the subgroup conditional average treatment effects (CATEs).</p>
+<div id="fig-moderation" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-moderation-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="figures/fig4_enrolment_and_oecd_moderation.png" class="img-fluid figure-img" style="width:100.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-moderation-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4: Unit-level +10-year Mediator-Removed Direct Effect on Direct Income and Profit Tax Share (percentage points) across baseline gross university enrolment ratios and World Bank income groups.
+</figcaption>
+</figure>
+</div>
+<div id="tbl-subgroups" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-subgroups-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;4: Subgroup conditional average treatment effects (CATEs, with 95% credible intervals) at the <span class="math inline">\(+10\)</span>-year horizon across university enrolment regimes and OECD public-versus-private financing regimes.
+</figcaption>
+<div aria-describedby="tbl-subgroups-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 16%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Country Context Subgroup (<span class="math inline">\(+10\text{y}\)</span> Direct Effect)</th>
+<th style="text-align: center;"><span class="math inline">\(N\)</span> (Countries)</th>
+<th style="text-align: center;"><strong><span class="math inline">\(\Delta\)</span> Non-Resource Tax / GDP (pp)</strong></th>
+<th style="text-align: center;"><strong><span class="math inline">\(\Delta\)</span> Direct Income Tax / GDP (pp)</strong></th>
+<th style="text-align: center;"><strong><span class="math inline">\(\Delta\)</span> Direct Income Tax Share (pp)</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong>1. Elite Enrolment (<code>&lt;20%</code> of cohort)</strong></td>
+<td style="text-align: center;">74 (43)</td>
+<td style="text-align: center;"><strong><code>+1.04</code> <code>[-0.02, +2.15]</code></strong></td>
+<td style="text-align: center;"><strong><code>+0.49</code> <code>[-0.06, +1.10]</code></strong></td>
+<td style="text-align: center;"><strong><code>+2.10</code> <code>[+0.11, +4.37]</code> (<span class="math inline">\(P=0.98\)</span>)</strong></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>2. Massifying Enrolment (<code>20-50%</code> of cohort)</strong></td>
+<td style="text-align: center;">73 (42)</td>
+<td style="text-align: center;"><strong><code>+0.73</code> <code>[-0.13, +1.56]</code></strong></td>
+<td style="text-align: center;"><code>+0.30</code> <code>[-0.15, +0.76]</code></td>
+<td style="text-align: center;"><strong><code>+1.93</code> <code>[+0.23, +3.62]</code> (<span class="math inline">\(P=0.99\)</span>)</strong></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>3. High-Participation (<code>&gt;=50%</code> of cohort)</strong></td>
+<td style="text-align: center;">136 (53)</td>
+<td style="text-align: center;"><code>+0.18</code> <code>[-0.69, +1.04]</code></td>
+<td style="text-align: center;"><code>+0.23</code> <code>[-0.27, +0.70]</code></td>
+<td style="text-align: center;"><strong><code>+1.73</code> <code>[-0.16, +3.40]</code> (<span class="math inline">\(P=0.97\)</span>)</strong></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>4. OECD Nordic &amp; Low-Tuition Public Model</strong></td>
+<td style="text-align: center;">66 (20)</td>
+<td style="text-align: center;"><code>-0.68</code> <code>[-1.46, +0.21]</code></td>
+<td style="text-align: center;"><code>-0.02</code> <code>[-0.69, +0.67]</code></td>
+<td style="text-align: center;"><strong><code>+1.83</code> <code>[-0.61, +4.10]</code> (<span class="math inline">\(P=0.93\)</span>)</strong></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>5. OECD High-Tuition / Hybrid Public-Private</strong></td>
+<td style="text-align: center;">53 (17)</td>
+<td style="text-align: center;"><code>-0.61</code> <code>[-1.40, +0.28]</code></td>
+<td style="text-align: center;"><code>-0.05</code> <code>[-0.71, +0.65]</code></td>
+<td style="text-align: center;"><strong><code>+1.66</code> <code>[-0.71, +3.97]</code> (<span class="math inline">\(P=0.91\)</span>)</strong></td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>As shown in <a href="#fig-moderation" class="quarto-xref">Figure&nbsp;4</a> and <a href="#tbl-subgroups" class="quarto-xref">Table&nbsp;4</a>, the shift toward direct income and profit taxation is positive across <strong>all three enrolment regimes</strong> (<code>+2.10</code> pp in elite systems, <code>+1.93</code> pp in massifying systems, and <code>+1.73</code> pp in high-participation systems, all with <span class="math inline">\(P(\tau &gt; 0) \ge 0.97\)</span>). However, the boost to <strong>overall Non-Resource Tax / GDP</strong> is strongest in <strong>Elite (<code>&lt;20%</code>, <code>+1.04</code> pp of GDP)</strong> and <strong>Massifying (<code>20-50%</code>, <code>+0.73</code> pp of GDP)</strong> systems (primarily Lower-Middle and Upper-Middle income countries where skilled graduates are scarce and help formalise the wider tax base), and tapers to <code>+0.18</code> pp of GDP in mature high-income economies that already collect a large share of GDP in taxes. Within the OECD (Rows 4 and 5), countries with strong public university models (<code>Nordic</code> and <code>Low-Tuition Public</code>) achieve a slightly larger shift toward direct income tax share (<code>+1.83</code> pp vs <code>+1.66</code> pp) than high-tuition private-fee systems.</p>
+</section>
+<section id="ten-year-compounding-trajectories-across-countries" class="level3" data-number="4.4">
+<h3 data-number="4.4" class="anchored" data-anchor-id="ten-year-compounding-trajectories-across-countries"><span class="header-section-number">4.4</span> Ten-Year Compounding Trajectories Across Countries</h3>
+<p>To examine how the tax return unfolds step by step within the same country, <a href="#tbl-lbcf" class="quarto-xref">Table&nbsp;5</a> and <a href="#fig-trajectories" class="quarto-xref">Figure&nbsp;5</a> report the results from our <strong>Three-Wave Longitudinal Bayesian Causal Forest (<code>lbcf</code>)</strong> across <span class="math inline">\(N = 282\)</span> complete three-wave country trajectories (<span class="math inline">\(112\)</span> countries). Unlike separate cross-sectional regressions, the longitudinal model tracks each country from baseline (<span class="math inline">\(0\text{y}\)</span>) to <span class="math inline">\(+5\)</span> years (<span class="math inline">\(\tau_1\)</span>) and from <span class="math inline">\(+5\)</span> to <span class="math inline">\(+10\)</span> years (<span class="math inline">\(\tau_2\)</span>), while controlling for intermediate macroeconomic changes at the <span class="math inline">\(+5\)</span>-year mark.</p>
+<div id="tbl-lbcf" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-lbcf-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;5: Three-wave Longitudinal Bayesian Causal Forest decomposition of the initial <span class="math inline">\(+5\)</span>-year effect (<span class="math inline">\(\tau_1\)</span>), the incremental <span class="math inline">\(+5\text{ to }+10\)</span>-year maturation effect (<span class="math inline">\(\tau_2\)</span>), and the cumulative <span class="math inline">\(+10\)</span>-year effect (<span class="math inline">\(\tau_{\text{cum}} = \tau_1 + \tau_2\)</span>).
+</figcaption>
+<div aria-describedby="tbl-lbcf-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 16%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Tax Outcome (<span class="math inline">\(N = 282\)</span> Trajectories, <span class="math inline">\(112\)</span> Countries)</th>
+<th style="text-align: center;"><span class="math inline">\(+5\text{y}\)</span> Step (<span class="math inline">\(\tau_1\)</span>)</th>
+<th style="text-align: center;"><strong><span class="math inline">\(+5\text{y} \to +10\text{y}\)</span> Step (<span class="math inline">\(\tau_2\)</span>)</strong></th>
+<th style="text-align: center;"><strong>Cumulative <span class="math inline">\(+10\text{y}\)</span> (<span class="math inline">\(\tau_{\text{cum}}\)</span>)</strong></th>
+<th style="text-align: center;">Compounding Prob. <span class="math inline">\(P(\tau_2 &gt; 0)\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong>1. Non-Resource Tax / GDP (pp)</strong></td>
+<td style="text-align: center;"><code>-0.08</code> (<span class="math inline">\(P=0.39\)</span>)</td>
+<td style="text-align: center;"><strong><code>+0.53</code> (<span class="math inline">\(P=0.91\)</span>)</strong></td>
+<td style="text-align: center;"><code>+0.45</code> (<span class="math inline">\(P=0.88\)</span>)</td>
+<td style="text-align: center;"><strong>90.5%</strong></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>2. Direct Income &amp; Profit Tax / GDP (pp)</strong></td>
+<td style="text-align: center;"><code>+0.09</code> (<span class="math inline">\(P=0.70\)</span>)</td>
+<td style="text-align: center;"><strong><code>+0.23</code> (<span class="math inline">\(P=0.92\)</span>)</strong></td>
+<td style="text-align: center;"><strong><code>+0.32</code> (<span class="math inline">\(P=0.95\)</span>)</strong></td>
+<td style="text-align: center;"><strong>91.7%</strong></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>3. Direct Income Tax Share of Revenue (pp)</strong></td>
+<td style="text-align: center;"><strong><code>+1.01</code> (<span class="math inline">\(P=0.93\)</span>)</strong></td>
+<td style="text-align: center;"><strong><code>+1.22</code> (<span class="math inline">\(P=0.94\)</span>)</strong></td>
+<td style="text-align: center;"><strong><code>+2.23</code> (<span class="math inline">\(P=0.996\)</span>)</strong></td>
+<td style="text-align: center;"><strong>93.5%</strong></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>4. Goods &amp; Services Tax Share (pp, Neg. Control)</strong></td>
+<td style="text-align: center;"><code>+0.22</code> (<span class="math inline">\(P=0.62\)</span>)</td>
+<td style="text-align: center;"><code>-0.59</code> (<span class="math inline">\(P=0.22\)</span>)</td>
+<td style="text-align: center;"><code>-0.37</code> (<span class="math inline">\(P=0.31\)</span>)</td>
+<td style="text-align: center;">22.2%</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<div id="fig-trajectories" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-trajectories-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="figures/fig5_longitudinal_country_trajectories.png" class="img-fluid figure-img" style="width:100.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-trajectories-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5: Cumulative 10-year trajectories of the Direct Income and Profit Tax Share effect across seven representative countries from the three-wave Longitudinal Bayesian Causal Forest, labelled with two-letter ISO-2 country codes at +5 and +10 years.
+</figcaption>
+</figure>
+</div>
+<p><a href="#tbl-lbcf" class="quarto-xref">Table&nbsp;5</a> and <a href="#fig-trajectories" class="quarto-xref">Figure&nbsp;5</a> show clear <strong>ten-year compounding</strong>:</p>
+<ul>
+<li>On <strong>Direct Income and Profit Share of Revenue</strong>, the initial <span class="math inline">\(+5\)</span>-year gain of <strong><code>+1.01</code> percentage points</strong> (<span class="math inline">\(P = 0.930\)</span>) is followed by an even larger <strong><code>+1.22</code> percentage point</strong> incremental gain between years 5 and 10 (<span class="math inline">\(P = 0.935\)</span>), yielding a cumulative <span class="math inline">\(+10\)</span>-year effect of <strong><code>+2.23</code> percentage points</strong> (<code>95% CrI [+0.78, +3.66]</code>, country-clustered <span class="math inline">\(P = 0.996\)</span>).</li>
+<li>On <strong>Direct Income and Profit Tax / GDP</strong>, more than two-thirds of the cumulative 10-year gain (<strong><code>+0.32</code> percentage points of GDP</strong>, <span class="math inline">\(P = 0.945\)</span>) arrives during the second five-year window (<strong><code>+0.23</code> pp</strong> in years 5 to 10 vs <code>+0.09</code> pp in years 0 to 5, compounding probability <strong>91.7%</strong>).</li>
+<li><a href="#fig-trajectories" class="quarto-xref">Figure&nbsp;5</a> illustrates these cumulative paths for seven diverse countries - <strong>Brazil (<code>BR</code>, <code>+3.0</code> pp)</strong>, <strong>Germany (<code>DE</code>, <code>+2.4</code> pp)</strong>, <strong>United States (<code>US</code>, <code>+2.3</code> pp)</strong>, <strong>South Africa (<code>ZA</code>, <code>+2.2</code> pp)</strong>, <strong>Denmark (<code>DK</code>, <code>+2.1</code> pp)</strong>, <strong>South Korea (<code>KR</code>, <code>+2.0</code> pp)</strong>, and <strong>Chile (<code>CL</code>, <code>+1.8</code> pp)</strong> - showing consistent upward compounding across both emerging and advanced economies.</li>
+</ul>
+</section>
+<section id="robustness-checks-and-placebo-falsification-test" class="level3" data-number="4.5">
+<h3 data-number="4.5" class="anchored" data-anchor-id="robustness-checks-and-placebo-falsification-test"><span class="header-section-number">4.5</span> Robustness Checks and Placebo Falsification Test</h3>
+<p>To verify that our findings are not driven by data adjustments, overlapping waves, unmeasured time-invariant country traits, or reverse causality, <a href="#tbl-robust" class="quarto-xref">Table&nbsp;6</a> summarises five demanding robustness checks (<code>results/tables/table4_robustness_checks.csv</code>).</p>
+<div id="tbl-robust" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-robust-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;6: Summary of robustness and falsification checks across the primary fiscal outcomes.
+</figcaption>
+<div aria-describedby="tbl-robust-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 16%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Robustness Specification</th>
+<th style="text-align: center;">Horizon (<span class="math inline">\(N\)</span>, Countries)</th>
+<th style="text-align: center;"><strong><span class="math inline">\(\Delta\)</span> Non-Resource Tax / GDP (pp)</strong></th>
+<th style="text-align: center;"><strong><span class="math inline">\(\Delta\)</span> Direct Income Tax / GDP (pp)</strong></th>
+<th style="text-align: center;"><strong><span class="math inline">\(\Delta\)</span> Direct Income Tax Share (pp)</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong>R1. Pure Unadjusted WDI Tax / GDP</strong></td>
+<td style="text-align: center;"><span class="math inline">\(+10\text{y}\)</span> (283, 112)</td>
+<td style="text-align: center;"><strong><code>+0.54</code> (<span class="math inline">\(P=0.91\)</span>)</strong></td>
+<td style="text-align: center;"><strong><code>+0.35</code> (<span class="math inline">\(P=0.95\)</span>)</strong></td>
+<td style="text-align: center;"><strong><code>+1.94</code> <code>[+0.44, +3.59]</code> (<span class="math inline">\(P=0.994\)</span>)</strong></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>R2. Non-Overlapping 10-Year Decadal Waves</strong></td>
+<td style="text-align: center;"><span class="math inline">\(+10\text{y}\)</span> (154, 97)</td>
+<td style="text-align: center;"><strong><code>+0.78</code> (<span class="math inline">\(P=0.94\)</span>)</strong></td>
+<td style="text-align: center;"><strong><code>+0.39</code> (<span class="math inline">\(P=0.94\)</span>)</strong></td>
+<td style="text-align: center;"><strong><code>+2.37</code> <code>[+0.23, +4.22]</code> (<span class="math inline">\(P=0.985\)</span>)</strong></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>R3. Within-Country Fixed-Effects Demeaning</strong></td>
+<td style="text-align: center;"><span class="math inline">\(+5\text{y}\)</span> (372, 121)</td>
+<td style="text-align: center;"><code>-0.04</code> (<span class="math inline">\(P=0.45\)</span>)</td>
+<td style="text-align: center;"><code>+0.07</code> (<span class="math inline">\(P=0.69\)</span>)</td>
+<td style="text-align: center;"><strong><code>+1.02</code> <code>[+0.07, +2.04]</code> (<span class="math inline">\(P=0.981\)</span>)</strong></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>R4. Strictly Observed Baseline Covariates</strong></td>
+<td style="text-align: center;"><span class="math inline">\(+10\text{y}\)</span> (272, 108)</td>
+<td style="text-align: center;"><code>+0.42</code> (<span class="math inline">\(P=0.87\)</span>)</td>
+<td style="text-align: center;"><strong><code>+0.27</code> (<span class="math inline">\(P=0.92\)</span>)</strong></td>
+<td style="text-align: center;"><strong><code>+1.84</code> <code>[+0.42, +3.24]</code> (<span class="math inline">\(P=0.995\)</span>)</strong></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>R5. Placebo Lead Check (Future <span class="math inline">\(Z_{t+1}\)</span> on Current <span class="math inline">\(\Delta Y\)</span>)</strong></td>
+<td style="text-align: center;"><span class="math inline">\(+5\text{y}\)</span> (260, 100)</td>
+<td style="text-align: center;"><code>-0.16</code> (<span class="math inline">\(P=0.32\)</span>)</td>
+<td style="text-align: center;"><code>+0.10</code> (<span class="math inline">\(P=0.72\)</span>)</td>
+<td style="text-align: center;"><code>+0.43</code> <code>[-0.71, +1.56]</code> (<span class="math inline">\(P=0.793\)</span>)</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>Every check reinforces our main conclusions:</p>
+<ul>
+<li><strong>Pure WDI Tax-to-GDP (<code>R1</code>):</strong> Using raw, unadjusted World Bank WDI tax-to-GDP (with zero UNU-WIDER resource-rent adjustment) yields virtually identical <span class="math inline">\(+10\)</span>-year estimates (<code>+0.54</code> pp on total Tax/GDP, <code>+0.35</code> pp on Direct Income Tax/GDP with <span class="math inline">\(P = 0.953\)</span>, and <strong><code>+1.94</code> pp on Direct Income Tax Share</strong> with <span class="math inline">\(P = 0.994\)</span>).</li>
+<li><strong>Non-Overlapping 10-Year Decadal Waves (<code>R2</code>):</strong> Restricting the sample to strictly non-overlapping 10-year waves (<code>1990-1994 -&gt; 2000-2004 -&gt; 2010-2014 -&gt; 2020-2024</code>, <span class="math inline">\(N = 154\)</span>) eliminates any moving-average overlap between consecutive 5-year windows and produces even stronger <span class="math inline">\(+10\)</span>-year estimates (<strong><code>+0.78</code> pp on Non-Resource Tax/GDP</strong>, <span class="math inline">\(P = 0.943\)</span>; <strong><code>+0.39</code> pp on Direct Income Tax/GDP</strong>, <span class="math inline">\(P = 0.941\)</span>; and <strong><code>+2.37</code> pp on Direct Income Tax Share</strong>, <span class="math inline">\(P = 0.985\)</span>).</li>
+<li><strong>Within-Country Fixed-Effects Demeaning (<code>R3</code>):</strong> Subtracting each country's own long-run mean from every outcome and covariate absorbs all time-invariant national institutions, culture, and historical tax morale. Even within countries over time, higher university funding increases the <span class="math inline">\(+5\)</span>-year Direct Income Tax Share by <strong><code>+1.02</code> percentage points</strong> (<code>95% CrI [+0.07, +2.04]</code>, <span class="math inline">\(P = 0.981\)</span>) and <span class="math inline">\(+10\)</span>-year Non-Resource Tax/GDP by <strong><code>+0.50</code> percentage points</strong> (<span class="math inline">\(P = 0.934\)</span>).</li>
+<li><strong>Placebo Lead Falsification Test (<code>R5</code>):</strong> If our results were driven by reverse causality (for example, booming tax revenues causing governments to spend more on universities in the next wave), then <em>future</em> university funding (<span class="math inline">\(Z_{i, t+1}\)</span>) should appear to "cause" <em>past</em> 5-year tax changes (<span class="math inline">\(\Delta Y_{i, t+1}\)</span>). When we run this placebo lead test (<code>R5</code>), the effect on Direct Income Tax Share drops by more than two-thirds (from <code>+1.43</code> pp to <code>+0.43</code> pp, with a 95% credible interval of <code>[-0.71, +1.56]</code> that comfortably straddles zero), and Non-Resource Tax/GDP is slightly negative (<code>-0.16</code> pp).</li>
+</ul>
+<hr>
+</section>
+</section>
+<section id="policy-discussion-and-limitations" class="level2" data-number="5">
+<h2 data-number="5" class="anchored" data-anchor-id="policy-discussion-and-limitations"><span class="header-section-number">5</span> Policy Discussion and Limitations</h2>
+<section id="practical-takeaways-for-fiscal-and-education-policy" class="level3" data-number="5.1">
+<h3 data-number="5.1" class="anchored" data-anchor-id="practical-takeaways-for-fiscal-and-education-policy"><span class="header-section-number">5.1</span> Practical Takeaways for Fiscal and Education Policy</h3>
+<p>For finance ministries, education policymakers, and international development agencies, our findings offer three practical insights:</p>
+<ol type="1">
+<li><strong>University Funding Is a Medium-to-Long-Run Direct Tax Base Investment:</strong> Evaluating higher education budgets over a single 3-to-5-year electoral cycle understates their fiscal return. While the shift toward direct income tax share begins within 5 years (<code>+1.43</code> pp), the expansion in overall tax revenue as a share of GDP takes a full 10 years to mature (<code>+0.55</code> pp of GDP under the per-student ratio regime and <strong><code>+1.15</code> pp of GDP</strong> under real PPP dollars per student).</li>
+<li><strong>Protect Per-Student Funding During Enrolment Expansions:</strong> Our denominator unbundling shows that expanding aggregate education budgets or student headcounts without protecting per-student funding intensity produces weak fiscal returns. Countries that maintain or expand real resources <em>per student</em> generate substantially higher future income and corporate tax receipts.</li>
+<li><strong>Middle-Income and Massifying Economies Face the Largest Fiscal Upside:</strong> While high-income countries continue to see a positive shift toward direct income taxation (<code>+1.72</code> pp), lower-middle and upper-middle income countries expanding from elite (<code>&lt;20%</code>) to massifying (<code>20-50%</code>) university systems achieve the largest boosts to overall tax capacity (<code>+0.73</code> to <code>+1.04</code> percentage points of GDP).</li>
+</ol>
+</section>
+<section id="limitations-and-scope-conditions" class="level3" data-number="5.2">
+<h3 data-number="5.2" class="anchored" data-anchor-id="limitations-and-scope-conditions"><span class="header-section-number">5.2</span> Limitations and Scope Conditions</h3>
+<p>Although our causal forest framework addresses several major weaknesses of earlier cross-country studies, four limitations should be kept in mind:</p>
+<ul>
+<li><strong>Observational Cross-Country Data:</strong> Despite controlling flexibly for baseline economic structure, lagged growth, governance quality, propensity scores, within-country demeaning, and placebo leads, sovereign budget decisions are not randomised experiments. Unobserved contemporaneous tax administration reforms that coincide with university funding expansions could still contribute to part of the estimated effect.</li>
+<li><strong>Five-Year Wave Aggregation:</strong> Aggregating annual series into five-year waves smooths business-cycle noise and handles sporadic UNESCO reporting, but it coarsens the exact year-by-year timing of budget changes and tax reforms.</li>
+<li><strong>Complete-Case Coverage Across Four Tax Channels:</strong> Requiring strictly observed data across all four tax outcomes and university spending (with zero proxy imputation) restricts our primary estimation sample to 121 countries (372 country-waves at <span class="math inline">\(+5\)</span> years and 283 at <span class="math inline">\(+10\)</span> years), where low-income fragile states with incomplete tax breakdowns are underrepresented relative to middle- and high-income economies.</li>
+<li><strong>Macroeconomic Channels vs Micro-Level Tax Records:</strong> Cross-national panels cannot distinguish how much of the direct income and corporate tax gain arises from graduates' own personal income tax payments versus spillover effects on firm profitability and formalisation. Linking university funding cohorts to administrative tax registers within individual countries is a promising avenue for future micro-econometric work.</li>
+</ul>
+<hr>
+</section>
+</section>
+<section id="appendix-a-mathematical-specification-of-the-multivariate-and-longitudinal-bcf-models" class="level2" data-number="6">
+<h2 data-number="6" class="anchored" data-anchor-id="appendix-a-mathematical-specification-of-the-multivariate-and-longitudinal-bcf-models"><span class="header-section-number">6</span> Appendix A: Mathematical Specification of the Multivariate and Longitudinal BCF Models</h2>
+<section id="multivariate-bayesian-causal-forest-mvbcf" class="level3" data-number="6.1">
+<h3 data-number="6.1" class="anchored" data-anchor-id="multivariate-bayesian-causal-forest-mvbcf"><span class="header-section-number">6.1</span> Multivariate Bayesian Causal Forest (<code>mvbcf</code>)</h3>
+<p>Let <span class="math inline">\(Y_{i, t+h} = \bigl(Y^{(1)}_{i,t+h}, Y^{(2)}_{i,t+h}, Y^{(3)}_{i,t+h}, Y^{(4)}_{i,t+h}\bigr)^\top \in \mathbb{R}^4\)</span> denote the vector of four disaggregated percentage-point fiscal changes for country <span class="math inline">\(i\)</span> over horizon <span class="math inline">\(h \in \{1, 2\}\)</span> (corresponding to <span class="math inline">\(+5\)</span> and <span class="math inline">\(+10\)</span> years). Following <span class="citation" data-cites="hahn2020bayesian">Hahn et al. (<a href="#ref-hahn2020bayesian" role="doc-biblioref">2020</a>)</span> and <span class="citation" data-cites="mcjames2024mvbcf">McJames et al. (<a href="#ref-mcjames2024mvbcf" role="doc-biblioref">2024</a>)</span>, the Multivariate Bayesian Causal Forest models <span class="math inline">\(Y_{i, t+h}\)</span> as:</p>
+<p><span class="math display">\[
+Y_{i, t+h} = \mu\bigl(X_{i,t}, \hat{\pi}_{i,t}\bigr) + \tau\bigl(W_{i,t}\bigr) Z_{i,t} + \varepsilon_{i, t+h}, \qquad \varepsilon_{i, t+h} \stackrel{\text{i.i.d.}}{\sim} \mathcal{N}_4\bigl(0, \Sigma\bigr)
+\]</span></p>
+<p>where:</p>
+<ul>
+<li><span class="math inline">\(\mu(X_{i,t}, \hat{\pi}_{i,t}) = \sum_{m=1}^{M_\mu} g_\mu(X_{i,t}, \hat{\pi}_{i,t}; T^\mu_m, M^\mu_m)\)</span> is a sum of <span class="math inline">\(M_\mu = 200\)</span> four-dimensional regression trees with tree structures <span class="math inline">\(T^\mu_m\)</span> and terminal leaf vector parameters <span class="math inline">\(M^\mu_m \in \mathbb{R}^4\)</span> (regularised with depth-penalising tree prior <span class="math inline">\(\alpha_\mu = 0.95\)</span>, <span class="math inline">\(\beta_\mu = 2.0\)</span>).</li>
+<li><span class="math inline">\(\tau(W_{i,t}) = \sum_{l=1}^{M_\tau} g_\tau(W_{i,t}; T^\tau_l, M^\tau_l)\)</span> is a sum of <span class="math inline">\(M_\tau = 50\)</span> treatment-effect trees with stronger regularisation (<span class="math inline">\(\alpha_\tau = 0.25\)</span>, <span class="math inline">\(\beta_\tau = 3.0\)</span>) so that heterogeneous subgroup effects are shrunk toward the overall average treatment effect unless supported by the likelihood.</li>
+<li><span class="math inline">\(\Sigma \in \mathbb{R}^{4 \times 4}\)</span> is the cross-outcome residual covariance matrix assigned a conjugate Inverse-Wishart prior <span class="math inline">\(\Sigma \sim \mathcal{IW}(\nu_0, \Psi_0)\)</span> with <span class="math inline">\(\nu_0 = p + 4 = 8\)</span> degrees of freedom and diagonal scale matrix <span class="math inline">\(\Psi_0\)</span> calibrated from the empirical residual variances.</li>
+<li>Each model is estimated via Bayesian backfitting Gibbs sampling in C++ (<code>RcppArmadillo</code>, <code>src/cpp/mvbcf_source_code.cpp</code>) for 2,500 iterations, discarding the first 1,250 iterations as burn-in and retaining 1,250 post-burn-in posterior draws.</li>
+</ul>
+</section>
+<section id="three-wave-longitudinal-bayesian-causal-forest-lbcf" class="level3" data-number="6.2">
+<h3 data-number="6.2" class="anchored" data-anchor-id="three-wave-longitudinal-bayesian-causal-forest-lbcf"><span class="header-section-number">6.2</span> Three-Wave Longitudinal Bayesian Causal Forest (<code>lbcf</code>)</h3>
+<p>For a country <span class="math inline">\(i\)</span> observed across three consecutive waves <span class="math inline">\((t, t+1, t+2)\)</span>, let <span class="math inline">\(\Delta Y_{i,1} = Y_{i,t+1} - Y_{i,t}\)</span> denote the initial <span class="math inline">\(+5\)</span>-year change and <span class="math inline">\(\Delta Y_{i,2} = Y_{i,t+2} - Y_{i,t+1}\)</span> denote the incremental <span class="math inline">\(+5\text{ to }+10\)</span>-year maturation change. The three-wave Longitudinal BCF (<code>src/cpp/lbcf_3wave.cpp</code>) jointly models both transitions:</p>
+<p><span class="math display">\[
+\begin{aligned}
+\Delta Y_{i,1} &amp;= \mu_1\bigl(X_{i,t}, \hat{\pi}_{i,t}\bigr) + \tau_1\bigl(W_{i,t}\bigr) Z_{i,t} + \epsilon_{i,1} \\
+\Delta Y_{i,2} &amp;= \mu_2\bigl(X_{i,t}, X_{i,t+1}, \Delta Y_{i,1}, \hat{\pi}_{i,t}\bigr) + \tau_2\bigl(W_{i,t}, W_{i,t+1}\bigr) Z_{i,t} + \epsilon_{i,2}
+\end{aligned}
+\]</span></p>
+<p>The cumulative 10-year causal effect for unit <span class="math inline">\(i\)</span> at posterior draw <span class="math inline">\(s\)</span> is <span class="math inline">\(\tau^{(s)}_{\text{cum}, i} = \tau^{(s)}_{1, i} + \tau^{(s)}_{2, i}\)</span>, and the posterior probability of ten-year compounding is <span class="math inline">\(P\bigl(\bar{\tau}_{\text{cum}} &gt; \bar{\tau}_1\bigr) = P\bigl(\bar{\tau}_2 &gt; 0\bigr)\)</span>.</p>
+<hr>
+</section>
+</section>
+<section id="appendix-b-residual-correlation-matrix-and-mcmc-convergence-diagnostics" class="level2" data-number="7">
+<h2 data-number="7" class="anchored" data-anchor-id="appendix-b-residual-correlation-matrix-and-mcmc-convergence-diagnostics"><span class="header-section-number">7</span> Appendix B: Residual Correlation Matrix and MCMC Convergence Diagnostics</h2>
+<section id="cross-outcome-residual-correlation-matrix-sigma" class="level3" data-number="7.1">
+<h3 data-number="7.1" class="anchored" data-anchor-id="cross-outcome-residual-correlation-matrix-sigma"><span class="header-section-number">7.1</span> Cross-Outcome Residual Correlation Matrix (<span class="math inline">\(\Sigma\)</span>)</h3>
+<p><a href="#tbl-corr" class="quarto-xref">Table&nbsp;7</a> reports the posterior mean residual standard deviations and cross-outcome residual correlations from our Mediator-Removed Direct Effect (<code>M2</code>) Multivariate BCF model (<code>results/tables/table2_residual_correlations.csv</code>). Removing mechanical GDP product identities and screening out the two raw WDI reporting errors (Sudan <code>1995-1999</code> and Timor-Leste <code>2010-2014</code>) yields a well-conditioned, economically meaningful residual correlation structure:</p>
+<div id="tbl-corr" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-corr-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;7: Posterior mean cross-outcome residual correlations and residual standard deviations from the four-outcome Multivariate Bayesian Causal Forest (<code>mvbcf</code>).
+</figcaption>
+<div aria-describedby="tbl-corr-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 28%">
+<col style="width: 35%">
+<col style="width: 35%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Residual Parameter Pair (<code>M2</code> Direct Effect Model)</th>
+<th style="text-align: center;"><strong><span class="math inline">\(+5\text{y}\)</span> Posterior Mean <code>[95% CrI]</code></strong></th>
+<th style="text-align: center;"><strong><span class="math inline">\(+10\text{y}\)</span> Posterior Mean <code>[95% CrI]</code></strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong>1. Non-Resource Tax / GDP <span class="math inline">\(\leftrightarrow\)</span> Direct Income Tax / GDP</strong></td>
+<td style="text-align: center;"><strong><code>+0.594</code> <code>[+0.511, +0.669]</code></strong></td>
+<td style="text-align: center;"><strong><code>+0.621</code> <code>[+0.521, +0.709]</code></strong></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>2. Direct Income Tax / GDP <span class="math inline">\(\leftrightarrow\)</span> Direct Income Tax Share</strong></td>
+<td style="text-align: center;"><strong><code>+0.705</code> <code>[+0.644, +0.757]</code></strong></td>
+<td style="text-align: center;"><strong><code>+0.729</code> <code>[+0.650, +0.795]</code></strong></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>3. Direct Income Tax Share <span class="math inline">\(\leftrightarrow\)</span> Goods &amp; Services Tax Share</strong></td>
+<td style="text-align: center;"><strong><code>-0.412</code> <code>[-0.507, -0.303]</code></strong></td>
+<td style="text-align: center;"><strong><code>-0.526</code> <code>[-0.630, -0.414]</code></strong></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>4. Non-Resource Tax / GDP <span class="math inline">\(\leftrightarrow\)</span> Direct Income Tax Share</strong></td>
+<td style="text-align: center;"><code>-0.039</code> <code>[-0.149, +0.071]</code></td>
+<td style="text-align: center;"><code>-0.008</code> <code>[-0.141, +0.123]</code></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>5. Residual SDs (<span class="math inline">\(\sigma_1, \sigma_2, \sigma_3, \sigma_4\)</span>, percentage points)</strong></td>
+<td style="text-align: center;"><code>1.92, 0.96, 3.88, 4.46 pp</code></td>
+<td style="text-align: center;"><code>2.45, 1.38, 4.92, 5.45 pp</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>Unexplained shocks to overall non-resource tax-to-GDP correlate strongly with shocks to direct income tax-to-GDP (<span class="math inline">\(r = +0.594\)</span> at <span class="math inline">\(+5\)</span> years and <span class="math inline">\(+0.621\)</span> at <span class="math inline">\(+10\)</span> years), while shocks to direct income tax share correlate negatively with shocks to indirect goods and services tax share (<span class="math inline">\(r = -0.412\)</span> at <span class="math inline">\(+5\)</span> years and <span class="math inline">\(-0.526\)</span> at <span class="math inline">\(+10\)</span> years), reflecting the structural trade-off between direct income taxation and indirect consumption taxation.</p>
+</section>
+<section id="mcmc-mixing-effective-sample-size-and-trace-plots" class="level3" data-number="7.2">
+<h3 data-number="7.2" class="anchored" data-anchor-id="mcmc-mixing-effective-sample-size-and-trace-plots"><span class="header-section-number">7.2</span> MCMC Mixing, Effective Sample Size, and Trace Plots</h3>
+<p><a href="#tbl-mcmc" class="quarto-xref">Table&nbsp;8</a> summarises the post-burn-in MCMC convergence metrics across the four tax outcomes for the Mediator-Removed Direct Effect (<code>M2</code>) model (<code>results/tables/tableA1_convergence_and_fit_diagnostics.csv</code>), and <a href="#fig-traces" class="quarto-xref">Figure&nbsp;6</a> displays the complete 1,250 post-burn-in Gibbs trace plots. Across all outcomes and horizons, split-chain <span class="math inline">\(\hat{R}\)</span> values lie between <code>1.000</code> and <code>1.050</code> (meeting the standard <code>&lt; 1.05</code> convergence threshold), effective sample sizes (ESS) range from <code>87</code> to <code>270</code>, and autocorrelation-adjusted Geweke <span class="math inline">\(z\)</span>-scores show stationary mixing around the posterior mean.</p>
+<div id="tbl-mcmc" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-mcmc-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;8: Post-burn-in MCMC convergence diagnostics for the primary Mediator-Removed Direct Effect (<code>M2</code>) Multivariate BCF models.
+</figcaption>
+<div aria-describedby="tbl-mcmc-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 11%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Tax Outcome (<code>M2</code> Mediator-Removed Direct Model)</th>
+<th style="text-align: center;">Horizon (<span class="math inline">\(N\)</span>)</th>
+<th style="text-align: center;">Post-Burn Draws</th>
+<th style="text-align: center;">Posterior Mean (SD)</th>
+<th style="text-align: center;"><strong>Split-Chain <span class="math inline">\(\hat{R}\)</span></strong></th>
+<th style="text-align: center;"><strong>Effective Sample Size (ESS)</strong></th>
+<th style="text-align: center;">Geweke <span class="math inline">\(z\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong>1. Non-Resource Tax / GDP (pp)</strong></td>
+<td style="text-align: center;"><span class="math inline">\(+5\text{y}\)</span> (372)</td>
+<td style="text-align: center;">1,250</td>
+<td style="text-align: center;"><code>+0.044</code> (<code>0.260</code>)</td>
+<td style="text-align: center;"><strong>1.000</strong></td>
+<td style="text-align: center;"><strong>238</strong></td>
+<td style="text-align: center;"><code>+1.62</code></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>2. Direct Income Tax / GDP (pp)</strong></td>
+<td style="text-align: center;"><span class="math inline">\(+5\text{y}\)</span> (372)</td>
+<td style="text-align: center;">1,250</td>
+<td style="text-align: center;"><code>+0.206</code> (<code>0.134</code>)</td>
+<td style="text-align: center;"><strong>1.000</strong></td>
+<td style="text-align: center;"><strong>159</strong></td>
+<td style="text-align: center;"><code>+0.55</code></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>3. Direct Income Tax Share (pp)</strong></td>
+<td style="text-align: center;"><span class="math inline">\(+5\text{y}\)</span> (372)</td>
+<td style="text-align: center;">1,250</td>
+<td style="text-align: center;"><code>+1.433</code> (<code>0.528</code>)</td>
+<td style="text-align: center;"><strong>1.021</strong></td>
+<td style="text-align: center;"><strong>205</strong></td>
+<td style="text-align: center;"><code>-0.55</code></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>4. Non-Resource Tax / GDP (pp)</strong></td>
+<td style="text-align: center;"><span class="math inline">\(+10\text{y}\)</span> (283)</td>
+<td style="text-align: center;">1,250</td>
+<td style="text-align: center;"><code>+0.548</code> (<code>0.396</code>)</td>
+<td style="text-align: center;"><strong>1.015</strong></td>
+<td style="text-align: center;"><strong>156</strong></td>
+<td style="text-align: center;"><code>+1.76</code></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>5. Direct Income Tax / GDP (pp)</strong></td>
+<td style="text-align: center;"><span class="math inline">\(+10\text{y}\)</span> (283)</td>
+<td style="text-align: center;">1,250</td>
+<td style="text-align: center;"><code>+0.319</code> (<code>0.219</code>)</td>
+<td style="text-align: center;"><strong>1.050</strong></td>
+<td style="text-align: center;"><strong>188</strong></td>
+<td style="text-align: center;"><code>-1.99</code></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>6. Direct Income Tax Share (pp)</strong></td>
+<td style="text-align: center;"><span class="math inline">\(+10\text{y}\)</span> (283)</td>
+<td style="text-align: center;">1,250</td>
+<td style="text-align: center;"><code>+1.880</code> (<code>0.796</code>)</td>
+<td style="text-align: center;"><strong>1.015</strong></td>
+<td style="text-align: center;"><strong>154</strong></td>
+<td style="text-align: center;"><code>-2.02</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<div id="fig-traces" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-traces-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="figures/figA1_mcmc_convergence_traces.png" class="img-fluid figure-img" style="width:100.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-traces-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;6: Post-burn-in MCMC trace plots (1,250 Gibbs draws after 1,250 burn-in iterations) for the Mediator-Removed Direct Fiscal Effect (M2) across all four tax outcomes at +5 and +10 years.
+</figcaption>
+</figure>
+</div>
+
+</section>
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-besley2014pillars" class="csl-entry" role="listitem">
+Besley, Timothy, and Torsten Persson. 2014. <span>“Why Do Developing Countries Tax so Little?”</span> <em>Journal of Economic Perspectives</em> 28 (4): 99–120.
+</div>
+<div id="ref-bound2010have" class="csl-entry" role="listitem">
+Bound, John, Michael F. Lovenheim, and Sarah Turner. 2010. <span>“Why Have College Completion Rates Declined? An Analysis of Changing Student Preparation and Collegiate Resources.”</span> <em>American Economic Journal: Applied Economics</em> 2 (3): 129–57.
+</div>
+<div id="ref-chipman2010bart" class="csl-entry" role="listitem">
+Chipman, Hugh A., Edward I. George, and Robert E. McCulloch. 2010. <span>“<span>BART</span>: Bayesian Additive Regression Trees.”</span> <em>The Annals of Applied Statistics</em> 4 (1): 266–98.
+</div>
+<div id="ref-deming2017impact" class="csl-entry" role="listitem">
+Deming, David J., and Christopher R. Walters. 2017. <em>The Impact of Price Caps and Spending Cuts on <span>U.S.</span> Postsecondary Attainment</em>. Working Paper No. 23736. National Bureau of Economic Research.
+</div>
+<div id="ref-gordon2009tax" class="csl-entry" role="listitem">
+Gordon, Roger, and Wei Li. 2009. <span>“Tax Structures in Developing Countries: Many Puzzles and a Possible Explanation.”</span> <em>Journal of Public Economics</em> 93 (7-8): 855–66.
+</div>
+<div id="ref-hahn2020bayesian" class="csl-entry" role="listitem">
+Hahn, P. Richard, Jared S. Murray, and Carlos M. Carvalho. 2020. <span>“Bayesian Regression Tree Models for Causal Inference: Regularization, Confounding, and Heterogeneous Effects (with Discussion).”</span> <em>Bayesian Analysis</em> 15 (3): 965–1056.
+</div>
+<div id="ref-ictd2023grdv" class="csl-entry" role="listitem">
+ICTD/UNU-WIDER. 2023. <em><span>UNU-WIDER</span> Government Revenue Dataset (<span>GRD</span>)</em>. United Nations University World Institute for Development Economics Research.
+</div>
+<div id="ref-mcjames2024mvbcf" class="csl-entry" role="listitem">
+McJames, Nathan, Ann O’Shea, Yong Chen Goh, and Andrew C. Parnell. 2024. <span>“Bayesian Causal Forests for Multivariate and Longitudinal Educational Outcomes.”</span> <em>Journal of Educational and Behavioral Statistics</em> 49 (4): 512–45.
+</div>
+<div id="ref-psacharopoulos2018returns" class="csl-entry" role="listitem">
+Psacharopoulos, George, and Harry Anthony Patrinos. 2018. <span>“Returns to Investment in Education: A Decennial Review of the Global Literature.”</span> <em>Education Economics</em> 26 (5): 445–58.
+</div>
+<div id="ref-solt2020swiid" class="csl-entry" role="listitem">
+Solt, Frederick. 2020. <span>“Measuring Income Inequality Across Countries and over Time: The Standardized World Income Inequality Database.”</span> <em>Social Science Quarterly</em> 101 (3): 1183–99.
+</div>
+</div></section></div></main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

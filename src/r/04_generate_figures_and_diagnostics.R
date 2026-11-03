@@ -58,53 +58,55 @@ boxes <- tibble(
   fill = c("#e6f2f8", "#edf7ed", "#fff4e6", "#f0f4f8"),
   border = c("#1b6ca8", "#2b8a3e", "#d9480f", "#0f2537"),
   header = c(
-    "1. University Funding\n(Unbundling Denominators)",
-    "2A. Direct Fiscal Pathway\n(Pre-Treatment Controls)",
-    "2B. Macroeconomic Mediators\n(Removed in Direct Model)",
-    "3. National Tax Take\n(+5y and +10y Outcomes)"
+    "1. University Funding\n(Three Ways to Measure It)",
+    "2A. Baseline Country Context\n(Controlled in All Models)",
+    "2B. Broader Economic Changes\n(Separated Out in Direct Model)",
+    "3. National Tax Take\n(+5 Year and +10 Year Changes)"
   ),
   body = c(
     paste(
-      "Three Observed Exposures:",
+      "Three Observed Measures:",
       "* Per-Student Spending Ratio",
       "  (% of GDP per person)",
       "* Real PPP Dollars per Student",
-      "  (removes GDP denominator)",
+      "  (removes GDP from denominator)",
       "* University Budget % of GDP",
       "  (removes student headcount)",
       "",
-      "Moderated in BCF by:",
+      "Tested Across Contexts:",
       "* University Enrolment (%)",
-      "* Income Group & Public Share",
+      "* Country Income Group",
+      "* Public vs Private Tuition Mix",
       sep = "\n"
     ),
     paste(
-      "Strictly Pre-Treatment X:",
-      "* Baseline GDP & Tax Structure",
-      "* Lagged (t-1) GDP Growth",
-      "* Baseline Enrolment & Pop.",
-      "* Propensity Score pi(X)",
+      "Measured Before Funding Wave:",
+      "* Starting GDP & Tax Structure",
+      "* Prior 5-Year Economic Growth",
+      "* Starting University Enrolment",
+      "* Demographics & Governance",
+      "* Likelihood of High Funding",
       sep = "\n"
     ),
     paste(
-      "Controlled in Model M2:",
-      "* Forward GDP Growth (t to t+h)",
-      "* University Enrolment Growth",
-      "* Income Inequality Change",
-      "* Life Expectancy Change",
+      "Changes During Follow-Up Window:",
+      "* Overall GDP per Person Growth",
+      "* Expansion in Student Numbers",
+      "* Changes in Income Inequality",
+      "* Changes in Life Expectancy",
       sep = "\n"
     ),
     paste(
-      "Joint Multivariate BCF (mvbcf)",
-      "& 3-Wave Longitudinal BCF:",
+      "Tracked Jointly Over Time:",
       "",
-      "Y1: Non-Resource Tax / GDP (pp)",
-      "Y2: Direct Income & Profit",
-      "    Tax / GDP (pp)",
-      "Y3: Direct Income & Profit",
-      "    Share of Revenue (pp)",
-      "Y4: Goods & Services Tax Share",
-      "    (Negative-Control Channel)",
+      "1. Overall Non-Resource Tax",
+      "   (% of GDP)",
+      "2. Direct Income & Profit Tax",
+      "   (% of GDP)",
+      "3. Direct Income & Profit Share",
+      "   (% of Total Tax Revenue)",
+      "4. Goods & Services Tax Share",
+      "   (Negative-Control Check)",
       sep = "\n"
     )
   )
@@ -555,4 +557,9 @@ tabA1 <- draws_long %>%
 write_csv(tabA1, file.path(tab_dir, "tableA1_convergence_and_fit_diagnostics.csv"))
 print(tabA1)
 
-cat("All figures and diagnostics generated and saved to results/!\n")
+# Also sync figures into paper/figures/ for self-contained Typst/Quarto rendering
+paper_fig_dir <- file.path(repo_root, "paper", "figures")
+dir.create(paper_fig_dir, recursive = TRUE, showWarnings = FALSE)
+file.copy(list.files(fig_dir, full.names = TRUE), paper_fig_dir, overwrite = TRUE)
+
+cat("All figures and diagnostics generated and saved to results/ and paper/figures/!\n")

@@ -1,27 +1,26 @@
-# Does Public University Funding Increase the National Tax Take?
-## Separating Direct Fiscal Capacity from Macroeconomic Mediation Using Bayesian Causal Forests
+# Does Public University Funding Pay for Itself?
+## Isolating the Short- and Long-Run Tax Dividend Using Multivariate and Longitudinal Bayesian Causal Forests
 
 **Author:** Andrew C. Parnell (School of Mathematics and Statistics, University College Dublin)
 
 ### Overview
-This repository contains the data pipeline, exploratory data analysis, C++/R Bayesian Causal Forest implementations (`mvbcf` and `lbcf`), and manuscript investigating whether increased public investment in university (tertiary) education produces short-term ($+5$-year) and long-term ($+10$-year) benefits to a country's tax take once mediating macroeconomic variables are separated out.
+This repository contains the end-to-end data pipeline, exploratory data analysis, C++/R Multivariate and Longitudinal Bayesian Causal Forest implementations (`mvbcf` and `lbcf_3wave`), publication figures, and manuscript investigating whether increased public investment in university (tertiary) education produces short-term ($+5$-year) and long-term ($+10$-year) benefits to a country's tax take once mediating macroeconomic variables are separated out.
 
-### Key Methodological Design Choices (Incorporating Round 1 Lessons)
-1. **Pure Disaggregated Fiscal Outcome Vector (Zero Product Identities):**
-   Instead of multiplying GDP per person into the fiscal outcome, the multivariate outcome vector $\mathbf{Y}_{i, t \to t+h}$ models four distinct fiscal channels directly:
-   - $Y_1$: **Total Domestic Tax-to-GDP Ratio Change ($\Delta \text{Tax/GDP}$, percentage points of GDP)**
-   - $Y_2$: **Direct Income, Profit, and Capital Gains Tax-to-GDP Change ($\Delta \text{IncomeTax/GDP}$, percentage points of GDP)**
-   - $Y_3$: **Direct Income & Profit Tax Share of Revenue Change ($\Delta \text{IncomeTax/Rev}$, percentage points)**
-   - $Y_4$: **Indirect Goods & Services / Consumption Tax Change ($\Delta \text{GoodsTax/GDP}$, percentage points of GDP)** (serving as a specificity / negative-control comparison channel)
-
-2. **Unbundling the UNESCO Denominator Trap:**
-   Compares three strictly observed treatment definitions side by side (with no cross-sectional proxy imputation and no post-hoc cell-median overwrites):
-   - **Exposure 1 (`Z_real_spend_stu`):** Real PPP dollars spent per university student (cancelling the GDP-per-person denominator).
-   - **Exposure 2 (`Z_tert_gdp`):** Total public university spending as a percentage of GDP and share of the public education budget (cancelling the student-headcount enrolment denominator).
-   - **Exposure 3 (`Z_unesco_ratio`):** Standard UNESCO per-student spending ratio (`SE.XPD.TERT.PC.ZS`), demonstrating how shared GDP and enrolment denominators attenuate or invert naive estimates.
-
-3. **Total Fiscal Effect vs Mediator-Removed Direct Effect:**
-   Estimates both the **Total Fiscal Effect** (conditioning strictly on pre-treatment covariates and lagged $t-1$ GDP growth) and the **Controlled Direct Fiscal Effect** (conditioning on contemporaneous GDP per person growth, tertiary enrolment expansion, and labour-market mediators) to test whether university funding expands fiscal tax capacity beyond aggregate economic growth.
-
-4. **Scale-Invariant Priors & Country-Clustered Inference:**
-   All outcomes are $z$-score standardised inside the `mvbcf` Inverse-Wishart sampler before rescaling posterior draws to natural percentage-point units, with country-clustered posterior credible intervals and non-overlapping 10-year window checks.
+### Repository Structure
+* **Data Pipeline (`src/python/` & `data/`):**
+  * `src/python/01_download_tax_education_data.py`: Downloads disaggregated fiscal and education series from the World Bank WDI API and verifies SHA-256 checksums (`data/raw/checksums_sha256.json`).
+  * `src/python/02_build_clean_tax_panel.py`: Constructs the 5-year panel (`data/processed/clean_tax_panel.csv`, 1,736 country-waves across 217 countries), screens impossible raw WDI reporting errors (`tax_rev_gdp_pct > 60%`), and exports the variable codebook (`data/processed/codebook_variables.csv`).
+* **Exploratory Data Analysis (`eda/`):**
+  * `src/r/01_eda_and_summary_tables.R`: Generates summary tables across World Bank income groups and university funding regimes.
+  * `eda/eda_report.qmd` (`eda/eda_report.pdf`, `eda/eda_report.html`): Standalone exploratory data analysis report.
+* **Bayesian Causal Forest Engines (`src/cpp/` & `src/r/`):**
+  * `src/cpp/mvbcf_source_code.cpp`: C++ (`RcppArmadillo`) Multivariate Bayesian Causal Forest Gibbs sampler with Inverse-Wishart cross-outcome covariance $\Sigma$.
+  * `src/cpp/lbcf_3wave.cpp`: C++ (`RcppArmadillo`) Three-Wave Longitudinal Bayesian Causal Forest sampler tracking $+5$-year ($\tau_1$) and $+5\text{ to }+10$-year ($\tau_2$) trajectories.
+  * `src/r/02_run_mvbcf_tax_models.R`: Runs the Total Fiscal Effect (`M1`), Mediator-Removed Direct Fiscal Effect (`M2`), unbundled spending definitions (`M3`), subgroup CATEs, and five robustness checks (`R1`-`R5`).
+  * `src/r/03_run_longitudinal_bcf_tax.R`: Runs the three-wave Longitudinal BCF trajectory models across all four tax outcomes.
+  * `src/r/04_generate_figures_and_diagnostics.R`: Generates all main publication figures (`fig1`-`fig5`), MCMC trace plots (`figA1`), and convergence diagnostics (`tableA1_convergence_and_fit_diagnostics.csv`).
+* **Manuscript (`paper/`):**
+  * `paper/education_tax_bcf_paper.qmd`: Quarto source manuscript (including Appendices A and B).
+  * `paper/education_tax_bcf_paper.pdf`: Rendered 20-page PDF manuscript.
+  * `paper/education_tax_bcf_paper.md` & `paper/education_tax_bcf_paper.html`: Standalone Markdown and HTML versions of the manuscript.
+  * `paper/references.bib`: BibTeX bibliography.
