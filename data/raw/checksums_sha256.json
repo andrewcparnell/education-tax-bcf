@@ -1,0 +1,14 @@
+{
+  "swiid_summary.csv": {
+    "sha256": "d300669bf91f25f272ed100422fd381eab8125868fb73cba68fc4fda5212affd",
+    "size_bytes": 283171
+  },
+  "wb_countries_metadata.csv": {
+    "sha256": "245d305877a4d469f10dc86a60909eca72fb375d509274b83373558f0287f80b",
+    "size_bytes": 14791
+  },
+  "wb_unesco_imf_wgi_long.csv": {
+    "sha256": "bcef82af0585b841f32d574647776b4dfbebc554d73e486b85f3e2cecbb9d84d",
+    "size_bytes": 8271926
+  }
+}

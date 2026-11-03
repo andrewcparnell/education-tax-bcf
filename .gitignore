@@ -1,0 +1,29 @@
+# OS & Editor files
+.DS_Store
+.Rproj.user/
+.Rhistory
+.RData
+.Ruserdata
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# Large intermediate MCMC objects (keep summary CSVs)
+results/models/*.rds
+
+# Quarto / Typst / LaTeX build artifacts
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex.gz
+*.typ
+**/.quarto/
+**/*.quarto_ipynb

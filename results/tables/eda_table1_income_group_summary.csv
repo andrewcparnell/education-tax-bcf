@@ -1,0 +1,5 @@
+income_group,countries,country_waves,median_unesco_ratio_pct,median_real_ppp_per_student,median_tert_gdp_pct,median_tert_enrolment_pct,mean_tax_gdp_pct,mean_inc_tax_share_pct,mean_goods_tax_share_pct
+Low income,21,80,150,3957,0.47,2.3,9.3,29.2,28.9
+Lower middle income,41,172,76.5,3258,0.65,7.4,15.9,30.8,29.7
+Upper middle income,54,219,26.8,3521,0.64,25.5,14.8,33.1,34.8
+High income,69,337,26.9,11148,0.94,58.3,19.9,38.4,31.6

@@ -1,0 +1,25 @@
+variable,role,description,source
+iso3,Identifier,ISO 3166-1 alpha-3 sovereign country code,World Bank
+iso2,Identifier,ISO 3166-1 alpha-2 two-letter country code,World Bank
+wave_index,Time,Non-overlapping 5-year wave index (1 = 1985-1989 to 8 = 2020-2024),Constructed
+tert_spend_per_student_winsor,Treatment (Ratio),"Public expenditure per university student (% of GDP per person, winsorised [1, 150])",UNESCO UIS (SE.XPD.TERT.PC.ZS)
+real_tert_spend_per_student_ppp,Treatment (Real $),Real constant-2021 PPP dollars spent per university student (no GDP denominator),UNESCO UIS & WDI
+tert_spend_gdp_pct,Treatment (% GDP),Public university expenditure as % of GDP (no student headcount denominator),UNESCO UIS (SE.XPD.TOTL.GD.ZS * SE.XPD.TERT.ZS)
+edu_spend_total_gdp_pct,Treatment (Total Edu),Total public expenditure on all education levels (% of GDP),UNESCO UIS (SE.XPD.TOTL.GD.ZS)
+Z_regime_inc,Binary Treatment 1A,1 if per-student university spending ratio exceeds World Bank income-group median,Constructed (strictly observed)
+Z_expansion_obs,Binary Treatment 1B,1 if observed per-student spending ratio increases by >=2.5 pp and >=2.5% over wave,Constructed (strictly observed)
+Z_real_spend_regime,Binary Treatment 2A,1 if real PPP dollars per student exceeds World Bank income-group median,Constructed (no GDP denominator)
+Z_real_spend_expansion,Binary Treatment 2B,1 if real PPP dollars per student grows by >=5% over 5-year wave,Constructed (no GDP denominator)
+Z_tert_gdp_regime,Binary Treatment 3A,1 if public university spending (% of GDP) exceeds World Bank income-group median,Constructed (no enrolment denominator)
+Z_edu_total_regime,Binary Treatment 3B,1 if total public education spending (% of GDP) exceeds income-group median,Constructed
+d_t1_nonres_tax_gdp_pp,Outcome Y1 (+5y),"5-year change in non-resource domestic tax revenue (% of GDP, percentage points)",IMF GFS / WDI
+d_t2_nonres_tax_gdp_pp,Outcome Y1 (+10y),"10-year change in non-resource domestic tax revenue (% of GDP, percentage points)",IMF GFS / WDI
+d_t1_inc_tax_gdp_pp,Outcome Y2 (+5y),"5-year change in direct income, profit & capital gains tax (% of GDP, percentage points)",IMF GFS / WDI (GC.TAX.YPKG.ZS * Tax/GDP)
+d_t2_inc_tax_gdp_pp,Outcome Y2 (+10y),"10-year change in direct income, profit & capital gains tax (% of GDP, percentage points)",IMF GFS / WDI (GC.TAX.YPKG.ZS * Tax/GDP)
+d_t1_inc_tax_share_pp,Outcome Y3 (+5y),"5-year change in direct income, profit & capital gains share of revenue (percentage points)",IMF GFS / WDI (GC.TAX.YPKG.ZS)
+d_t2_inc_tax_share_pp,Outcome Y3 (+10y),"10-year change in direct income, profit & capital gains share of revenue (percentage points)",IMF GFS / WDI (GC.TAX.YPKG.ZS)
+d_t1_goods_tax_share_pp,Outcome Y4 (+5y),"5-year change in indirect goods & services / VAT share of revenue (pp, negative control)",IMF GFS / WDI (GC.TAX.GSRV.RV.ZS)
+d_t2_goods_tax_share_pp,Outcome Y4 (+10y),"10-year change in indirect goods & services / VAT share of revenue (pp, negative control)",IMF GFS / WDI (GC.TAX.GSRV.RV.ZS)
+d_t1_log_gdp_pc_pct,Mediator (+5y),"5-year real GDP per person PPP log growth (%, controlled in Direct Fiscal Effect model)",WDI (NY.GDP.PCAP.PP.KD)
+d_t2_log_gdp_pc_pct,Mediator (+10y),"10-year real GDP per person PPP log growth (%, controlled in Direct Fiscal Effect model)",WDI (NY.GDP.PCAP.PP.KD)
+lag_gdp_pc_growth_pct,Pre-Treatment Control,"Lagged (wave t-1) annual real GDP per person growth (%, avoids wave-t collider)",WDI (NY.GDP.PCAP.KD.ZG)

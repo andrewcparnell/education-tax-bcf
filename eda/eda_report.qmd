@@ -1,0 +1,74 @@
+---
+title: "Exploratory Data Analysis: Public University Funding and the National Tax Take"
+author: "Andrew C. Parnell (School of Mathematics and Statistics, University College Dublin)"
+date: "3 November 2026"
+format:
+  pdf:
+    toc: true
+    number-sections: true
+    colorlinks: true
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+## Overview and Research Question
+
+This exploratory data analysis (EDA) inspects the newly constructed global fiscal and education panel (`data/processed/clean_tax_panel.csv`, spanning 1,736 country-waves across 217 sovereign countries from `1985-1989` to `2020-2024`). Our central question is whether increased national spending on university (tertiary) education produces short-term ($+5$-year) and long-term ($+10$-year) benefits to a country's tax take once mediating macroeconomic variables are separated out.
+
+To avoid the mechanical identities and ratio distortions identified in previous macro-education studies, this dataset implements three structural improvements:
+
+1. **Four Pure Disaggregated Fiscal Outcomes (Zero GDP Product Identities):**
+   - $Y_1$: **Total Domestic Non-Resource Tax-to-GDP Change ($\Delta \text{Tax/GDP}$, percentage points of GDP)** (alongside pure unadjusted World Bank WDI $\Delta \text{Tax/GDP}$).
+   - $Y_2$: **Direct Income, Profit, and Capital Gains Tax-to-GDP Change ($\Delta \text{IncomeTax/GDP}$, percentage points of GDP)**.
+   - $Y_3$: **Direct Income and Profit Share of Revenue Change ($\Delta \text{IncomeTax/Rev}$, percentage points of revenue)**.
+   - $Y_4$: **Indirect Goods and Services (Consumption / VAT) Share of Revenue Change ($\Delta \text{GoodsTax/Rev}$, percentage points of revenue)**, which acts as a built-in specificity (negative-control) channel.
+2. **Unbundling the UNESCO Denominator Trap:**
+   We compare three strictly observed university funding exposures side by side (with zero cross-sectional proxy imputation):
+   - **UNESCO Per-Student Spending Ratio (`tert_spend_per_student_winsor`):** Public spending per university student as a percentage of GDP per person.
+   - **Real 2021 PPP Dollars per Student (`real_tert_spend_per_student_ppp`):** Removes GDP per person from the treatment denominator.
+   - **Public University Budget Share of GDP (`tert_spend_gdp_pct`):** Removes student headcount from the treatment denominator (paired with total public education spending as a percentage of GDP, `edu_spend_total_gdp_pct`).
+3. **Separating Pre-Treatment Controls from Macroeconomic Mediators:**
+   Baseline controls use lagged ($t-1$) GDP per person growth (`lag_gdp_pc_growth_pct`) rather than contemporaneous wave-$t$ growth, while contemporaneous forward GDP growth, enrolment expansion, inequality changes, and life expectancy changes are reserved explicitly for the **Mediator-Removed Direct Fiscal Effect** model.
+
+---
+
+## Unbundling the UNESCO Denominator Trap Across Income Groups
+
+Table 1 summarises the three university funding measures and baseline tax structure across the four World Bank income groups.
+
+| Income Group | Countries (Waves) | UNESCO Ratio (% GDP/person) | **Real PPP \$ / Student** | **University Budget (% GDP)** | University Enrolment (%) | Direct Income Tax Share (%) |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| **Low income** | 21 (80) | **150.0%** | \$3,957 | 0.47% | 2.3% | 29.2% |
+| **Lower middle income** | 41 (172) | 76.5% | \$3,258 | 0.65% | 7.4% | 30.8% |
+| **Upper middle income** | 54 (219) | 26.8% | \$3,521 | 0.64% | 25.5% | 33.1% |
+| **High income** | 69 (337) | 26.9% | **\$11,148** | **0.94%** | **58.3%** | **38.4%** |
+
+: University spending indicators and baseline fiscal structure by World Bank income group (medians for skewed spending/enrolment indicators; means for tax shares). {#tbl-eda1}
+
+Table 1 illustrates why comparing the raw UNESCO ratio across income groups is misleading without conditioning on income group or unbundling the denominators:
+
+- In **Low income** countries, only **2.3%** of the age cohort attends university, so dividing modest public university budgets (`0.47%` of GDP) by a tiny student headcount and a low GDP per person yields a median UNESCO ratio of **150.0%**.
+- Once we unbundle the ratio into **Real 2021 PPP Dollars per Student** and **Public University Budget (% of GDP)**, **High income** countries invest nearly three times as much in real terms (**\$11,148** per student vs **\$3,957**) and twice as much as a share of national income (**0.94%** of GDP vs **0.47%**), while collecting a substantially higher share of revenue from direct income and profit taxes (**38.4%** vs **29.2%**).
+
+---
+
+## Unadjusted $+5$-Year and $+10$-Year Changes in the Four Tax Channels
+
+Table 2 compares the raw mean changes in our four fiscal outcomes between countries investing above their income-group benchmark ($Z = 1$) and those below it ($Z = 0$) across the complete four-outcome fiscal sample ($N = 373$ country-waves across 122 countries at $+5$ years; $N = 284$ country-waves across 113 countries at $+10$ years).
+
+| University Funding Regime | Horizon | $N$ (Countries) | **$\Delta$ Non-Resource Tax / GDP (pp)** | **$\Delta$ Direct Income Tax / GDP (pp)** | **$\Delta$ Direct Income Tax Share (pp)** | $\Delta$ Goods & Services Tax Share (pp) |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| **Low Funding ($Z = 0$)** | $+5\text{y}$ | 204 (84) | `-0.14` | `-0.23` | `+0.81` | `+0.72` |
+| **High Funding ($Z = 1$)** | $+5\text{y}$ | 169 (70) | **`+0.33`** | **`+0.40`** | **`+1.76`** | `+0.33` |
+| **Low Funding ($Z = 0$)** | $+10\text{y}$ | 149 (74) | `-0.06` | `-0.22` | `+1.43` | `+1.32` |
+| **High Funding ($Z = 1$)** | $+10\text{y}$ | 135 (65) | **`+0.74`** | **`+0.65`** | **`+2.64`** | `+0.62` |
+
+: Unadjusted mean changes across the four disaggregated fiscal outcomes by within-income-group university funding regime (`Z_regime_inc`). {#tbl-eda2}
+
+Even before causal forest adjustment, three patterns stand out in Table 2:
+
+1. **Positive Overall Tax-Take Growth:** High university investors ($Z = 1$) expand their overall non-resource tax-to-GDP ratio by **`+0.33` percentage points** over 5 years and **`+0.74` percentage points** over 10 years, compared with slight contractions (`-0.14` and `-0.06` pp) among low investors ($Z = 0$).
+2. **Direct Income and Profit Taxes Drive the Gain:** Direct income, profit, and capital gains taxes as a share of GDP rise by **`+0.40` pp** at $+5$ years and **`+0.65` pp** at $+10$ years in high-investment regimes (versus `-0.23` and `-0.22` pp in low-investment regimes), shifting the composition of government revenue toward direct income taxation by **`+1.76` pp** at $+5$ years and **`+2.64` pp** at $+10$ years.
+3. **Specificity Against Indirect Consumption Taxes:** On the negative-control channel ($\Delta \text{Goods & Services Tax Share}$), high university investors show *smaller* increases in indirect consumption tax reliance (`+0.33` pp vs `+0.72` pp at $+5$ years; `+0.62` pp vs `+1.32` pp at $+10$ years), confirming that the fiscal expansion is specific to the direct income and corporate tax base rather than an across-the-board tax hike.
