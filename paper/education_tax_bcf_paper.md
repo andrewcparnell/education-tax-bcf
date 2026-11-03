@@ -242,12 +242,12 @@ Table 1: University spending indicators and baseline tax structure
 across World Bank income groups (group medians for skewed spending and
 enrolment variables; group means for direct income tax share).
 
-| World Bank Income Group | Countries (Waves) | UNESCO Ratio (% GDP/person) | **Real PPP \$ / Student** | **University Budget (% GDP)** | University Enrolment (%) | Direct Income Tax Share (%) |
-|:---|:--:|:--:|:--:|:--:|:--:|:--:|
-| **Low income** | 21 (80) | **150.0%** | \$3,957 | 0.47% | 2.3% | 29.2% |
-| **Lower middle income** | 41 (172) | 76.5% | \$3,258 | 0.65% | 7.4% | 30.8% |
-| **Upper middle income** | 54 (219) | 26.8% | \$3,521 | 0.64% | 25.5% | 33.1% |
-| **High income** | 69 (337) | 26.9% | **\$11,148** | **0.94%** | **58.3%** | **38.4%** |
+| Income Group (Countries, Waves) | UNESCO Ratio (% GDP/pc) | **Real PPP \$ / Student** | **Univ. Budget (% GDP)** | Univ. Enrolment (%) | Direct Income Tax Share (%) |
+|:---|:--:|:--:|:--:|:--:|:--:|
+| **Low income** (21, 80) | **150.0%** | \$3,957 | 0.47% | 2.3% | 29.2% |
+| **Lower middle income** (41, 172) | 76.5% | \$3,258 | 0.65% | 7.4% | 30.8% |
+| **Upper middle income** (54, 219) | 26.8% | \$3,521 | 0.64% | 25.5% | 33.1% |
+| **High income** (69, 337) | 26.9% | **\$11,148** | **0.94%** | **58.3%** | **38.4%** |
 
 </div>
 
@@ -382,10 +382,10 @@ with $P(\tau > 0) > 0.90$.
 
 | Disaggregated Tax Outcome | $+5\text{y}$ Total (`M1`) | **$+5\text{y}$ Direct (`M2`)** | $+10\text{y}$ Total (`M1`) | **$+10\text{y}$ Direct (`M2`)** |
 |:---|:--:|:--:|:--:|:--:|
-| **1. Non-Resource Tax / GDP (pp)** | `-0.02` ($P=0.47$) | `+0.04` ($P=0.55$) | `+0.38` ($P=0.82$) | **`+0.55` ($P=0.92$)** |
-| **2. Direct Income & Profit Tax / GDP (pp)** | `+0.19` ($P=0.93$) | **`+0.21` ($P=0.94$)** | `+0.31` ($P=0.93$) | **`+0.32` ($P=0.93$)** |
-| **3. Direct Income Tax Share of Revenue (pp)** | **`+1.34` ($P=0.99$)** | **`+1.43` ($P=0.997$)** | **`+1.77` ($P=0.99$)** | **`+1.88` ($P=0.990$)** |
-| **4. Goods & Services Tax Share (pp, Neg. Control)** | `-0.28` ($P=0.31$) | `-0.13` ($P=0.41$) | `-0.74` ($P=0.18$) | `-0.73` ($P=0.19$) |
+| **1. Non-Resource Tax / GDP (pp)** | -0.02 ($P=0.47$) | +0.04 ($P=0.55$) | +0.38 ($P=0.82$) | **+0.55 ($P=0.92$)** |
+| **2. Direct Income Tax / GDP (pp)** | +0.19 ($P=0.93$) | **+0.21 ($P=0.94$)** | +0.31 ($P=0.93$) | **+0.32 ($P=0.93$)** |
+| **3. Direct Income Tax Share (pp)** | **+1.34 ($P=0.99$)** | **+1.43 ($P>0.99$)** | **+1.77 ($P=0.99$)** | **+1.88 ($P=0.99$)** |
+| **4. Goods & Services Share (pp)** | -0.28 ($P=0.31$) | -0.13 ($P=0.41$) | -0.74 ($P=0.18$) | -0.73 ($P=0.19$) |
 
 </div>
 
@@ -453,13 +453,13 @@ estimated under the Mediator-Removed Direct Effect specification `M2`).
 Table 3: Comparison of $+10$-year Mediator-Removed Direct Fiscal Effects
 across five university and general education spending definitions.
 
-| Spending Exposure Definition ($+10\text{y}$ Direct Effect) | $N$ (Countries) | **$\Delta$ Non-Resource Tax / GDP (pp)** | **$\Delta$ Direct Income Tax / GDP (pp)** | **$\Delta$ Direct Income Tax Share (pp)** |
+| Spending Definition ($+10\text{y}$ Direct) | $N$ (Countries) | **Non-Resource Tax / GDP (pp)** | **Direct Income Tax / GDP (pp)** | **Direct Income Tax Share (pp)** |
 |:---|:--:|:--:|:--:|:--:|
-| **1. Per-Student Ratio Regime (`Z_regime_inc`)** | 283 (112) | **`+0.55` ($P=0.92$)** | **`+0.32` ($P=0.93$)** | **`+1.88` ($P=0.990$)** |
-| **2. Observed Within-Country Expansion ($\ge +2.5\text{ pp}$)** | 176 (86) | `+0.55` ($P=0.81$) | **`+0.82` ($P=0.997$)** | **`+2.53` ($P=0.996$)** |
-| **3. Real 2021 PPP Dollars per Student (No GDP Denom.)** | 283 (112) | **`+1.15` ($P=0.994$)** | **`+0.35` ($P=0.937$)** | `+0.65` ($P=0.75$) |
-| **4. University Budget % of GDP (No Enrolment Denom.)** | 269 (109) | `+0.19` ($P=0.70$) | `+0.07` ($P=0.64$) | `+0.57` ($P=0.78$) |
-| **5. Total Education Budget % of GDP (All Levels)** | 280 (112) | `+0.16` ($P=0.63$) | `-0.00` ($P=0.50$) | `+0.42` ($P=0.60$) |
+| **1. Per-Student Ratio Regime** | 283 (112) | **+0.55 ($P=0.92$)** | **+0.32 ($P=0.93$)** | **+1.88 ($P=0.99$)** |
+| **2. Observed Expansion ($\ge +2.5\text{ pp}$)** | 176 (86) | +0.55 ($P=0.81$) | **+0.82 ($P>0.99$)** | **+2.53 ($P>0.99$)** |
+| **3. Real 2021 PPP \$ per Student** | 283 (112) | **+1.15 ($P>0.99$)** | **+0.35 ($P=0.94$)** | +0.65 ($P=0.75$) |
+| **4. University Budget (% of GDP)** | 269 (109) | +0.19 ($P=0.70$) | +0.07 ($P=0.64$) | +0.57 ($P=0.78$) |
+| **5. Total Education Budget (% GDP)** | 280 (112) | +0.16 ($P=0.63$) | -0.00 ($P=0.50$) | +0.42 ($P=0.60$) |
 
 </div>
 
@@ -536,13 +536,13 @@ Table 4: Subgroup conditional average treatment effects (CATEs, with 95%
 credible intervals) at the $+10$-year horizon across university
 enrolment regimes and OECD public-versus-private financing regimes.
 
-| Country Context Subgroup ($+10\text{y}$ Direct Effect) | $N$ (Countries) | **$\Delta$ Non-Resource Tax / GDP (pp)** | **$\Delta$ Direct Income Tax / GDP (pp)** | **$\Delta$ Direct Income Tax Share (pp)** |
+| Country Subgroup ($+10\text{y}$ Direct) | $N$ (Countries) | **Non-Resource Tax / GDP (pp)** | **Direct Income Tax / GDP (pp)** | **Direct Income Tax Share (pp)** |
 |:---|:--:|:--:|:--:|:--:|
-| **1. Elite Enrolment (`<20%` of cohort)** | 74 (43) | **`+1.04` `[-0.02, +2.15]`** | **`+0.49` `[-0.06, +1.10]`** | **`+2.10` `[+0.11, +4.37]` ($P=0.98$)** |
-| **2. Massifying Enrolment (`20-50%` of cohort)** | 73 (42) | **`+0.73` `[-0.13, +1.56]`** | `+0.30` `[-0.15, +0.76]` | **`+1.93` `[+0.23, +3.62]` ($P=0.99$)** |
-| **3. High-Participation (`>=50%` of cohort)** | 136 (53) | `+0.18` `[-0.69, +1.04]` | `+0.23` `[-0.27, +0.70]` | **`+1.73` `[-0.16, +3.40]` ($P=0.97$)** |
-| **4. OECD Nordic & Low-Tuition Public Model** | 66 (20) | `-0.68` `[-1.46, +0.21]` | `-0.02` `[-0.69, +0.67]` | **`+1.83` `[-0.61, +4.10]` ($P=0.93$)** |
-| **5. OECD High-Tuition / Hybrid Public-Private** | 53 (17) | `-0.61` `[-1.40, +0.28]` | `-0.05` `[-0.71, +0.65]` | **`+1.66` `[-0.71, +3.97]` ($P=0.91$)** |
+| **1. Elite Enrolment (`<20%`)** | 74 (43) | **+1.04 \[-0.02, +2.15\]** | **+0.49 \[-0.06, +1.10\]** | **+2.10 \[+0.11, +4.37\]** |
+| **2. Massifying (`20-50%`)** | 73 (42) | **+0.73 \[-0.13, +1.56\]** | +0.30 \[-0.15, +0.76\] | **+1.93 \[+0.23, +3.62\]** |
+| **3. High-Participation (`>=50%`)** | 136 (53) | +0.18 \[-0.69, +1.04\] | +0.23 \[-0.27, +0.70\] | **+1.73 \[-0.16, +3.40\]** |
+| **4. OECD Public / Low-Tuition** | 66 (20) | -0.68 \[-1.46, +0.21\] | -0.02 \[-0.69, +0.67\] | **+1.83 \[-0.61, +4.10\]** |
+| **5. OECD High-Tuition / Hybrid** | 53 (17) | -0.61 \[-1.40, +0.28\] | -0.05 \[-0.71, +0.65\] | **+1.66 \[-0.71, +3.97\]** |
 
 </div>
 
@@ -583,12 +583,12 @@ the initial $+5$-year effect ($\tau_1$), the incremental
 $+5\text{ to }+10$-year maturation effect ($\tau_2$), and the cumulative
 $+10$-year effect ($\tau_{\text{cum}} = \tau_1 + \tau_2$).
 
-| Tax Outcome ($N = 282$ Trajectories, $112$ Countries) | $+5\text{y}$ Step ($\tau_1$) | **$+5\text{y} \to +10\text{y}$ Step ($\tau_2$)** | **Cumulative $+10\text{y}$ ($\tau_{\text{cum}}$)** | Compounding Prob. $P(\tau_2 > 0)$ |
+| Tax Outcome ($N = 282$, $112$ Countries) | $+5\text{y}$ Step ($\tau_1$) | **$+5\text{y} \to +10\text{y}$ Step ($\tau_2$)** | **Cumulative $+10\text{y}$ ($\tau_{\text{cum}}$)** | Compounding Prob. |
 |:---|:--:|:--:|:--:|:--:|
-| **1. Non-Resource Tax / GDP (pp)** | `-0.08` ($P=0.39$) | **`+0.53` ($P=0.91$)** | `+0.45` ($P=0.88$) | **90.5%** |
-| **2. Direct Income & Profit Tax / GDP (pp)** | `+0.09` ($P=0.70$) | **`+0.23` ($P=0.92$)** | **`+0.32` ($P=0.95$)** | **91.7%** |
-| **3. Direct Income Tax Share of Revenue (pp)** | **`+1.01` ($P=0.93$)** | **`+1.22` ($P=0.94$)** | **`+2.23` ($P=0.996$)** | **93.5%** |
-| **4. Goods & Services Tax Share (pp, Neg. Control)** | `+0.22` ($P=0.62$) | `-0.59` ($P=0.22$) | `-0.37` ($P=0.31$) | 22.2% |
+| **1. Non-Resource Tax / GDP (pp)** | -0.08 ($P=0.39$) | **+0.53 ($P=0.91$)** | +0.45 ($P=0.88$) | **90.5%** |
+| **2. Direct Income Tax / GDP (pp)** | +0.09 ($P=0.70$) | **+0.23 ($P=0.92$)** | **+0.32 ($P=0.95$)** | **91.7%** |
+| **3. Direct Income Tax Share (pp)** | **+1.01 ($P=0.93$)** | **+1.22 ($P=0.94$)** | **+2.23 ($P>0.99$)** | **93.5%** |
+| **4. Goods & Services Share (pp)** | +0.22 ($P=0.62$) | -0.59 ($P=0.22$) | -0.37 ($P=0.31$) | 22.2% |
 
 </div>
 
@@ -640,13 +640,13 @@ summarises five demanding robustness checks
 Table 6: Summary of robustness and falsification checks across the
 primary fiscal outcomes.
 
-| Robustness Specification | Horizon ($N$, Countries) | **$\Delta$ Non-Resource Tax / GDP (pp)** | **$\Delta$ Direct Income Tax / GDP (pp)** | **$\Delta$ Direct Income Tax Share (pp)** |
+| Robustness Specification | Horizon ($N$, Countries) | **Non-Resource Tax / GDP (pp)** | **Direct Income Tax / GDP (pp)** | **Direct Income Tax Share (pp)** |
 |:---|:--:|:--:|:--:|:--:|
-| **R1. Pure Unadjusted WDI Tax / GDP** | $+10\text{y}$ (283, 112) | **`+0.54` ($P=0.91$)** | **`+0.35` ($P=0.95$)** | **`+1.94` `[+0.44, +3.59]` ($P=0.994$)** |
-| **R2. Non-Overlapping 10-Year Decadal Waves** | $+10\text{y}$ (154, 97) | **`+0.78` ($P=0.94$)** | **`+0.39` ($P=0.94$)** | **`+2.37` `[+0.23, +4.22]` ($P=0.985$)** |
-| **R3. Within-Country Fixed-Effects Demeaning** | $+5\text{y}$ (372, 121) | `-0.04` ($P=0.45$) | `+0.07` ($P=0.69$) | **`+1.02` `[+0.07, +2.04]` ($P=0.981$)** |
-| **R4. Strictly Observed Baseline Covariates** | $+10\text{y}$ (272, 108) | `+0.42` ($P=0.87$) | **`+0.27` ($P=0.92$)** | **`+1.84` `[+0.42, +3.24]` ($P=0.995$)** |
-| **R5. Placebo Lead Check (Future $Z_{t+1}$ on Current $\Delta Y$)** | $+5\text{y}$ (260, 100) | `-0.16` ($P=0.32$) | `+0.10` ($P=0.72$) | `+0.43` `[-0.71, +1.56]` ($P=0.793$) |
+| **R1. Pure Unadjusted WDI Tax / GDP** | $+10\text{y}$ (283, 112) | **+0.54 ($P=0.91$)** | **+0.35 ($P=0.95$)** | **+1.94 ($P>0.99$)** |
+| **R2. Non-Overlapping 10y Waves** | $+10\text{y}$ (154, 97) | **+0.78 ($P=0.94$)** | **+0.39 ($P=0.94$)** | **+2.37 ($P=0.99$)** |
+| **R3. Within-Country Fixed Effects** | $+5\text{y}$ (372, 121) | -0.04 ($P=0.45$) | +0.07 ($P=0.69$) | **+1.02 ($P=0.98$)** |
+| **R4. Strictly Observed Covariates** | $+10\text{y}$ (272, 108) | +0.42 ($P=0.87$) | **+0.27 ($P=0.92$)** | **+1.84 ($P>0.99$)** |
+| **R5. Placebo Lead ($Z_{t+1}$ on $\Delta Y$)** | $+5\text{y}$ (260, 100) | -0.16 ($P=0.32$) | +0.10 ($P=0.72$) | +0.43 ($P=0.79$) |
 
 </div>
 
@@ -827,13 +827,13 @@ Table 7: Posterior mean cross-outcome residual correlations and residual
 standard deviations from the four-outcome Multivariate Bayesian Causal
 Forest (`mvbcf`).
 
-| Residual Parameter Pair (`M2` Direct Effect Model) | **$+5\text{y}$ Posterior Mean `[95% CrI]`** | **$+10\text{y}$ Posterior Mean `[95% CrI]`** |
+| Residual Parameter Pair (`M2` Direct Model) | **$+5\text{y}$ Posterior Mean \[95% CrI\]** | **$+10\text{y}$ Posterior Mean \[95% CrI\]** |
 |:---|:--:|:--:|
-| **1. Non-Resource Tax / GDP $\leftrightarrow$ Direct Income Tax / GDP** | **`+0.594` `[+0.511, +0.669]`** | **`+0.621` `[+0.521, +0.709]`** |
-| **2. Direct Income Tax / GDP $\leftrightarrow$ Direct Income Tax Share** | **`+0.705` `[+0.644, +0.757]`** | **`+0.729` `[+0.650, +0.795]`** |
-| **3. Direct Income Tax Share $\leftrightarrow$ Goods & Services Tax Share** | **`-0.412` `[-0.507, -0.303]`** | **`-0.526` `[-0.630, -0.414]`** |
-| **4. Non-Resource Tax / GDP $\leftrightarrow$ Direct Income Tax Share** | `-0.039` `[-0.149, +0.071]` | `-0.008` `[-0.141, +0.123]` |
-| **5. Residual SDs ($\sigma_1, \sigma_2, \sigma_3, \sigma_4$, percentage points)** | `1.92, 0.96, 3.88, 4.46 pp` | `2.45, 1.38, 4.92, 5.45 pp` |
+| **1. Non-Resource Tax / GDP $\leftrightarrow$ Direct Income Tax / GDP** | **+0.594 \[+0.511, +0.669\]** | **+0.621 \[+0.521, +0.709\]** |
+| **2. Direct Income Tax / GDP $\leftrightarrow$ Direct Income Tax Share** | **+0.705 \[+0.644, +0.757\]** | **+0.729 \[+0.650, +0.795\]** |
+| **3. Direct Income Tax Share $\leftrightarrow$ Goods & Services Share** | **-0.412 \[-0.507, -0.303\]** | **-0.526 \[-0.630, -0.414\]** |
+| **4. Non-Resource Tax / GDP $\leftrightarrow$ Direct Income Tax Share** | -0.039 \[-0.149, +0.071\] | -0.008 \[-0.141, +0.123\] |
+| **5. Residual SDs ($\sigma_1, \sigma_2, \sigma_3, \sigma_4$, percentage points)** | 1.92, 0.96, 3.88, 4.46 pp | 2.45, 1.38, 4.92, 5.45 pp |
 
 </div>
 
@@ -860,17 +860,18 @@ Geweke $z$-scores show stationary mixing around the posterior mean.
 
 <div id="tbl-mcmc">
 
-Table 8: Post-burn-in MCMC convergence diagnostics for the primary
-Mediator-Removed Direct Effect (`M2`) Multivariate BCF models.
+Table 8: Post-burn-in MCMC convergence diagnostics (across 1,250
+post-burn-in Gibbs draws) for the primary Mediator-Removed Direct Effect
+(`M2`) Multivariate BCF models.
 
-| Tax Outcome (`M2` Mediator-Removed Direct Model) | Horizon ($N$) | Post-Burn Draws | Posterior Mean (SD) | **Split-Chain $\hat{R}$** | **Effective Sample Size (ESS)** | Geweke $z$ |
-|:---|:--:|:--:|:--:|:--:|:--:|:--:|
-| **1. Non-Resource Tax / GDP (pp)** | $+5\text{y}$ (372) | 1,250 | `+0.044` (`0.260`) | **1.000** | **238** | `+1.62` |
-| **2. Direct Income Tax / GDP (pp)** | $+5\text{y}$ (372) | 1,250 | `+0.206` (`0.134`) | **1.000** | **159** | `+0.55` |
-| **3. Direct Income Tax Share (pp)** | $+5\text{y}$ (372) | 1,250 | `+1.433` (`0.528`) | **1.021** | **205** | `-0.55` |
-| **4. Non-Resource Tax / GDP (pp)** | $+10\text{y}$ (283) | 1,250 | `+0.548` (`0.396`) | **1.015** | **156** | `+1.76` |
-| **5. Direct Income Tax / GDP (pp)** | $+10\text{y}$ (283) | 1,250 | `+0.319` (`0.219`) | **1.050** | **188** | `-1.99` |
-| **6. Direct Income Tax Share (pp)** | $+10\text{y}$ (283) | 1,250 | `+1.880` (`0.796`) | **1.015** | **154** | `-2.02` |
+| Tax Outcome (`M2` Direct Model) | Horizon ($N$) | Posterior Mean (SD) | **Split-Chain $\hat{R}$** | **Effective Sample Size** | Geweke $z$ |
+|:---|:--:|:--:|:--:|:--:|:--:|
+| **1. Non-Resource Tax / GDP (pp)** | $+5\text{y}$ (372) | +0.044 (0.260) | **1.000** | **238** | +1.62 |
+| **2. Direct Income Tax / GDP (pp)** | $+5\text{y}$ (372) | +0.206 (0.134) | **1.000** | **159** | +0.55 |
+| **3. Direct Income Tax Share (pp)** | $+5\text{y}$ (372) | +1.433 (0.528) | **1.021** | **205** | -0.55 |
+| **4. Non-Resource Tax / GDP (pp)** | $+10\text{y}$ (283) | +0.548 (0.396) | **1.015** | **156** | +1.76 |
+| **5. Direct Income Tax / GDP (pp)** | $+10\text{y}$ (283) | +0.319 (0.219) | **1.050** | **188** | -1.99 |
+| **6. Direct Income Tax Share (pp)** | $+10\text{y}$ (283) | +1.880 (0.796) | **1.015** | **154** | -2.02 |
 
 </div>
 

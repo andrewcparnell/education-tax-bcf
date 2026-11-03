@@ -79,7 +79,7 @@ window.Quarto = {
 
 <div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
 <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-<div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="../../eda_report.html"><i class="bi bi-file-pdf"></i>PDF</a></li></ul></div></div>
+<div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="eda_report.html"><i class="bi bi-file-pdf"></i>Typst</a></li></ul></div></div>
 <main class="content" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
@@ -138,7 +138,7 @@ window.Quarto = {
 <section id="unbundling-the-unesco-denominator-trap-across-income-groups" class="level2">
 <h2 class="anchored" data-anchor-id="unbundling-the-unesco-denominator-trap-across-income-groups">Unbundling the UNESCO Denominator Trap Across Income Groups</h2>
 <p>Table 1 summarises the three university funding measures and baseline tax structure across the four World Bank income groups.</p>
-<div id="tbl-eda1" class="quarto-float quarto-figure quarto-figure-center anchored">
+<div id="tbl-eda1" class="quarto-float quarto-figure quarto-figure-center anchored" data-tbl-colwidths="[28, 15, 15, 14, 14, 14]">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-eda1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;1: University spending indicators and baseline fiscal structure by World Bank income group (medians for skewed spending/enrolment indicators; means for tax shares).
@@ -146,29 +146,26 @@ Table&nbsp;1: University spending indicators and baseline fiscal structure by Wo
 <div aria-describedby="tbl-eda1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
 <colgroup>
-<col style="width: 11%">
-<col style="width: 14%">
-<col style="width: 14%">
-<col style="width: 14%">
+<col style="width: 28%">
+<col style="width: 15%">
+<col style="width: 15%">
 <col style="width: 14%">
 <col style="width: 14%">
 <col style="width: 14%">
 </colgroup>
 <thead>
 <tr class="header">
-<th style="text-align: left;">Income Group</th>
-<th style="text-align: center;">Countries (Waves)</th>
-<th style="text-align: center;">UNESCO Ratio (% GDP/person)</th>
+<th style="text-align: left;">Income Group (Countries, Waves)</th>
+<th style="text-align: center;">UNESCO Ratio (% GDP/pc)</th>
 <th style="text-align: center;"><strong>Real PPP $ / Student</strong></th>
-<th style="text-align: center;"><strong>University Budget (% GDP)</strong></th>
-<th style="text-align: center;">University Enrolment (%)</th>
+<th style="text-align: center;"><strong>Univ. Budget (% GDP)</strong></th>
+<th style="text-align: center;">Univ. Enrolment (%)</th>
 <th style="text-align: center;">Direct Income Tax Share (%)</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;"><strong>Low income</strong></td>
-<td style="text-align: center;">21 (80)</td>
+<td style="text-align: left;"><strong>Low income</strong> (21, 80)</td>
 <td style="text-align: center;"><strong>150.0%</strong></td>
 <td style="text-align: center;">$3,957</td>
 <td style="text-align: center;">0.47%</td>
@@ -176,8 +173,7 @@ Table&nbsp;1: University spending indicators and baseline fiscal structure by Wo
 <td style="text-align: center;">29.2%</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;"><strong>Lower middle income</strong></td>
-<td style="text-align: center;">41 (172)</td>
+<td style="text-align: left;"><strong>Lower middle income</strong> (41, 172)</td>
 <td style="text-align: center;">76.5%</td>
 <td style="text-align: center;">$3,258</td>
 <td style="text-align: center;">0.65%</td>
@@ -185,8 +181,7 @@ Table&nbsp;1: University spending indicators and baseline fiscal structure by Wo
 <td style="text-align: center;">30.8%</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;"><strong>Upper middle income</strong></td>
-<td style="text-align: center;">54 (219)</td>
+<td style="text-align: left;"><strong>Upper middle income</strong> (54, 219)</td>
 <td style="text-align: center;">26.8%</td>
 <td style="text-align: center;">$3,521</td>
 <td style="text-align: center;">0.64%</td>
@@ -194,8 +189,7 @@ Table&nbsp;1: University spending indicators and baseline fiscal structure by Wo
 <td style="text-align: center;">33.1%</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;"><strong>High income</strong></td>
-<td style="text-align: center;">69 (337)</td>
+<td style="text-align: left;"><strong>High income</strong> (69, 337)</td>
 <td style="text-align: center;">26.9%</td>
 <td style="text-align: center;"><strong>$11,148</strong></td>
 <td style="text-align: center;"><strong>0.94%</strong></td>
@@ -217,7 +211,7 @@ Table&nbsp;1: University spending indicators and baseline fiscal structure by Wo
 <section id="unadjusted-5-year-and-10-year-changes-in-the-four-tax-channels" class="level2">
 <h2 class="anchored" data-anchor-id="unadjusted-5-year-and-10-year-changes-in-the-four-tax-channels">Unadjusted <span class="math inline">\(+5\)</span>-Year and <span class="math inline">\(+10\)</span>-Year Changes in the Four Tax Channels</h2>
 <p>Table 2 compares the raw mean changes in our four fiscal outcomes between countries investing above their income-group benchmark (<span class="math inline">\(Z = 1\)</span>) and those below it (<span class="math inline">\(Z = 0\)</span>) across the outlier-screened four-outcome fiscal sample (<span class="math inline">\(N = 372\)</span> country-waves across 121 countries at <span class="math inline">\(+5\)</span> years; <span class="math inline">\(N = 283\)</span> country-waves across 112 countries at <span class="math inline">\(+10\)</span> years, after screening out two raw WDI reporting anomalies in Sudan <code>1995-1999</code> and Timor-Leste <code>2010-2014</code> where recorded tax revenue exceeded <code>100%</code> of GDP).</p>
-<div id="tbl-eda2" class="quarto-float quarto-figure quarto-figure-center anchored">
+<div id="tbl-eda2" class="quarto-float quarto-figure quarto-figure-center anchored" data-tbl-colwidths="[28, 14, 15, 15, 14, 14]">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-eda2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;2: Unadjusted mean changes across the four disaggregated fiscal outcomes by within-income-group university funding regime (<code>Z_regime_inc</code>).
@@ -225,61 +219,55 @@ Table&nbsp;2: Unadjusted mean changes across the four disaggregated fiscal outco
 <div aria-describedby="tbl-eda2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
 <colgroup>
-<col style="width: 11%">
+<col style="width: 28%">
 <col style="width: 14%">
-<col style="width: 14%">
-<col style="width: 14%">
-<col style="width: 14%">
+<col style="width: 15%">
+<col style="width: 15%">
 <col style="width: 14%">
 <col style="width: 14%">
 </colgroup>
 <thead>
 <tr class="header">
-<th style="text-align: left;">University Funding Regime</th>
-<th style="text-align: center;">Horizon</th>
+<th style="text-align: left;">Funding Regime (Horizon)</th>
 <th style="text-align: center;"><span class="math inline">\(N\)</span> (Countries)</th>
-<th style="text-align: center;"><strong><span class="math inline">\(\Delta\)</span> Non-Resource Tax / GDP (pp)</strong></th>
-<th style="text-align: center;"><strong><span class="math inline">\(\Delta\)</span> Direct Income Tax / GDP (pp)</strong></th>
-<th style="text-align: center;"><strong><span class="math inline">\(\Delta\)</span> Direct Income Tax Share (pp)</strong></th>
-<th style="text-align: center;"><span class="math inline">\(\Delta\)</span> Goods &amp; Services Tax Share (pp)</th>
+<th style="text-align: center;"><strong>Non-Resource Tax / GDP (pp)</strong></th>
+<th style="text-align: center;"><strong>Direct Income Tax / GDP (pp)</strong></th>
+<th style="text-align: center;"><strong>Direct Income Tax Share (pp)</strong></th>
+<th style="text-align: center;">Goods &amp; Services Share (pp)</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;"><strong>Low Funding (<span class="math inline">\(Z = 0\)</span>)</strong></td>
-<td style="text-align: center;"><span class="math inline">\(+5\text{y}\)</span></td>
+<td style="text-align: left;"><strong>Low Funding (<span class="math inline">\(Z = 0\)</span>, <span class="math inline">\(+5\text{y}\)</span>)</strong></td>
 <td style="text-align: center;">203 (83)</td>
-<td style="text-align: center;"><code>+0.39</code></td>
-<td style="text-align: center;"><code>+0.27</code></td>
-<td style="text-align: center;"><code>+0.90</code></td>
-<td style="text-align: center;"><code>+0.70</code></td>
+<td style="text-align: center;">+0.39</td>
+<td style="text-align: center;">+0.27</td>
+<td style="text-align: center;">+0.90</td>
+<td style="text-align: center;">+0.70</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;"><strong>High Funding (<span class="math inline">\(Z = 1\)</span>)</strong></td>
-<td style="text-align: center;"><span class="math inline">\(+5\text{y}\)</span></td>
+<td style="text-align: left;"><strong>High Funding (<span class="math inline">\(Z = 1\)</span>, <span class="math inline">\(+5\text{y}\)</span>)</strong></td>
 <td style="text-align: center;">169 (70)</td>
-<td style="text-align: center;"><strong><code>+0.33</code></strong></td>
-<td style="text-align: center;"><strong><code>+0.40</code></strong></td>
-<td style="text-align: center;"><strong><code>+1.76</code></strong></td>
-<td style="text-align: center;"><code>+0.33</code></td>
+<td style="text-align: center;"><strong>+0.33</strong></td>
+<td style="text-align: center;"><strong>+0.40</strong></td>
+<td style="text-align: center;"><strong>+1.76</strong></td>
+<td style="text-align: center;">+0.33</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;"><strong>Low Funding (<span class="math inline">\(Z = 0\)</span>)</strong></td>
-<td style="text-align: center;"><span class="math inline">\(+10\text{y}\)</span></td>
+<td style="text-align: left;"><strong>Low Funding (<span class="math inline">\(Z = 0\)</span>, <span class="math inline">\(+10\text{y}\)</span>)</strong></td>
 <td style="text-align: center;">148 (73)</td>
-<td style="text-align: center;"><code>+0.65</code></td>
-<td style="text-align: center;"><code>+0.45</code></td>
-<td style="text-align: center;"><code>+1.53</code></td>
-<td style="text-align: center;"><code>+1.31</code></td>
+<td style="text-align: center;">+0.65</td>
+<td style="text-align: center;">+0.45</td>
+<td style="text-align: center;">+1.53</td>
+<td style="text-align: center;">+1.31</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;"><strong>High Funding (<span class="math inline">\(Z = 1\)</span>)</strong></td>
-<td style="text-align: center;"><span class="math inline">\(+10\text{y}\)</span></td>
+<td style="text-align: left;"><strong>High Funding (<span class="math inline">\(Z = 1\)</span>, <span class="math inline">\(+10\text{y}\)</span>)</strong></td>
 <td style="text-align: center;">135 (65)</td>
-<td style="text-align: center;"><strong><code>+0.74</code></strong></td>
-<td style="text-align: center;"><strong><code>+0.65</code></strong></td>
-<td style="text-align: center;"><strong><code>+2.64</code></strong></td>
-<td style="text-align: center;"><code>+0.62</code></td>
+<td style="text-align: center;"><strong>+0.74</strong></td>
+<td style="text-align: center;"><strong>+0.65</strong></td>
+<td style="text-align: center;"><strong>+2.64</strong></td>
+<td style="text-align: center;">+0.62</td>
 </tr>
 </tbody>
 </table>

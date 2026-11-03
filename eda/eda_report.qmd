@@ -3,10 +3,18 @@ title: "Exploratory Data Analysis: Public University Funding and the National Ta
 author: "Andrew C. Parnell (School of Mathematics and Statistics, University College Dublin)"
 date: "3 November 2026"
 format:
-  pdf:
+  typst:
     toc: true
     number-sections: true
-    colorlinks: true
+    margin:
+      x: 2.0cm
+      y: 2.2cm
+    fontsize: 11pt
+    include-in-header:
+      text: |
+        #show table: set text(size: 9.5pt, hyphenate: false)
+        #show table.cell: set par(justify: false, leading: 0.55em)
+        #set table(inset: (x: 6pt, y: 5pt))
 execute:
   echo: false
   warning: false
@@ -38,14 +46,14 @@ To avoid the mechanical identities and ratio distortions identified in previous 
 
 Table 1 summarises the three university funding measures and baseline tax structure across the four World Bank income groups.
 
-| Income Group | Countries (Waves) | UNESCO Ratio (% GDP/person) | **Real PPP \$ / Student** | **University Budget (% GDP)** | University Enrolment (%) | Direct Income Tax Share (%) |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Low income** | 21 (80) | **150.0%** | \$3,957 | 0.47% | 2.3% | 29.2% |
-| **Lower middle income** | 41 (172) | 76.5% | \$3,258 | 0.65% | 7.4% | 30.8% |
-| **Upper middle income** | 54 (219) | 26.8% | \$3,521 | 0.64% | 25.5% | 33.1% |
-| **High income** | 69 (337) | 26.9% | **\$11,148** | **0.94%** | **58.3%** | **38.4%** |
+| Income Group (Countries, Waves) | UNESCO Ratio (% GDP/pc) | **Real PPP \$ / Student** | **Univ. Budget (% GDP)** | Univ. Enrolment (%) | Direct Income Tax Share (%) |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| **Low income** (21, 80) | **150.0%** | \$3,957 | 0.47% | 2.3% | 29.2% |
+| **Lower middle income** (41, 172) | 76.5% | \$3,258 | 0.65% | 7.4% | 30.8% |
+| **Upper middle income** (54, 219) | 26.8% | \$3,521 | 0.64% | 25.5% | 33.1% |
+| **High income** (69, 337) | 26.9% | **\$11,148** | **0.94%** | **58.3%** | **38.4%** |
 
-: University spending indicators and baseline fiscal structure by World Bank income group (medians for skewed spending/enrolment indicators; means for tax shares). {#tbl-eda1}
+: University spending indicators and baseline fiscal structure by World Bank income group (medians for skewed spending/enrolment indicators; means for tax shares). {#tbl-eda1 tbl-colwidths="[28, 15, 15, 14, 14, 14]"}
 
 Table 1 illustrates why comparing the raw UNESCO ratio across income groups is misleading without conditioning on income group or unbundling the denominators:
 
@@ -58,14 +66,14 @@ Table 1 illustrates why comparing the raw UNESCO ratio across income groups is m
 
 Table 2 compares the raw mean changes in our four fiscal outcomes between countries investing above their income-group benchmark ($Z = 1$) and those below it ($Z = 0$) across the outlier-screened four-outcome fiscal sample ($N = 372$ country-waves across 121 countries at $+5$ years; $N = 283$ country-waves across 112 countries at $+10$ years, after screening out two raw WDI reporting anomalies in Sudan `1995-1999` and Timor-Leste `2010-2014` where recorded tax revenue exceeded `100%` of GDP).
 
-| University Funding Regime | Horizon | $N$ (Countries) | **$\Delta$ Non-Resource Tax / GDP (pp)** | **$\Delta$ Direct Income Tax / GDP (pp)** | **$\Delta$ Direct Income Tax Share (pp)** | $\Delta$ Goods & Services Tax Share (pp) |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Low Funding ($Z = 0$)** | $+5\text{y}$ | 203 (83) | `+0.39` | `+0.27` | `+0.90` | `+0.70` |
-| **High Funding ($Z = 1$)** | $+5\text{y}$ | 169 (70) | **`+0.33`** | **`+0.40`** | **`+1.76`** | `+0.33` |
-| **Low Funding ($Z = 0$)** | $+10\text{y}$ | 148 (73) | `+0.65` | `+0.45` | `+1.53` | `+1.31` |
-| **High Funding ($Z = 1$)** | $+10\text{y}$ | 135 (65) | **`+0.74`** | **`+0.65`** | **`+2.64`** | `+0.62` |
+| Funding Regime (Horizon) | $N$ (Countries) | **Non-Resource Tax / GDP (pp)** | **Direct Income Tax / GDP (pp)** | **Direct Income Tax Share (pp)** | Goods & Services Share (pp) |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| **Low Funding ($Z = 0$, $+5\text{y}$)** | 203 (83) | +0.39 | +0.27 | +0.90 | +0.70 |
+| **High Funding ($Z = 1$, $+5\text{y}$)** | 169 (70) | **+0.33** | **+0.40** | **+1.76** | +0.33 |
+| **Low Funding ($Z = 0$, $+10\text{y}$)** | 148 (73) | +0.65 | +0.45 | +1.53 | +1.31 |
+| **High Funding ($Z = 1$, $+10\text{y}$)** | 135 (65) | **+0.74** | **+0.65** | **+2.64** | +0.62 |
 
-: Unadjusted mean changes across the four disaggregated fiscal outcomes by within-income-group university funding regime (`Z_regime_inc`). {#tbl-eda2}
+: Unadjusted mean changes across the four disaggregated fiscal outcomes by within-income-group university funding regime (`Z_regime_inc`). {#tbl-eda2 tbl-colwidths="[28, 14, 15, 15, 14, 14]"}
 
 Even before causal forest adjustment, three patterns stand out in Table 2:
 

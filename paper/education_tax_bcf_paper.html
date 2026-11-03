@@ -232,7 +232,7 @@ Figure&nbsp;1: Study design illustrating how we compare three observed measures 
 \text{UNESCO Ratio}_{i,t} = \frac{\text{Public University Spending per Student}_{i,t}}{\text{GDP per Person}_{i,t}} \times 100 = \frac{\text{Public University Budget (\%\ of GDP)}_{i,t}}{\text{University Students per Person}_{i,t}}
 \]</span></p>
 <p><a href="#tbl-eda1" class="quarto-xref">Table&nbsp;1</a> shows what happens when we compare this ratio across the four World Bank income groups alongside our two unbundled measures: <strong>Real 2021 PPP Dollars per Student</strong> (which cancels GDP per person out of the denominator) and <strong>Public University Budget as a % of GDP</strong> (which cancels student headcount out of the denominator).</p>
-<div id="tbl-eda1" class="quarto-float quarto-figure quarto-figure-center anchored">
+<div id="tbl-eda1" class="quarto-float quarto-figure quarto-figure-center anchored" data-tbl-colwidths="[32, 14, 14, 14, 13, 13]">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-eda1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;1: University spending indicators and baseline tax structure across World Bank income groups (group medians for skewed spending and enrolment variables; group means for direct income tax share).
@@ -240,29 +240,26 @@ Table&nbsp;1: University spending indicators and baseline tax structure across W
 <div aria-describedby="tbl-eda1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
 <colgroup>
-<col style="width: 11%">
+<col style="width: 32%">
 <col style="width: 14%">
 <col style="width: 14%">
 <col style="width: 14%">
-<col style="width: 14%">
-<col style="width: 14%">
-<col style="width: 14%">
+<col style="width: 13%">
+<col style="width: 13%">
 </colgroup>
 <thead>
 <tr class="header">
-<th style="text-align: left;">World Bank Income Group</th>
-<th style="text-align: center;">Countries (Waves)</th>
-<th style="text-align: center;">UNESCO Ratio (% GDP/person)</th>
+<th style="text-align: left;">Income Group (Countries, Waves)</th>
+<th style="text-align: center;">UNESCO Ratio (% GDP/pc)</th>
 <th style="text-align: center;"><strong>Real PPP $ / Student</strong></th>
-<th style="text-align: center;"><strong>University Budget (% GDP)</strong></th>
-<th style="text-align: center;">University Enrolment (%)</th>
+<th style="text-align: center;"><strong>Univ. Budget (% GDP)</strong></th>
+<th style="text-align: center;">Univ. Enrolment (%)</th>
 <th style="text-align: center;">Direct Income Tax Share (%)</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;"><strong>Low income</strong></td>
-<td style="text-align: center;">21 (80)</td>
+<td style="text-align: left;"><strong>Low income</strong> (21, 80)</td>
 <td style="text-align: center;"><strong>150.0%</strong></td>
 <td style="text-align: center;">$3,957</td>
 <td style="text-align: center;">0.47%</td>
@@ -270,8 +267,7 @@ Table&nbsp;1: University spending indicators and baseline tax structure across W
 <td style="text-align: center;">29.2%</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;"><strong>Lower middle income</strong></td>
-<td style="text-align: center;">41 (172)</td>
+<td style="text-align: left;"><strong>Lower middle income</strong> (41, 172)</td>
 <td style="text-align: center;">76.5%</td>
 <td style="text-align: center;">$3,258</td>
 <td style="text-align: center;">0.65%</td>
@@ -279,8 +275,7 @@ Table&nbsp;1: University spending indicators and baseline tax structure across W
 <td style="text-align: center;">30.8%</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;"><strong>Upper middle income</strong></td>
-<td style="text-align: center;">54 (219)</td>
+<td style="text-align: left;"><strong>Upper middle income</strong> (54, 219)</td>
 <td style="text-align: center;">26.8%</td>
 <td style="text-align: center;">$3,521</td>
 <td style="text-align: center;">0.64%</td>
@@ -288,8 +283,7 @@ Table&nbsp;1: University spending indicators and baseline tax structure across W
 <td style="text-align: center;">33.1%</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;"><strong>High income</strong></td>
-<td style="text-align: center;">69 (337)</td>
+<td style="text-align: left;"><strong>High income</strong> (69, 337)</td>
 <td style="text-align: center;">26.9%</td>
 <td style="text-align: center;"><strong>$11,148</strong></td>
 <td style="text-align: center;"><strong>0.94%</strong></td>
@@ -342,7 +336,7 @@ Table&nbsp;1: University spending indicators and baseline tax structure across W
 <section id="total-vs-direct-effects-across-the-four-tax-channels" class="level3" data-number="4.1">
 <h3 data-number="4.1" class="anchored" data-anchor-id="total-vs-direct-effects-across-the-four-tax-channels"><span class="header-section-number">4.1</span> Total vs Direct Effects Across the Four Tax Channels</h3>
 <p><a href="#tbl-main-ate" class="quarto-xref">Table&nbsp;2</a> and <a href="#fig-posteriors" class="quarto-xref">Figure&nbsp;2</a> present our headline findings comparing the <strong>Total Fiscal Effect (<code>M1</code>)</strong> and the <strong>Mediator-Removed Direct Fiscal Effect (<code>M2</code>)</strong> across all four tax channels at <span class="math inline">\(+5\)</span> years (<span class="math inline">\(N = 372\)</span> country-waves across <span class="math inline">\(121\)</span> countries) and <span class="math inline">\(+10\)</span> years (<span class="math inline">\(N = 283\)</span> country-waves across <span class="math inline">\(112\)</span> countries). All posterior probabilities and credible intervals are reported alongside country-clustered block-bootstrap posteriors to account for repeated observations within the same country.</p>
-<div id="tbl-main-ate" class="quarto-float quarto-figure quarto-figure-center anchored">
+<div id="tbl-main-ate" class="quarto-float quarto-figure quarto-figure-center anchored" data-tbl-colwidths="[32, 17, 17, 17, 17]">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-main-ate-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;2: Posterior mean treatment effects (in percentage points) and country-clustered posterior probabilities <span class="math inline">\(P(\tau &gt; 0)\)</span> from the joint Multivariate Bayesian Causal Forest (<code>mvbcf</code>). Bold highlights effects with <span class="math inline">\(P(\tau &gt; 0) &gt; 0.90\)</span>.
@@ -350,11 +344,11 @@ Table&nbsp;2: Posterior mean treatment effects (in percentage points) and countr
 <div aria-describedby="tbl-main-ate-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
 <colgroup>
-<col style="width: 16%">
-<col style="width: 20%">
-<col style="width: 20%">
-<col style="width: 20%">
-<col style="width: 20%">
+<col style="width: 32%">
+<col style="width: 17%">
+<col style="width: 17%">
+<col style="width: 17%">
+<col style="width: 17%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -368,31 +362,31 @@ Table&nbsp;2: Posterior mean treatment effects (in percentage points) and countr
 <tbody>
 <tr class="odd">
 <td style="text-align: left;"><strong>1. Non-Resource Tax / GDP (pp)</strong></td>
-<td style="text-align: center;"><code>-0.02</code> (<span class="math inline">\(P=0.47\)</span>)</td>
-<td style="text-align: center;"><code>+0.04</code> (<span class="math inline">\(P=0.55\)</span>)</td>
-<td style="text-align: center;"><code>+0.38</code> (<span class="math inline">\(P=0.82\)</span>)</td>
-<td style="text-align: center;"><strong><code>+0.55</code> (<span class="math inline">\(P=0.92\)</span>)</strong></td>
+<td style="text-align: center;">-0.02 (<span class="math inline">\(P=0.47\)</span>)</td>
+<td style="text-align: center;">+0.04 (<span class="math inline">\(P=0.55\)</span>)</td>
+<td style="text-align: center;">+0.38 (<span class="math inline">\(P=0.82\)</span>)</td>
+<td style="text-align: center;"><strong>+0.55 (<span class="math inline">\(P=0.92\)</span>)</strong></td>
 </tr>
 <tr class="even">
-<td style="text-align: left;"><strong>2. Direct Income &amp; Profit Tax / GDP (pp)</strong></td>
-<td style="text-align: center;"><code>+0.19</code> (<span class="math inline">\(P=0.93\)</span>)</td>
-<td style="text-align: center;"><strong><code>+0.21</code> (<span class="math inline">\(P=0.94\)</span>)</strong></td>
-<td style="text-align: center;"><code>+0.31</code> (<span class="math inline">\(P=0.93\)</span>)</td>
-<td style="text-align: center;"><strong><code>+0.32</code> (<span class="math inline">\(P=0.93\)</span>)</strong></td>
+<td style="text-align: left;"><strong>2. Direct Income Tax / GDP (pp)</strong></td>
+<td style="text-align: center;">+0.19 (<span class="math inline">\(P=0.93\)</span>)</td>
+<td style="text-align: center;"><strong>+0.21 (<span class="math inline">\(P=0.94\)</span>)</strong></td>
+<td style="text-align: center;">+0.31 (<span class="math inline">\(P=0.93\)</span>)</td>
+<td style="text-align: center;"><strong>+0.32 (<span class="math inline">\(P=0.93\)</span>)</strong></td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;"><strong>3. Direct Income Tax Share of Revenue (pp)</strong></td>
-<td style="text-align: center;"><strong><code>+1.34</code> (<span class="math inline">\(P=0.99\)</span>)</strong></td>
-<td style="text-align: center;"><strong><code>+1.43</code> (<span class="math inline">\(P=0.997\)</span>)</strong></td>
-<td style="text-align: center;"><strong><code>+1.77</code> (<span class="math inline">\(P=0.99\)</span>)</strong></td>
-<td style="text-align: center;"><strong><code>+1.88</code> (<span class="math inline">\(P=0.990\)</span>)</strong></td>
+<td style="text-align: left;"><strong>3. Direct Income Tax Share (pp)</strong></td>
+<td style="text-align: center;"><strong>+1.34 (<span class="math inline">\(P=0.99\)</span>)</strong></td>
+<td style="text-align: center;"><strong>+1.43 (<span class="math inline">\(P&gt;0.99\)</span>)</strong></td>
+<td style="text-align: center;"><strong>+1.77 (<span class="math inline">\(P=0.99\)</span>)</strong></td>
+<td style="text-align: center;"><strong>+1.88 (<span class="math inline">\(P=0.99\)</span>)</strong></td>
 </tr>
 <tr class="even">
-<td style="text-align: left;"><strong>4. Goods &amp; Services Tax Share (pp, Neg. Control)</strong></td>
-<td style="text-align: center;"><code>-0.28</code> (<span class="math inline">\(P=0.31\)</span>)</td>
-<td style="text-align: center;"><code>-0.13</code> (<span class="math inline">\(P=0.41\)</span>)</td>
-<td style="text-align: center;"><code>-0.74</code> (<span class="math inline">\(P=0.18\)</span>)</td>
-<td style="text-align: center;"><code>-0.73</code> (<span class="math inline">\(P=0.19\)</span>)</td>
+<td style="text-align: left;"><strong>4. Goods &amp; Services Share (pp)</strong></td>
+<td style="text-align: center;">-0.28 (<span class="math inline">\(P=0.31\)</span>)</td>
+<td style="text-align: center;">-0.13 (<span class="math inline">\(P=0.41\)</span>)</td>
+<td style="text-align: center;">-0.74 (<span class="math inline">\(P=0.18\)</span>)</td>
+<td style="text-align: center;">-0.73 (<span class="math inline">\(P=0.19\)</span>)</td>
 </tr>
 </tbody>
 </table>
@@ -419,7 +413,7 @@ Figure&nbsp;2: Posterior mean treatment effects (with thick 80% and thin 95% cre
 <section id="unbundling-the-denominators-per-student-quality-vs-aggregate-budgets" class="level3" data-number="4.2">
 <h3 data-number="4.2" class="anchored" data-anchor-id="unbundling-the-denominators-per-student-quality-vs-aggregate-budgets"><span class="header-section-number">4.2</span> Unbundling the Denominators: Per-Student Quality vs Aggregate Budgets</h3>
 <p>Does the fiscal dividend come from spending more <strong>per student</strong> (protecting instructional and research quality), or simply from spending a larger share of GDP on university or general education budgets regardless of student numbers? <a href="#tbl-horserace" class="quarto-xref">Table&nbsp;3</a> and <a href="#fig-horserace" class="quarto-xref">Figure&nbsp;3</a> compare five distinct spending exposures side by side at the <span class="math inline">\(+10\)</span>-year horizon (all estimated under the Mediator-Removed Direct Effect specification <code>M2</code>).</p>
-<div id="tbl-horserace" class="quarto-float quarto-figure quarto-figure-center anchored">
+<div id="tbl-horserace" class="quarto-float quarto-figure quarto-figure-center anchored" data-tbl-colwidths="[36, 13, 17, 17, 17]">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-horserace-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;3: Comparison of <span class="math inline">\(+10\)</span>-year Mediator-Removed Direct Fiscal Effects across five university and general education spending definitions.
@@ -427,56 +421,56 @@ Table&nbsp;3: Comparison of <span class="math inline">\(+10\)</span>-year Mediat
 <div aria-describedby="tbl-horserace-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
 <colgroup>
-<col style="width: 16%">
-<col style="width: 20%">
-<col style="width: 20%">
-<col style="width: 20%">
-<col style="width: 20%">
+<col style="width: 36%">
+<col style="width: 13%">
+<col style="width: 17%">
+<col style="width: 17%">
+<col style="width: 17%">
 </colgroup>
 <thead>
 <tr class="header">
-<th style="text-align: left;">Spending Exposure Definition (<span class="math inline">\(+10\text{y}\)</span> Direct Effect)</th>
+<th style="text-align: left;">Spending Definition (<span class="math inline">\(+10\text{y}\)</span> Direct)</th>
 <th style="text-align: center;"><span class="math inline">\(N\)</span> (Countries)</th>
-<th style="text-align: center;"><strong><span class="math inline">\(\Delta\)</span> Non-Resource Tax / GDP (pp)</strong></th>
-<th style="text-align: center;"><strong><span class="math inline">\(\Delta\)</span> Direct Income Tax / GDP (pp)</strong></th>
-<th style="text-align: center;"><strong><span class="math inline">\(\Delta\)</span> Direct Income Tax Share (pp)</strong></th>
+<th style="text-align: center;"><strong>Non-Resource Tax / GDP (pp)</strong></th>
+<th style="text-align: center;"><strong>Direct Income Tax / GDP (pp)</strong></th>
+<th style="text-align: center;"><strong>Direct Income Tax Share (pp)</strong></th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;"><strong>1. Per-Student Ratio Regime (<code>Z_regime_inc</code>)</strong></td>
+<td style="text-align: left;"><strong>1. Per-Student Ratio Regime</strong></td>
 <td style="text-align: center;">283 (112)</td>
-<td style="text-align: center;"><strong><code>+0.55</code> (<span class="math inline">\(P=0.92\)</span>)</strong></td>
-<td style="text-align: center;"><strong><code>+0.32</code> (<span class="math inline">\(P=0.93\)</span>)</strong></td>
-<td style="text-align: center;"><strong><code>+1.88</code> (<span class="math inline">\(P=0.990\)</span>)</strong></td>
+<td style="text-align: center;"><strong>+0.55 (<span class="math inline">\(P=0.92\)</span>)</strong></td>
+<td style="text-align: center;"><strong>+0.32 (<span class="math inline">\(P=0.93\)</span>)</strong></td>
+<td style="text-align: center;"><strong>+1.88 (<span class="math inline">\(P=0.99\)</span>)</strong></td>
 </tr>
 <tr class="even">
-<td style="text-align: left;"><strong>2. Observed Within-Country Expansion (<span class="math inline">\(\ge +2.5\text{ pp}\)</span>)</strong></td>
+<td style="text-align: left;"><strong>2. Observed Expansion (<span class="math inline">\(\ge +2.5\text{ pp}\)</span>)</strong></td>
 <td style="text-align: center;">176 (86)</td>
-<td style="text-align: center;"><code>+0.55</code> (<span class="math inline">\(P=0.81\)</span>)</td>
-<td style="text-align: center;"><strong><code>+0.82</code> (<span class="math inline">\(P=0.997\)</span>)</strong></td>
-<td style="text-align: center;"><strong><code>+2.53</code> (<span class="math inline">\(P=0.996\)</span>)</strong></td>
+<td style="text-align: center;">+0.55 (<span class="math inline">\(P=0.81\)</span>)</td>
+<td style="text-align: center;"><strong>+0.82 (<span class="math inline">\(P&gt;0.99\)</span>)</strong></td>
+<td style="text-align: center;"><strong>+2.53 (<span class="math inline">\(P&gt;0.99\)</span>)</strong></td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;"><strong>3. Real 2021 PPP Dollars per Student (No GDP Denom.)</strong></td>
+<td style="text-align: left;"><strong>3. Real 2021 PPP $ per Student</strong></td>
 <td style="text-align: center;">283 (112)</td>
-<td style="text-align: center;"><strong><code>+1.15</code> (<span class="math inline">\(P=0.994\)</span>)</strong></td>
-<td style="text-align: center;"><strong><code>+0.35</code> (<span class="math inline">\(P=0.937\)</span>)</strong></td>
-<td style="text-align: center;"><code>+0.65</code> (<span class="math inline">\(P=0.75\)</span>)</td>
+<td style="text-align: center;"><strong>+1.15 (<span class="math inline">\(P&gt;0.99\)</span>)</strong></td>
+<td style="text-align: center;"><strong>+0.35 (<span class="math inline">\(P=0.94\)</span>)</strong></td>
+<td style="text-align: center;">+0.65 (<span class="math inline">\(P=0.75\)</span>)</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;"><strong>4. University Budget % of GDP (No Enrolment Denom.)</strong></td>
+<td style="text-align: left;"><strong>4. University Budget (% of GDP)</strong></td>
 <td style="text-align: center;">269 (109)</td>
-<td style="text-align: center;"><code>+0.19</code> (<span class="math inline">\(P=0.70\)</span>)</td>
-<td style="text-align: center;"><code>+0.07</code> (<span class="math inline">\(P=0.64\)</span>)</td>
-<td style="text-align: center;"><code>+0.57</code> (<span class="math inline">\(P=0.78\)</span>)</td>
+<td style="text-align: center;">+0.19 (<span class="math inline">\(P=0.70\)</span>)</td>
+<td style="text-align: center;">+0.07 (<span class="math inline">\(P=0.64\)</span>)</td>
+<td style="text-align: center;">+0.57 (<span class="math inline">\(P=0.78\)</span>)</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;"><strong>5. Total Education Budget % of GDP (All Levels)</strong></td>
+<td style="text-align: left;"><strong>5. Total Education Budget (% GDP)</strong></td>
 <td style="text-align: center;">280 (112)</td>
-<td style="text-align: center;"><code>+0.16</code> (<span class="math inline">\(P=0.63\)</span>)</td>
-<td style="text-align: center;"><code>-0.00</code> (<span class="math inline">\(P=0.50\)</span>)</td>
-<td style="text-align: center;"><code>+0.42</code> (<span class="math inline">\(P=0.60\)</span>)</td>
+<td style="text-align: center;">+0.16 (<span class="math inline">\(P=0.63\)</span>)</td>
+<td style="text-align: center;">-0.00 (<span class="math inline">\(P=0.50\)</span>)</td>
+<td style="text-align: center;">+0.42 (<span class="math inline">\(P=0.60\)</span>)</td>
 </tr>
 </tbody>
 </table>
@@ -513,7 +507,7 @@ Figure&nbsp;4: Unit-level +10-year Mediator-Removed Direct Effect on Direct Inco
 </figcaption>
 </figure>
 </div>
-<div id="tbl-subgroups" class="quarto-float quarto-figure quarto-figure-center anchored">
+<div id="tbl-subgroups" class="quarto-float quarto-figure quarto-figure-center anchored" data-tbl-colwidths="[29, 11, 20, 20, 20]">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-subgroups-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;4: Subgroup conditional average treatment effects (CATEs, with 95% credible intervals) at the <span class="math inline">\(+10\)</span>-year horizon across university enrolment regimes and OECD public-versus-private financing regimes.
@@ -521,56 +515,56 @@ Table&nbsp;4: Subgroup conditional average treatment effects (CATEs, with 95% cr
 <div aria-describedby="tbl-subgroups-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
 <colgroup>
-<col style="width: 16%">
-<col style="width: 20%">
+<col style="width: 28%">
+<col style="width: 11%">
 <col style="width: 20%">
 <col style="width: 20%">
 <col style="width: 20%">
 </colgroup>
 <thead>
 <tr class="header">
-<th style="text-align: left;">Country Context Subgroup (<span class="math inline">\(+10\text{y}\)</span> Direct Effect)</th>
+<th style="text-align: left;">Country Subgroup (<span class="math inline">\(+10\text{y}\)</span> Direct)</th>
 <th style="text-align: center;"><span class="math inline">\(N\)</span> (Countries)</th>
-<th style="text-align: center;"><strong><span class="math inline">\(\Delta\)</span> Non-Resource Tax / GDP (pp)</strong></th>
-<th style="text-align: center;"><strong><span class="math inline">\(\Delta\)</span> Direct Income Tax / GDP (pp)</strong></th>
-<th style="text-align: center;"><strong><span class="math inline">\(\Delta\)</span> Direct Income Tax Share (pp)</strong></th>
+<th style="text-align: center;"><strong>Non-Resource Tax / GDP (pp)</strong></th>
+<th style="text-align: center;"><strong>Direct Income Tax / GDP (pp)</strong></th>
+<th style="text-align: center;"><strong>Direct Income Tax Share (pp)</strong></th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;"><strong>1. Elite Enrolment (<code>&lt;20%</code> of cohort)</strong></td>
+<td style="text-align: left;"><strong>1. Elite Enrolment (<code>&lt;20%</code>)</strong></td>
 <td style="text-align: center;">74 (43)</td>
-<td style="text-align: center;"><strong><code>+1.04</code> <code>[-0.02, +2.15]</code></strong></td>
-<td style="text-align: center;"><strong><code>+0.49</code> <code>[-0.06, +1.10]</code></strong></td>
-<td style="text-align: center;"><strong><code>+2.10</code> <code>[+0.11, +4.37]</code> (<span class="math inline">\(P=0.98\)</span>)</strong></td>
+<td style="text-align: center;"><strong>+1.04 [-0.02, +2.15]</strong></td>
+<td style="text-align: center;"><strong>+0.49 [-0.06, +1.10]</strong></td>
+<td style="text-align: center;"><strong>+2.10 [+0.11, +4.37]</strong></td>
 </tr>
 <tr class="even">
-<td style="text-align: left;"><strong>2. Massifying Enrolment (<code>20-50%</code> of cohort)</strong></td>
+<td style="text-align: left;"><strong>2. Massifying (<code>20-50%</code>)</strong></td>
 <td style="text-align: center;">73 (42)</td>
-<td style="text-align: center;"><strong><code>+0.73</code> <code>[-0.13, +1.56]</code></strong></td>
-<td style="text-align: center;"><code>+0.30</code> <code>[-0.15, +0.76]</code></td>
-<td style="text-align: center;"><strong><code>+1.93</code> <code>[+0.23, +3.62]</code> (<span class="math inline">\(P=0.99\)</span>)</strong></td>
+<td style="text-align: center;"><strong>+0.73 [-0.13, +1.56]</strong></td>
+<td style="text-align: center;">+0.30 [-0.15, +0.76]</td>
+<td style="text-align: center;"><strong>+1.93 [+0.23, +3.62]</strong></td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;"><strong>3. High-Participation (<code>&gt;=50%</code> of cohort)</strong></td>
+<td style="text-align: left;"><strong>3. High-Participation (<code>&gt;=50%</code>)</strong></td>
 <td style="text-align: center;">136 (53)</td>
-<td style="text-align: center;"><code>+0.18</code> <code>[-0.69, +1.04]</code></td>
-<td style="text-align: center;"><code>+0.23</code> <code>[-0.27, +0.70]</code></td>
-<td style="text-align: center;"><strong><code>+1.73</code> <code>[-0.16, +3.40]</code> (<span class="math inline">\(P=0.97\)</span>)</strong></td>
+<td style="text-align: center;">+0.18 [-0.69, +1.04]</td>
+<td style="text-align: center;">+0.23 [-0.27, +0.70]</td>
+<td style="text-align: center;"><strong>+1.73 [-0.16, +3.40]</strong></td>
 </tr>
 <tr class="even">
-<td style="text-align: left;"><strong>4. OECD Nordic &amp; Low-Tuition Public Model</strong></td>
+<td style="text-align: left;"><strong>4. OECD Public / Low-Tuition</strong></td>
 <td style="text-align: center;">66 (20)</td>
-<td style="text-align: center;"><code>-0.68</code> <code>[-1.46, +0.21]</code></td>
-<td style="text-align: center;"><code>-0.02</code> <code>[-0.69, +0.67]</code></td>
-<td style="text-align: center;"><strong><code>+1.83</code> <code>[-0.61, +4.10]</code> (<span class="math inline">\(P=0.93\)</span>)</strong></td>
+<td style="text-align: center;">-0.68 [-1.46, +0.21]</td>
+<td style="text-align: center;">-0.02 [-0.69, +0.67]</td>
+<td style="text-align: center;"><strong>+1.83 [-0.61, +4.10]</strong></td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;"><strong>5. OECD High-Tuition / Hybrid Public-Private</strong></td>
+<td style="text-align: left;"><strong>5. OECD High-Tuition / Hybrid</strong></td>
 <td style="text-align: center;">53 (17)</td>
-<td style="text-align: center;"><code>-0.61</code> <code>[-1.40, +0.28]</code></td>
-<td style="text-align: center;"><code>-0.05</code> <code>[-0.71, +0.65]</code></td>
-<td style="text-align: center;"><strong><code>+1.66</code> <code>[-0.71, +3.97]</code> (<span class="math inline">\(P=0.91\)</span>)</strong></td>
+<td style="text-align: center;">-0.61 [-1.40, +0.28]</td>
+<td style="text-align: center;">-0.05 [-0.71, +0.65]</td>
+<td style="text-align: center;"><strong>+1.66 [-0.71, +3.97]</strong></td>
 </tr>
 </tbody>
 </table>
@@ -582,7 +576,7 @@ Table&nbsp;4: Subgroup conditional average treatment effects (CATEs, with 95% cr
 <section id="ten-year-compounding-trajectories-across-countries" class="level3" data-number="4.4">
 <h3 data-number="4.4" class="anchored" data-anchor-id="ten-year-compounding-trajectories-across-countries"><span class="header-section-number">4.4</span> Ten-Year Compounding Trajectories Across Countries</h3>
 <p>To examine how the tax return unfolds step by step within the same country, <a href="#tbl-lbcf" class="quarto-xref">Table&nbsp;5</a> and <a href="#fig-trajectories" class="quarto-xref">Figure&nbsp;5</a> report the results from our <strong>Three-Wave Longitudinal Bayesian Causal Forest (<code>lbcf</code>)</strong> across <span class="math inline">\(N = 282\)</span> complete three-wave country trajectories (<span class="math inline">\(112\)</span> countries). Unlike separate cross-sectional regressions, the longitudinal model tracks each country from baseline (<span class="math inline">\(0\text{y}\)</span>) to <span class="math inline">\(+5\)</span> years (<span class="math inline">\(\tau_1\)</span>) and from <span class="math inline">\(+5\)</span> to <span class="math inline">\(+10\)</span> years (<span class="math inline">\(\tau_2\)</span>), while controlling for intermediate macroeconomic changes at the <span class="math inline">\(+5\)</span>-year mark.</p>
-<div id="tbl-lbcf" class="quarto-float quarto-figure quarto-figure-center anchored">
+<div id="tbl-lbcf" class="quarto-float quarto-figure quarto-figure-center anchored" data-tbl-colwidths="[33, 17, 17, 18, 15]">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-lbcf-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;5: Three-wave Longitudinal Bayesian Causal Forest decomposition of the initial <span class="math inline">\(+5\)</span>-year effect (<span class="math inline">\(\tau_1\)</span>), the incremental <span class="math inline">\(+5\text{ to }+10\)</span>-year maturation effect (<span class="math inline">\(\tau_2\)</span>), and the cumulative <span class="math inline">\(+10\)</span>-year effect (<span class="math inline">\(\tau_{\text{cum}} = \tau_1 + \tau_2\)</span>).
@@ -590,48 +584,48 @@ Table&nbsp;5: Three-wave Longitudinal Bayesian Causal Forest decomposition of th
 <div aria-describedby="tbl-lbcf-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
 <colgroup>
-<col style="width: 16%">
-<col style="width: 20%">
-<col style="width: 20%">
-<col style="width: 20%">
-<col style="width: 20%">
+<col style="width: 33%">
+<col style="width: 17%">
+<col style="width: 17%">
+<col style="width: 18%">
+<col style="width: 15%">
 </colgroup>
 <thead>
 <tr class="header">
-<th style="text-align: left;">Tax Outcome (<span class="math inline">\(N = 282\)</span> Trajectories, <span class="math inline">\(112\)</span> Countries)</th>
+<th style="text-align: left;">Tax Outcome (<span class="math inline">\(N = 282\)</span>, <span class="math inline">\(112\)</span> Countries)</th>
 <th style="text-align: center;"><span class="math inline">\(+5\text{y}\)</span> Step (<span class="math inline">\(\tau_1\)</span>)</th>
 <th style="text-align: center;"><strong><span class="math inline">\(+5\text{y} \to +10\text{y}\)</span> Step (<span class="math inline">\(\tau_2\)</span>)</strong></th>
 <th style="text-align: center;"><strong>Cumulative <span class="math inline">\(+10\text{y}\)</span> (<span class="math inline">\(\tau_{\text{cum}}\)</span>)</strong></th>
-<th style="text-align: center;">Compounding Prob. <span class="math inline">\(P(\tau_2 &gt; 0)\)</span></th>
+<th style="text-align: center;">Compounding Prob.</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td style="text-align: left;"><strong>1. Non-Resource Tax / GDP (pp)</strong></td>
-<td style="text-align: center;"><code>-0.08</code> (<span class="math inline">\(P=0.39\)</span>)</td>
-<td style="text-align: center;"><strong><code>+0.53</code> (<span class="math inline">\(P=0.91\)</span>)</strong></td>
-<td style="text-align: center;"><code>+0.45</code> (<span class="math inline">\(P=0.88\)</span>)</td>
+<td style="text-align: center;">-0.08 (<span class="math inline">\(P=0.39\)</span>)</td>
+<td style="text-align: center;"><strong>+0.53 (<span class="math inline">\(P=0.91\)</span>)</strong></td>
+<td style="text-align: center;">+0.45 (<span class="math inline">\(P=0.88\)</span>)</td>
 <td style="text-align: center;"><strong>90.5%</strong></td>
 </tr>
 <tr class="even">
-<td style="text-align: left;"><strong>2. Direct Income &amp; Profit Tax / GDP (pp)</strong></td>
-<td style="text-align: center;"><code>+0.09</code> (<span class="math inline">\(P=0.70\)</span>)</td>
-<td style="text-align: center;"><strong><code>+0.23</code> (<span class="math inline">\(P=0.92\)</span>)</strong></td>
-<td style="text-align: center;"><strong><code>+0.32</code> (<span class="math inline">\(P=0.95\)</span>)</strong></td>
+<td style="text-align: left;"><strong>2. Direct Income Tax / GDP (pp)</strong></td>
+<td style="text-align: center;">+0.09 (<span class="math inline">\(P=0.70\)</span>)</td>
+<td style="text-align: center;"><strong>+0.23 (<span class="math inline">\(P=0.92\)</span>)</strong></td>
+<td style="text-align: center;"><strong>+0.32 (<span class="math inline">\(P=0.95\)</span>)</strong></td>
 <td style="text-align: center;"><strong>91.7%</strong></td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;"><strong>3. Direct Income Tax Share of Revenue (pp)</strong></td>
-<td style="text-align: center;"><strong><code>+1.01</code> (<span class="math inline">\(P=0.93\)</span>)</strong></td>
-<td style="text-align: center;"><strong><code>+1.22</code> (<span class="math inline">\(P=0.94\)</span>)</strong></td>
-<td style="text-align: center;"><strong><code>+2.23</code> (<span class="math inline">\(P=0.996\)</span>)</strong></td>
+<td style="text-align: left;"><strong>3. Direct Income Tax Share (pp)</strong></td>
+<td style="text-align: center;"><strong>+1.01 (<span class="math inline">\(P=0.93\)</span>)</strong></td>
+<td style="text-align: center;"><strong>+1.22 (<span class="math inline">\(P=0.94\)</span>)</strong></td>
+<td style="text-align: center;"><strong>+2.23 (<span class="math inline">\(P&gt;0.99\)</span>)</strong></td>
 <td style="text-align: center;"><strong>93.5%</strong></td>
 </tr>
 <tr class="even">
-<td style="text-align: left;"><strong>4. Goods &amp; Services Tax Share (pp, Neg. Control)</strong></td>
-<td style="text-align: center;"><code>+0.22</code> (<span class="math inline">\(P=0.62\)</span>)</td>
-<td style="text-align: center;"><code>-0.59</code> (<span class="math inline">\(P=0.22\)</span>)</td>
-<td style="text-align: center;"><code>-0.37</code> (<span class="math inline">\(P=0.31\)</span>)</td>
+<td style="text-align: left;"><strong>4. Goods &amp; Services Share (pp)</strong></td>
+<td style="text-align: center;">+0.22 (<span class="math inline">\(P=0.62\)</span>)</td>
+<td style="text-align: center;">-0.59 (<span class="math inline">\(P=0.22\)</span>)</td>
+<td style="text-align: center;">-0.37 (<span class="math inline">\(P=0.31\)</span>)</td>
 <td style="text-align: center;">22.2%</td>
 </tr>
 </tbody>
@@ -659,7 +653,7 @@ Figure&nbsp;5: Cumulative 10-year trajectories of the Direct Income and Profit T
 <section id="robustness-checks-and-placebo-falsification-test" class="level3" data-number="4.5">
 <h3 data-number="4.5" class="anchored" data-anchor-id="robustness-checks-and-placebo-falsification-test"><span class="header-section-number">4.5</span> Robustness Checks and Placebo Falsification Test</h3>
 <p>To verify that our findings are not driven by data adjustments, overlapping waves, unmeasured time-invariant country traits, or reverse causality, <a href="#tbl-robust" class="quarto-xref">Table&nbsp;6</a> summarises five demanding robustness checks (<code>results/tables/table4_robustness_checks.csv</code>).</p>
-<div id="tbl-robust" class="quarto-float quarto-figure quarto-figure-center anchored">
+<div id="tbl-robust" class="quarto-float quarto-figure quarto-figure-center anchored" data-tbl-colwidths="[32, 17, 17, 17, 17]">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-robust-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;6: Summary of robustness and falsification checks across the primary fiscal outcomes.
@@ -667,56 +661,56 @@ Table&nbsp;6: Summary of robustness and falsification checks across the primary 
 <div aria-describedby="tbl-robust-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
 <colgroup>
-<col style="width: 16%">
-<col style="width: 20%">
-<col style="width: 20%">
-<col style="width: 20%">
-<col style="width: 20%">
+<col style="width: 32%">
+<col style="width: 17%">
+<col style="width: 17%">
+<col style="width: 17%">
+<col style="width: 17%">
 </colgroup>
 <thead>
 <tr class="header">
 <th style="text-align: left;">Robustness Specification</th>
 <th style="text-align: center;">Horizon (<span class="math inline">\(N\)</span>, Countries)</th>
-<th style="text-align: center;"><strong><span class="math inline">\(\Delta\)</span> Non-Resource Tax / GDP (pp)</strong></th>
-<th style="text-align: center;"><strong><span class="math inline">\(\Delta\)</span> Direct Income Tax / GDP (pp)</strong></th>
-<th style="text-align: center;"><strong><span class="math inline">\(\Delta\)</span> Direct Income Tax Share (pp)</strong></th>
+<th style="text-align: center;"><strong>Non-Resource Tax / GDP (pp)</strong></th>
+<th style="text-align: center;"><strong>Direct Income Tax / GDP (pp)</strong></th>
+<th style="text-align: center;"><strong>Direct Income Tax Share (pp)</strong></th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td style="text-align: left;"><strong>R1. Pure Unadjusted WDI Tax / GDP</strong></td>
 <td style="text-align: center;"><span class="math inline">\(+10\text{y}\)</span> (283, 112)</td>
-<td style="text-align: center;"><strong><code>+0.54</code> (<span class="math inline">\(P=0.91\)</span>)</strong></td>
-<td style="text-align: center;"><strong><code>+0.35</code> (<span class="math inline">\(P=0.95\)</span>)</strong></td>
-<td style="text-align: center;"><strong><code>+1.94</code> <code>[+0.44, +3.59]</code> (<span class="math inline">\(P=0.994\)</span>)</strong></td>
+<td style="text-align: center;"><strong>+0.54 (<span class="math inline">\(P=0.91\)</span>)</strong></td>
+<td style="text-align: center;"><strong>+0.35 (<span class="math inline">\(P=0.95\)</span>)</strong></td>
+<td style="text-align: center;"><strong>+1.94 (<span class="math inline">\(P&gt;0.99\)</span>)</strong></td>
 </tr>
 <tr class="even">
-<td style="text-align: left;"><strong>R2. Non-Overlapping 10-Year Decadal Waves</strong></td>
+<td style="text-align: left;"><strong>R2. Non-Overlapping 10y Waves</strong></td>
 <td style="text-align: center;"><span class="math inline">\(+10\text{y}\)</span> (154, 97)</td>
-<td style="text-align: center;"><strong><code>+0.78</code> (<span class="math inline">\(P=0.94\)</span>)</strong></td>
-<td style="text-align: center;"><strong><code>+0.39</code> (<span class="math inline">\(P=0.94\)</span>)</strong></td>
-<td style="text-align: center;"><strong><code>+2.37</code> <code>[+0.23, +4.22]</code> (<span class="math inline">\(P=0.985\)</span>)</strong></td>
+<td style="text-align: center;"><strong>+0.78 (<span class="math inline">\(P=0.94\)</span>)</strong></td>
+<td style="text-align: center;"><strong>+0.39 (<span class="math inline">\(P=0.94\)</span>)</strong></td>
+<td style="text-align: center;"><strong>+2.37 (<span class="math inline">\(P=0.99\)</span>)</strong></td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;"><strong>R3. Within-Country Fixed-Effects Demeaning</strong></td>
+<td style="text-align: left;"><strong>R3. Within-Country Fixed Effects</strong></td>
 <td style="text-align: center;"><span class="math inline">\(+5\text{y}\)</span> (372, 121)</td>
-<td style="text-align: center;"><code>-0.04</code> (<span class="math inline">\(P=0.45\)</span>)</td>
-<td style="text-align: center;"><code>+0.07</code> (<span class="math inline">\(P=0.69\)</span>)</td>
-<td style="text-align: center;"><strong><code>+1.02</code> <code>[+0.07, +2.04]</code> (<span class="math inline">\(P=0.981\)</span>)</strong></td>
+<td style="text-align: center;">-0.04 (<span class="math inline">\(P=0.45\)</span>)</td>
+<td style="text-align: center;">+0.07 (<span class="math inline">\(P=0.69\)</span>)</td>
+<td style="text-align: center;"><strong>+1.02 (<span class="math inline">\(P=0.98\)</span>)</strong></td>
 </tr>
 <tr class="even">
-<td style="text-align: left;"><strong>R4. Strictly Observed Baseline Covariates</strong></td>
+<td style="text-align: left;"><strong>R4. Strictly Observed Covariates</strong></td>
 <td style="text-align: center;"><span class="math inline">\(+10\text{y}\)</span> (272, 108)</td>
-<td style="text-align: center;"><code>+0.42</code> (<span class="math inline">\(P=0.87\)</span>)</td>
-<td style="text-align: center;"><strong><code>+0.27</code> (<span class="math inline">\(P=0.92\)</span>)</strong></td>
-<td style="text-align: center;"><strong><code>+1.84</code> <code>[+0.42, +3.24]</code> (<span class="math inline">\(P=0.995\)</span>)</strong></td>
+<td style="text-align: center;">+0.42 (<span class="math inline">\(P=0.87\)</span>)</td>
+<td style="text-align: center;"><strong>+0.27 (<span class="math inline">\(P=0.92\)</span>)</strong></td>
+<td style="text-align: center;"><strong>+1.84 (<span class="math inline">\(P&gt;0.99\)</span>)</strong></td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;"><strong>R5. Placebo Lead Check (Future <span class="math inline">\(Z_{t+1}\)</span> on Current <span class="math inline">\(\Delta Y\)</span>)</strong></td>
+<td style="text-align: left;"><strong>R5. Placebo Lead (<span class="math inline">\(Z_{t+1}\)</span> on <span class="math inline">\(\Delta Y\)</span>)</strong></td>
 <td style="text-align: center;"><span class="math inline">\(+5\text{y}\)</span> (260, 100)</td>
-<td style="text-align: center;"><code>-0.16</code> (<span class="math inline">\(P=0.32\)</span>)</td>
-<td style="text-align: center;"><code>+0.10</code> (<span class="math inline">\(P=0.72\)</span>)</td>
-<td style="text-align: center;"><code>+0.43</code> <code>[-0.71, +1.56]</code> (<span class="math inline">\(P=0.793\)</span>)</td>
+<td style="text-align: center;">-0.16 (<span class="math inline">\(P=0.32\)</span>)</td>
+<td style="text-align: center;">+0.10 (<span class="math inline">\(P=0.72\)</span>)</td>
+<td style="text-align: center;">+0.43 (<span class="math inline">\(P=0.79\)</span>)</td>
 </tr>
 </tbody>
 </table>
@@ -790,7 +784,7 @@ Y_{i, t+h} = \mu\bigl(X_{i,t}, \hat{\pi}_{i,t}\bigr) + \tau\bigl(W_{i,t}\bigr) Z
 <section id="cross-outcome-residual-correlation-matrix-sigma" class="level3" data-number="7.1">
 <h3 data-number="7.1" class="anchored" data-anchor-id="cross-outcome-residual-correlation-matrix-sigma"><span class="header-section-number">7.1</span> Cross-Outcome Residual Correlation Matrix (<span class="math inline">\(\Sigma\)</span>)</h3>
 <p><a href="#tbl-corr" class="quarto-xref">Table&nbsp;7</a> reports the posterior mean residual standard deviations and cross-outcome residual correlations from our Mediator-Removed Direct Effect (<code>M2</code>) Multivariate BCF model (<code>results/tables/table2_residual_correlations.csv</code>). Removing mechanical GDP product identities and screening out the two raw WDI reporting errors (Sudan <code>1995-1999</code> and Timor-Leste <code>2010-2014</code>) yields a well-conditioned, economically meaningful residual correlation structure:</p>
-<div id="tbl-corr" class="quarto-float quarto-figure quarto-figure-center anchored">
+<div id="tbl-corr" class="quarto-float quarto-figure quarto-figure-center anchored" data-tbl-colwidths="[52, 24, 24]">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-corr-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 Table&nbsp;7: Posterior mean cross-outcome residual correlations and residual standard deviations from the four-outcome Multivariate Bayesian Causal Forest (<code>mvbcf</code>).
@@ -798,42 +792,42 @@ Table&nbsp;7: Posterior mean cross-outcome residual correlations and residual st
 <div aria-describedby="tbl-corr-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
 <colgroup>
-<col style="width: 28%">
-<col style="width: 35%">
-<col style="width: 35%">
+<col style="width: 52%">
+<col style="width: 24%">
+<col style="width: 24%">
 </colgroup>
 <thead>
 <tr class="header">
-<th style="text-align: left;">Residual Parameter Pair (<code>M2</code> Direct Effect Model)</th>
-<th style="text-align: center;"><strong><span class="math inline">\(+5\text{y}\)</span> Posterior Mean <code>[95% CrI]</code></strong></th>
-<th style="text-align: center;"><strong><span class="math inline">\(+10\text{y}\)</span> Posterior Mean <code>[95% CrI]</code></strong></th>
+<th style="text-align: left;">Residual Parameter Pair (<code>M2</code> Direct Model)</th>
+<th style="text-align: center;"><strong><span class="math inline">\(+5\text{y}\)</span> Posterior Mean [95% CrI]</strong></th>
+<th style="text-align: center;"><strong><span class="math inline">\(+10\text{y}\)</span> Posterior Mean [95% CrI]</strong></th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td style="text-align: left;"><strong>1. Non-Resource Tax / GDP <span class="math inline">\(\leftrightarrow\)</span> Direct Income Tax / GDP</strong></td>
-<td style="text-align: center;"><strong><code>+0.594</code> <code>[+0.511, +0.669]</code></strong></td>
-<td style="text-align: center;"><strong><code>+0.621</code> <code>[+0.521, +0.709]</code></strong></td>
+<td style="text-align: center;"><strong>+0.594 [+0.511, +0.669]</strong></td>
+<td style="text-align: center;"><strong>+0.621 [+0.521, +0.709]</strong></td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><strong>2. Direct Income Tax / GDP <span class="math inline">\(\leftrightarrow\)</span> Direct Income Tax Share</strong></td>
-<td style="text-align: center;"><strong><code>+0.705</code> <code>[+0.644, +0.757]</code></strong></td>
-<td style="text-align: center;"><strong><code>+0.729</code> <code>[+0.650, +0.795]</code></strong></td>
+<td style="text-align: center;"><strong>+0.705 [+0.644, +0.757]</strong></td>
+<td style="text-align: center;"><strong>+0.729 [+0.650, +0.795]</strong></td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;"><strong>3. Direct Income Tax Share <span class="math inline">\(\leftrightarrow\)</span> Goods &amp; Services Tax Share</strong></td>
-<td style="text-align: center;"><strong><code>-0.412</code> <code>[-0.507, -0.303]</code></strong></td>
-<td style="text-align: center;"><strong><code>-0.526</code> <code>[-0.630, -0.414]</code></strong></td>
+<td style="text-align: left;"><strong>3. Direct Income Tax Share <span class="math inline">\(\leftrightarrow\)</span> Goods &amp; Services Share</strong></td>
+<td style="text-align: center;"><strong>-0.412 [-0.507, -0.303]</strong></td>
+<td style="text-align: center;"><strong>-0.526 [-0.630, -0.414]</strong></td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><strong>4. Non-Resource Tax / GDP <span class="math inline">\(\leftrightarrow\)</span> Direct Income Tax Share</strong></td>
-<td style="text-align: center;"><code>-0.039</code> <code>[-0.149, +0.071]</code></td>
-<td style="text-align: center;"><code>-0.008</code> <code>[-0.141, +0.123]</code></td>
+<td style="text-align: center;">-0.039 [-0.149, +0.071]</td>
+<td style="text-align: center;">-0.008 [-0.141, +0.123]</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"><strong>5. Residual SDs (<span class="math inline">\(\sigma_1, \sigma_2, \sigma_3, \sigma_4\)</span>, percentage points)</strong></td>
-<td style="text-align: center;"><code>1.92, 0.96, 3.88, 4.46 pp</code></td>
-<td style="text-align: center;"><code>2.45, 1.38, 4.92, 5.45 pp</code></td>
+<td style="text-align: center;">1.92, 0.96, 3.88, 4.46 pp</td>
+<td style="text-align: center;">2.45, 1.38, 4.92, 5.45 pp</td>
 </tr>
 </tbody>
 </table>
@@ -845,30 +839,28 @@ Table&nbsp;7: Posterior mean cross-outcome residual correlations and residual st
 <section id="mcmc-mixing-effective-sample-size-and-trace-plots" class="level3" data-number="7.2">
 <h3 data-number="7.2" class="anchored" data-anchor-id="mcmc-mixing-effective-sample-size-and-trace-plots"><span class="header-section-number">7.2</span> MCMC Mixing, Effective Sample Size, and Trace Plots</h3>
 <p><a href="#tbl-mcmc" class="quarto-xref">Table&nbsp;8</a> summarises the post-burn-in MCMC convergence metrics across the four tax outcomes for the Mediator-Removed Direct Effect (<code>M2</code>) model (<code>results/tables/tableA1_convergence_and_fit_diagnostics.csv</code>), and <a href="#fig-traces" class="quarto-xref">Figure&nbsp;6</a> displays the complete 1,250 post-burn-in Gibbs trace plots. Across all outcomes and horizons, split-chain <span class="math inline">\(\hat{R}\)</span> values lie between <code>1.000</code> and <code>1.050</code> (meeting the standard <code>&lt; 1.05</code> convergence threshold), effective sample sizes (ESS) range from <code>87</code> to <code>270</code>, and autocorrelation-adjusted Geweke <span class="math inline">\(z\)</span>-scores show stationary mixing around the posterior mean.</p>
-<div id="tbl-mcmc" class="quarto-float quarto-figure quarto-figure-center anchored">
+<div id="tbl-mcmc" class="quarto-float quarto-figure quarto-figure-center anchored" data-tbl-colwidths="[34, 14, 17, 12, 13, 10]">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-mcmc-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;8: Post-burn-in MCMC convergence diagnostics for the primary Mediator-Removed Direct Effect (<code>M2</code>) Multivariate BCF models.
+Table&nbsp;8: Post-burn-in MCMC convergence diagnostics (across 1,250 post-burn-in Gibbs draws) for the primary Mediator-Removed Direct Effect (<code>M2</code>) Multivariate BCF models.
 </figcaption>
 <div aria-describedby="tbl-mcmc-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
 <colgroup>
-<col style="width: 11%">
+<col style="width: 34%">
 <col style="width: 14%">
-<col style="width: 14%">
-<col style="width: 14%">
-<col style="width: 14%">
-<col style="width: 14%">
-<col style="width: 14%">
+<col style="width: 17%">
+<col style="width: 12%">
+<col style="width: 13%">
+<col style="width: 10%">
 </colgroup>
 <thead>
 <tr class="header">
-<th style="text-align: left;">Tax Outcome (<code>M2</code> Mediator-Removed Direct Model)</th>
+<th style="text-align: left;">Tax Outcome (<code>M2</code> Direct Model)</th>
 <th style="text-align: center;">Horizon (<span class="math inline">\(N\)</span>)</th>
-<th style="text-align: center;">Post-Burn Draws</th>
 <th style="text-align: center;">Posterior Mean (SD)</th>
 <th style="text-align: center;"><strong>Split-Chain <span class="math inline">\(\hat{R}\)</span></strong></th>
-<th style="text-align: center;"><strong>Effective Sample Size (ESS)</strong></th>
+<th style="text-align: center;"><strong>Effective Sample Size</strong></th>
 <th style="text-align: center;">Geweke <span class="math inline">\(z\)</span></th>
 </tr>
 </thead>
@@ -876,56 +868,50 @@ Table&nbsp;8: Post-burn-in MCMC convergence diagnostics for the primary Mediator
 <tr class="odd">
 <td style="text-align: left;"><strong>1. Non-Resource Tax / GDP (pp)</strong></td>
 <td style="text-align: center;"><span class="math inline">\(+5\text{y}\)</span> (372)</td>
-<td style="text-align: center;">1,250</td>
-<td style="text-align: center;"><code>+0.044</code> (<code>0.260</code>)</td>
+<td style="text-align: center;">+0.044 (0.260)</td>
 <td style="text-align: center;"><strong>1.000</strong></td>
 <td style="text-align: center;"><strong>238</strong></td>
-<td style="text-align: center;"><code>+1.62</code></td>
+<td style="text-align: center;">+1.62</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><strong>2. Direct Income Tax / GDP (pp)</strong></td>
 <td style="text-align: center;"><span class="math inline">\(+5\text{y}\)</span> (372)</td>
-<td style="text-align: center;">1,250</td>
-<td style="text-align: center;"><code>+0.206</code> (<code>0.134</code>)</td>
+<td style="text-align: center;">+0.206 (0.134)</td>
 <td style="text-align: center;"><strong>1.000</strong></td>
 <td style="text-align: center;"><strong>159</strong></td>
-<td style="text-align: center;"><code>+0.55</code></td>
+<td style="text-align: center;">+0.55</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"><strong>3. Direct Income Tax Share (pp)</strong></td>
 <td style="text-align: center;"><span class="math inline">\(+5\text{y}\)</span> (372)</td>
-<td style="text-align: center;">1,250</td>
-<td style="text-align: center;"><code>+1.433</code> (<code>0.528</code>)</td>
+<td style="text-align: center;">+1.433 (0.528)</td>
 <td style="text-align: center;"><strong>1.021</strong></td>
 <td style="text-align: center;"><strong>205</strong></td>
-<td style="text-align: center;"><code>-0.55</code></td>
+<td style="text-align: center;">-0.55</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><strong>4. Non-Resource Tax / GDP (pp)</strong></td>
 <td style="text-align: center;"><span class="math inline">\(+10\text{y}\)</span> (283)</td>
-<td style="text-align: center;">1,250</td>
-<td style="text-align: center;"><code>+0.548</code> (<code>0.396</code>)</td>
+<td style="text-align: center;">+0.548 (0.396)</td>
 <td style="text-align: center;"><strong>1.015</strong></td>
 <td style="text-align: center;"><strong>156</strong></td>
-<td style="text-align: center;"><code>+1.76</code></td>
+<td style="text-align: center;">+1.76</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"><strong>5. Direct Income Tax / GDP (pp)</strong></td>
 <td style="text-align: center;"><span class="math inline">\(+10\text{y}\)</span> (283)</td>
-<td style="text-align: center;">1,250</td>
-<td style="text-align: center;"><code>+0.319</code> (<code>0.219</code>)</td>
+<td style="text-align: center;">+0.319 (0.219)</td>
 <td style="text-align: center;"><strong>1.050</strong></td>
 <td style="text-align: center;"><strong>188</strong></td>
-<td style="text-align: center;"><code>-1.99</code></td>
+<td style="text-align: center;">-1.99</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><strong>6. Direct Income Tax Share (pp)</strong></td>
 <td style="text-align: center;"><span class="math inline">\(+10\text{y}\)</span> (283)</td>
-<td style="text-align: center;">1,250</td>
-<td style="text-align: center;"><code>+1.880</code> (<code>0.796</code>)</td>
+<td style="text-align: center;">+1.880 (0.796)</td>
 <td style="text-align: center;"><strong>1.015</strong></td>
 <td style="text-align: center;"><strong>154</strong></td>
-<td style="text-align: center;"><code>-2.02</code></td>
+<td style="text-align: center;">-2.02</td>
 </tr>
 </tbody>
 </table>
