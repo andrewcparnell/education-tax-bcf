@@ -171,8 +171,16 @@ def build_5y_panel(meta_by_iso3: dict, obs: dict) -> list[dict]:
             w_rec["log_gdp_pc_ppp"] = math.log(gdp_pc) if (gdp_pc and gdp_pc > 0) else None
 
             # 1. Disaggregated Fiscal Tax Channels (Zero GDP product identities!)
-            tax_gdp = w_rec["tax_rev_gdp_pct"]
-            gov_rev = w_rec["gov_rev_ex_grants_gdp_pct"]
+            # Screen out impossible WDI reporting/redenomination errors (tax_rev_gdp_pct > 60% of GDP:
+            # specifically Sudan 1995-1999 at 629.2% and Timor-Leste 2010-2014 offshore oil fund at 110.0%)
+            raw_tax_gdp = w_rec["tax_rev_gdp_pct"]
+            tax_gdp = raw_tax_gdp if (raw_tax_gdp is not None and 0.5 <= raw_tax_gdp <= 60.0) else None
+            w_rec["tax_rev_gdp_pct"] = tax_gdp
+
+            raw_gov_rev = w_rec["gov_rev_ex_grants_gdp_pct"]
+            gov_rev = raw_gov_rev if (raw_gov_rev is not None and 0.5 <= raw_gov_rev <= 70.0) else None
+            w_rec["gov_rev_ex_grants_gdp_pct"] = gov_rev
+
             res_rents = w_rec["natural_resource_rents_gdp_pct"] or 0.0
 
             # Non-resource domestic tax take (% of GDP)

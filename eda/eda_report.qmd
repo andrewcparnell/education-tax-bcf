@@ -56,19 +56,19 @@ Table 1 illustrates why comparing the raw UNESCO ratio across income groups is m
 
 ## Unadjusted $+5$-Year and $+10$-Year Changes in the Four Tax Channels
 
-Table 2 compares the raw mean changes in our four fiscal outcomes between countries investing above their income-group benchmark ($Z = 1$) and those below it ($Z = 0$) across the complete four-outcome fiscal sample ($N = 373$ country-waves across 122 countries at $+5$ years; $N = 284$ country-waves across 113 countries at $+10$ years).
+Table 2 compares the raw mean changes in our four fiscal outcomes between countries investing above their income-group benchmark ($Z = 1$) and those below it ($Z = 0$) across the outlier-screened four-outcome fiscal sample ($N = 372$ country-waves across 121 countries at $+5$ years; $N = 283$ country-waves across 112 countries at $+10$ years, after screening out two raw WDI reporting anomalies in Sudan `1995-1999` and Timor-Leste `2010-2014` where recorded tax revenue exceeded `100%` of GDP).
 
 | University Funding Regime | Horizon | $N$ (Countries) | **$\Delta$ Non-Resource Tax / GDP (pp)** | **$\Delta$ Direct Income Tax / GDP (pp)** | **$\Delta$ Direct Income Tax Share (pp)** | $\Delta$ Goods & Services Tax Share (pp) |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Low Funding ($Z = 0$)** | $+5\text{y}$ | 204 (84) | `-0.14` | `-0.23` | `+0.81` | `+0.72` |
+| **Low Funding ($Z = 0$)** | $+5\text{y}$ | 203 (83) | `+0.39` | `+0.27` | `+0.90` | `+0.70` |
 | **High Funding ($Z = 1$)** | $+5\text{y}$ | 169 (70) | **`+0.33`** | **`+0.40`** | **`+1.76`** | `+0.33` |
-| **Low Funding ($Z = 0$)** | $+10\text{y}$ | 149 (74) | `-0.06` | `-0.22` | `+1.43` | `+1.32` |
+| **Low Funding ($Z = 0$)** | $+10\text{y}$ | 148 (73) | `+0.65` | `+0.45` | `+1.53` | `+1.31` |
 | **High Funding ($Z = 1$)** | $+10\text{y}$ | 135 (65) | **`+0.74`** | **`+0.65`** | **`+2.64`** | `+0.62` |
 
 : Unadjusted mean changes across the four disaggregated fiscal outcomes by within-income-group university funding regime (`Z_regime_inc`). {#tbl-eda2}
 
 Even before causal forest adjustment, three patterns stand out in Table 2:
 
-1. **Positive Overall Tax-Take Growth:** High university investors ($Z = 1$) expand their overall non-resource tax-to-GDP ratio by **`+0.33` percentage points** over 5 years and **`+0.74` percentage points** over 10 years, compared with slight contractions (`-0.14` and `-0.06` pp) among low investors ($Z = 0$).
-2. **Direct Income and Profit Taxes Drive the Gain:** Direct income, profit, and capital gains taxes as a share of GDP rise by **`+0.40` pp** at $+5$ years and **`+0.65` pp** at $+10$ years in high-investment regimes (versus `-0.23` and `-0.22` pp in low-investment regimes), shifting the composition of government revenue toward direct income taxation by **`+1.76` pp** at $+5$ years and **`+2.64` pp** at $+10$ years.
-3. **Specificity Against Indirect Consumption Taxes:** On the negative-control channel ($\Delta \text{Goods & Services Tax Share}$), high university investors show *smaller* increases in indirect consumption tax reliance (`+0.33` pp vs `+0.72` pp at $+5$ years; `+0.62` pp vs `+1.32` pp at $+10$ years), confirming that the fiscal expansion is specific to the direct income and corporate tax base rather than an across-the-board tax hike.
+1. **Long-Horizon Tax-Take Acceleration:** While unadjusted $+5$-year changes in overall non-resource tax-to-GDP are similar across groups (`+0.33` vs `+0.39` percentage points), by $+10$ years high university investors ($Z = 1$) expand their non-resource tax-to-GDP ratio by **`+0.74` percentage points** compared with `+0.65` percentage points among low investors ($Z = 0$).
+2. **Direct Income and Profit Taxes Drive the Gain:** Direct income, profit, and capital gains taxes as a share of GDP rise by **`+0.40` pp** at $+5$ years and **`+0.65` pp** at $+10$ years in high-investment regimes (versus `+0.27` and `+0.45` pp in low-investment regimes), shifting the composition of government revenue toward direct income taxation by **`+1.76` pp** at $+5$ years and **`+2.64` pp** at $+10$ years (nearly double the `+0.90` and `+1.53` pp shifts in low-investment regimes).
+3. **Specificity Against Indirect Consumption Taxes:** On the negative-control channel ($\Delta \text{Goods & Services Tax Share}$), high university investors show less than half the increase in indirect consumption tax reliance (`+0.33` pp vs `+0.70` pp at $+5$ years; `+0.62` pp vs `+1.31` pp at $+10$ years), confirming that the fiscal shift is specific to the direct income and corporate tax base rather than an across-the-board tax hike.

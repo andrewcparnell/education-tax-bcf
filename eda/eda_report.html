@@ -79,7 +79,7 @@ window.Quarto = {
 
 <div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
 <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-<div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="eda_report.pdf"><i class="bi bi-file-pdf"></i>PDF</a></li></ul></div></div>
+<div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="../../eda_report.html"><i class="bi bi-file-pdf"></i>PDF</a></li></ul></div></div>
 <main class="content" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
@@ -216,7 +216,7 @@ Table&nbsp;1: University spending indicators and baseline fiscal structure by Wo
 </section>
 <section id="unadjusted-5-year-and-10-year-changes-in-the-four-tax-channels" class="level2">
 <h2 class="anchored" data-anchor-id="unadjusted-5-year-and-10-year-changes-in-the-four-tax-channels">Unadjusted <span class="math inline">\(+5\)</span>-Year and <span class="math inline">\(+10\)</span>-Year Changes in the Four Tax Channels</h2>
-<p>Table 2 compares the raw mean changes in our four fiscal outcomes between countries investing above their income-group benchmark (<span class="math inline">\(Z = 1\)</span>) and those below it (<span class="math inline">\(Z = 0\)</span>) across the complete four-outcome fiscal sample (<span class="math inline">\(N = 373\)</span> country-waves across 122 countries at <span class="math inline">\(+5\)</span> years; <span class="math inline">\(N = 284\)</span> country-waves across 113 countries at <span class="math inline">\(+10\)</span> years).</p>
+<p>Table 2 compares the raw mean changes in our four fiscal outcomes between countries investing above their income-group benchmark (<span class="math inline">\(Z = 1\)</span>) and those below it (<span class="math inline">\(Z = 0\)</span>) across the outlier-screened four-outcome fiscal sample (<span class="math inline">\(N = 372\)</span> country-waves across 121 countries at <span class="math inline">\(+5\)</span> years; <span class="math inline">\(N = 283\)</span> country-waves across 112 countries at <span class="math inline">\(+10\)</span> years, after screening out two raw WDI reporting anomalies in Sudan <code>1995-1999</code> and Timor-Leste <code>2010-2014</code> where recorded tax revenue exceeded <code>100%</code> of GDP).</p>
 <div id="tbl-eda2" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-eda2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
@@ -248,11 +248,11 @@ Table&nbsp;2: Unadjusted mean changes across the four disaggregated fiscal outco
 <tr class="odd">
 <td style="text-align: left;"><strong>Low Funding (<span class="math inline">\(Z = 0\)</span>)</strong></td>
 <td style="text-align: center;"><span class="math inline">\(+5\text{y}\)</span></td>
-<td style="text-align: center;">204 (84)</td>
-<td style="text-align: center;"><code>-0.14</code></td>
-<td style="text-align: center;"><code>-0.23</code></td>
-<td style="text-align: center;"><code>+0.81</code></td>
-<td style="text-align: center;"><code>+0.72</code></td>
+<td style="text-align: center;">203 (83)</td>
+<td style="text-align: center;"><code>+0.39</code></td>
+<td style="text-align: center;"><code>+0.27</code></td>
+<td style="text-align: center;"><code>+0.90</code></td>
+<td style="text-align: center;"><code>+0.70</code></td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><strong>High Funding (<span class="math inline">\(Z = 1\)</span>)</strong></td>
@@ -266,11 +266,11 @@ Table&nbsp;2: Unadjusted mean changes across the four disaggregated fiscal outco
 <tr class="odd">
 <td style="text-align: left;"><strong>Low Funding (<span class="math inline">\(Z = 0\)</span>)</strong></td>
 <td style="text-align: center;"><span class="math inline">\(+10\text{y}\)</span></td>
-<td style="text-align: center;">149 (74)</td>
-<td style="text-align: center;"><code>-0.06</code></td>
-<td style="text-align: center;"><code>-0.22</code></td>
-<td style="text-align: center;"><code>+1.43</code></td>
-<td style="text-align: center;"><code>+1.32</code></td>
+<td style="text-align: center;">148 (73)</td>
+<td style="text-align: center;"><code>+0.65</code></td>
+<td style="text-align: center;"><code>+0.45</code></td>
+<td style="text-align: center;"><code>+1.53</code></td>
+<td style="text-align: center;"><code>+1.31</code></td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"><strong>High Funding (<span class="math inline">\(Z = 1\)</span>)</strong></td>
@@ -288,9 +288,9 @@ Table&nbsp;2: Unadjusted mean changes across the four disaggregated fiscal outco
 </div>
 <p>Even before causal forest adjustment, three patterns stand out in Table 2:</p>
 <ol type="1">
-<li><strong>Positive Overall Tax-Take Growth:</strong> High university investors (<span class="math inline">\(Z = 1\)</span>) expand their overall non-resource tax-to-GDP ratio by <strong><code>+0.33</code> percentage points</strong> over 5 years and <strong><code>+0.74</code> percentage points</strong> over 10 years, compared with slight contractions (<code>-0.14</code> and <code>-0.06</code> pp) among low investors (<span class="math inline">\(Z = 0\)</span>).</li>
-<li><strong>Direct Income and Profit Taxes Drive the Gain:</strong> Direct income, profit, and capital gains taxes as a share of GDP rise by <strong><code>+0.40</code> pp</strong> at <span class="math inline">\(+5\)</span> years and <strong><code>+0.65</code> pp</strong> at <span class="math inline">\(+10\)</span> years in high-investment regimes (versus <code>-0.23</code> and <code>-0.22</code> pp in low-investment regimes), shifting the composition of government revenue toward direct income taxation by <strong><code>+1.76</code> pp</strong> at <span class="math inline">\(+5\)</span> years and <strong><code>+2.64</code> pp</strong> at <span class="math inline">\(+10\)</span> years.</li>
-<li><strong>Specificity Against Indirect Consumption Taxes:</strong> On the negative-control channel (<span class="math inline">\(\Delta \text{Goods &amp; Services Tax Share}\)</span>), high university investors show <em>smaller</em> increases in indirect consumption tax reliance (<code>+0.33</code> pp vs <code>+0.72</code> pp at <span class="math inline">\(+5\)</span> years; <code>+0.62</code> pp vs <code>+1.32</code> pp at <span class="math inline">\(+10\)</span> years), confirming that the fiscal expansion is specific to the direct income and corporate tax base rather than an across-the-board tax hike.</li>
+<li><strong>Long-Horizon Tax-Take Acceleration:</strong> While unadjusted <span class="math inline">\(+5\)</span>-year changes in overall non-resource tax-to-GDP are similar across groups (<code>+0.33</code> vs <code>+0.39</code> percentage points), by <span class="math inline">\(+10\)</span> years high university investors (<span class="math inline">\(Z = 1\)</span>) expand their non-resource tax-to-GDP ratio by <strong><code>+0.74</code> percentage points</strong> compared with <code>+0.65</code> percentage points among low investors (<span class="math inline">\(Z = 0\)</span>).</li>
+<li><strong>Direct Income and Profit Taxes Drive the Gain:</strong> Direct income, profit, and capital gains taxes as a share of GDP rise by <strong><code>+0.40</code> pp</strong> at <span class="math inline">\(+5\)</span> years and <strong><code>+0.65</code> pp</strong> at <span class="math inline">\(+10\)</span> years in high-investment regimes (versus <code>+0.27</code> and <code>+0.45</code> pp in low-investment regimes), shifting the composition of government revenue toward direct income taxation by <strong><code>+1.76</code> pp</strong> at <span class="math inline">\(+5\)</span> years and <strong><code>+2.64</code> pp</strong> at <span class="math inline">\(+10\)</span> years (nearly double the <code>+0.90</code> and <code>+1.53</code> pp shifts in low-investment regimes).</li>
+<li><strong>Specificity Against Indirect Consumption Taxes:</strong> On the negative-control channel (<span class="math inline">\(\Delta \text{Goods &amp; Services Tax Share}\)</span>), high university investors show less than half the increase in indirect consumption tax reliance (<code>+0.33</code> pp vs <code>+0.70</code> pp at <span class="math inline">\(+5\)</span> years; <code>+0.62</code> pp vs <code>+1.31</code> pp at <span class="math inline">\(+10\)</span> years), confirming that the fiscal shift is specific to the direct income and corporate tax base rather than an across-the-board tax hike.</li>
 </ol>
 </section>
 

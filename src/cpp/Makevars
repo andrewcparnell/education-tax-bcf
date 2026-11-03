@@ -1,0 +1,1 @@
+FLIBS = -L/opt/homebrew/opt/gcc/lib/gcc/current -lgfortran -lquadmath -lm
