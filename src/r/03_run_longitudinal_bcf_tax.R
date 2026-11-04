@@ -80,6 +80,8 @@ clean_mu_vars <- c(
   "natural_resource_rents_gdp_pct",
   "trade_openness_gdp_pct",
   "lag_gdp_pc_growth_pct",
+  "wgi_gov_effectiveness",
+  "wgi_rule_of_law",
   "income_group_num",
   "region_num",
   "is_oecd",

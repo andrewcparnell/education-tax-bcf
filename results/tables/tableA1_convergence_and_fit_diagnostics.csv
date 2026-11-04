@@ -1,17 +1,17 @@
 model,horizon,outcome_code,outcome_label,n_post_draws,ate_mean,ate_sd,split_rhat,ess_ate,geweke_z,n_obs,n_countries,prob_positive,clu_prob_pos
-Total Fiscal Effect (M1),+5 years,goods_tax_share_pp,"4. Goods & Services Tax Share (pp, Negative Control)",1250,-0.285,0.607,1.012,147,-2.13,372,121,0.314,0.312
-Total Fiscal Effect (M1),+5 years,inc_tax_gdp_pp,2. Direct Income & Profit Tax / GDP (pp),1250,0.191,0.134,1,270,0.76,372,121,0.931,0.93
-Total Fiscal Effect (M1),+5 years,inc_tax_share_pp,3. Direct Income & Profit Share of Revenue (pp),1250,1.343,0.572,1.004,222,0.46,372,121,0.99,0.989
-Total Fiscal Effect (M1),+5 years,tax_gdp_pp,1. Non-Resource Tax / GDP (pp),1250,-0.016,0.265,1,216,-0.05,372,121,0.472,0.47
-Total Fiscal Effect (M1),+10 years,goods_tax_share_pp,"4. Goods & Services Tax Share (pp, Negative Control)",1250,-0.74,0.768,1,202,0.21,283,112,0.175,0.184
-Total Fiscal Effect (M1),+10 years,inc_tax_gdp_pp,2. Direct Income & Profit Tax / GDP (pp),1250,0.311,0.209,1,227,-1.04,283,112,0.928,0.923
-Total Fiscal Effect (M1),+10 years,inc_tax_share_pp,3. Direct Income & Profit Share of Revenue (pp),1250,1.769,0.766,1.003,137,-1.06,283,112,0.989,0.988
-Total Fiscal Effect (M1),+10 years,tax_gdp_pp,1. Non-Resource Tax / GDP (pp),1250,0.377,0.397,1,265,0.72,283,112,0.825,0.822
-Mediator-Removed Direct Effect (M2),+5 years,goods_tax_share_pp,"4. Goods & Services Tax Share (pp, Negative Control)",1250,-0.131,0.605,1.042,112,-4.19,372,121,0.414,0.413
-Mediator-Removed Direct Effect (M2),+5 years,inc_tax_gdp_pp,2. Direct Income & Profit Tax / GDP (pp),1250,0.206,0.134,1,159,0.55,372,121,0.941,0.941
-Mediator-Removed Direct Effect (M2),+5 years,inc_tax_share_pp,3. Direct Income & Profit Share of Revenue (pp),1250,1.433,0.528,1.021,205,-0.55,372,121,0.997,0.997
-Mediator-Removed Direct Effect (M2),+5 years,tax_gdp_pp,1. Non-Resource Tax / GDP (pp),1250,0.044,0.26,1,238,1.62,372,121,0.553,0.554
-Mediator-Removed Direct Effect (M2),+10 years,goods_tax_share_pp,"4. Goods & Services Tax Share (pp, Negative Control)",1250,-0.726,0.864,1.011,87,0.48,283,112,0.194,0.204
-Mediator-Removed Direct Effect (M2),+10 years,inc_tax_gdp_pp,2. Direct Income & Profit Tax / GDP (pp),1250,0.319,0.219,1.05,188,-1.99,283,112,0.929,0.929
-Mediator-Removed Direct Effect (M2),+10 years,inc_tax_share_pp,3. Direct Income & Profit Share of Revenue (pp),1250,1.88,0.796,1.015,154,-2.02,283,112,0.99,0.99
-Mediator-Removed Direct Effect (M2),+10 years,tax_gdp_pp,1. Non-Resource Tax / GDP (pp),1250,0.548,0.396,1.015,156,1.76,283,112,0.919,0.916
+Total Fiscal Effect (M1),+5 years,goods_tax_share_pp,"4. Goods & Services Tax Share (pp, Negative Control)",1250,-0.212,0.581,1.001,262,0.99,372,121,0.356,0.355
+Total Fiscal Effect (M1),+5 years,inc_tax_gdp_pp,2. Direct Income & Profit Tax / GDP (pp),1250,0.187,0.127,1.017,307,-1.26,372,121,0.925,0.922
+Total Fiscal Effect (M1),+5 years,inc_tax_share_pp,3. Direct Income & Profit Share of Revenue (pp),1250,0.955,0.551,1.012,244,-0.46,372,121,0.958,0.954
+Total Fiscal Effect (M1),+5 years,tax_gdp_pp,1. Non-Resource Tax / GDP (pp),1250,-0.037,0.261,1.002,248,2.8,372,121,0.441,0.443
+Total Fiscal Effect (M1),+10 years,goods_tax_share_pp,"4. Goods & Services Tax Share (pp, Negative Control)",1250,-0.392,0.811,1.014,146,2.79,283,112,0.318,0.325
+Total Fiscal Effect (M1),+10 years,inc_tax_gdp_pp,2. Direct Income & Profit Tax / GDP (pp),1250,0.31,0.204,0.999,205,0.43,283,112,0.928,0.933
+Total Fiscal Effect (M1),+10 years,inc_tax_share_pp,3. Direct Income & Profit Share of Revenue (pp),1250,1.411,0.773,1.009,173,0.83,283,112,0.97,0.968
+Total Fiscal Effect (M1),+10 years,tax_gdp_pp,1. Non-Resource Tax / GDP (pp),1250,0.377,0.398,0.999,309,1.13,283,112,0.815,0.823
+Mediator-Removed Direct Effect (M2),+5 years,goods_tax_share_pp,"4. Goods & Services Tax Share (pp, Negative Control)",1250,-0.191,0.524,1.01,195,-0.42,372,121,0.354,0.357
+Mediator-Removed Direct Effect (M2),+5 years,inc_tax_gdp_pp,2. Direct Income & Profit Tax / GDP (pp),1250,0.214,0.129,1.013,279,-1.04,372,121,0.957,0.954
+Mediator-Removed Direct Effect (M2),+5 years,inc_tax_share_pp,3. Direct Income & Profit Share of Revenue (pp),1250,1.21,0.565,1.035,196,-2.07,372,121,0.982,0.98
+Mediator-Removed Direct Effect (M2),+5 years,tax_gdp_pp,1. Non-Resource Tax / GDP (pp),1250,0.05,0.248,1.003,290,0.38,372,121,0.571,0.575
+Mediator-Removed Direct Effect (M2),+10 years,goods_tax_share_pp,"4. Goods & Services Tax Share (pp, Negative Control)",1250,-0.321,0.83,1.106,54,-5.85,283,112,0.353,0.36
+Mediator-Removed Direct Effect (M2),+10 years,inc_tax_gdp_pp,2. Direct Income & Profit Tax / GDP (pp),1250,0.287,0.205,1.022,227,-0.77,283,112,0.918,0.912
+Mediator-Removed Direct Effect (M2),+10 years,inc_tax_share_pp,3. Direct Income & Profit Share of Revenue (pp),1250,1.573,0.774,1,192,-0.2,283,112,0.981,0.981
+Mediator-Removed Direct Effect (M2),+10 years,tax_gdp_pp,1. Non-Resource Tax / GDP (pp),1250,0.492,0.373,1.001,272,1.22,283,112,0.906,0.902

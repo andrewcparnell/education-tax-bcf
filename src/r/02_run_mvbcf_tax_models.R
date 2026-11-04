@@ -54,9 +54,10 @@ df <- read_csv(file.path(proc_dir, "clean_tax_panel.csv"), show_col_types = FALS
     ))),
     region_num = as.numeric(factor(region)),
     enrol_regime = case_when(
-      gross_tert_enrolment_pct < 20 ~ "1. Elite (<20% enrolment)",
-      gross_tert_enrolment_pct < 50 ~ "2. Massifying (20-50% enrolment)",
-      TRUE                          ~ "3. High-Participation (>=50% enrolment)"
+      is.na(gross_tert_enrolment_pct) ~ NA_character_,
+      gross_tert_enrolment_pct < 20   ~ "1. Elite (<20% enrolment)",
+      gross_tert_enrolment_pct < 50   ~ "2. Massifying (20-50% enrolment)",
+      TRUE                            ~ "3. High-Participation (>=50% enrolment)"
     )
   )
 
@@ -91,6 +92,8 @@ base_con_vars <- c(
   "natural_resource_rents_gdp_pct",
   "trade_openness_gdp_pct",
   "lag_gdp_pc_growth_pct",
+  "wgi_gov_effectiveness",
+  "wgi_rule_of_law",
   "income_group_num",
   "region_num",
   "is_oecd",
@@ -163,8 +166,9 @@ fit_mvbcf_spec <- function(d_in, y_cols, z_col, extra_con = NULL, mod_cols = bas
   X_mu  <- prep_matrix(d, use_con)
   X_mod <- prep_matrix(d, mod_cols)
 
-  # Estimate propensity score pi_hat(X)
-  df_ps <- as.data.frame(X_mu)
+  # Estimate propensity score pi_hat(X) strictly from pre-treatment baseline covariates (never post-treatment mediators)
+  X_ps  <- prep_matrix(d, base_con_vars)
+  df_ps <- as.data.frame(X_ps)
   df_ps$Z_target <- Z
   ps_fit <- suppressWarnings(glm(Z_target ~ ., data = df_ps, family = binomial()))
   pi_hat <- pmin(pmax(predict(ps_fit, type = "response"), 0.02), 0.98)
@@ -427,22 +431,27 @@ df_fe <- df %>%
 rob_fe_5y  <- fit_mvbcf_spec(df_fe, y5_cols,  "Z_regime_inc", extra_con = mediators_5y)
 rob_fe_10y <- fit_mvbcf_spec(df_fe, y10_cols, "Z_regime_inc", extra_con = mediators_10y)
 
-# R4: Placebo Lead Check (Does future wave t+1 funding expansion predict past wave t-1 -> t tax change?)
-df_placebo <- df %>%
-  arrange(iso3, wave_index) %>%
-  group_by(iso3) %>%
-  mutate(Z_lead_regime = lead(Z_regime_inc, 1)) %>%
-  ungroup()
-rob_placebo <- fit_mvbcf_spec(df_placebo, y5_cols, "Z_lead_regime", extra_con = mediators_5y)
+# R4: Strictly Observed Baseline Covariates (Zero Median Imputation on Core Pre-Treatment Controls)
+core_obs_vars <- c(
+  "log_gdp_pc_ppp", "non_resource_tax_gdp_pct", "income_profit_tax_share_rev_pct",
+  "gross_tert_enrolment_pct", "gini_disp_harmonised", "working_age_pop_15_64_pct"
+)
+df_strict_obs <- df %>% filter(complete.cases(across(all_of(core_obs_vars))))
+rob_strict_obs_10y <- fit_mvbcf_spec(df_strict_obs, y10_cols, "Z_regime_inc", extra_con = mediators_10y)
+
+# R5: Placebo Lead Check (Does wave t funding regime predict PAST pre-treatment wave t-1 -> t tax change?)
+y_prev_cols <- c("d_prev_nonres_tax_gdp_pp", "d_prev_inc_tax_gdp_pp", "d_prev_inc_tax_share_pp", "d_prev_goods_tax_share_pp")
+rob_placebo <- fit_mvbcf_spec(df, y_prev_cols, "Z_regime_inc", extra_con = NULL)
 
 table4_robustness <- bind_rows(
-  summarise_fit(rob_pure_wdi,   "R1_Pure_WDI_Tax_10y",      "Pure Unadjusted WDI Tax/GDP (+10y)",          "+10 years (t+2)"),
-  summarise_fit(rob_nonoverlap, "R2_NonOverlap_10y",        "Non-Overlapping Decadal Waves (+10y)",        "+10 years (t+2)"),
-  summarise_fit(rob_fe_5y,      "R3a_CountryFE_Demean_5y",  "Within-Country Demeaned Fixed Effects (+5y)", "+5 years (t+1)"),
-  summarise_fit(rob_fe_10y,     "R3b_CountryFE_Demean_10y", "Within-Country Demeaned Fixed Effects (+10y)","+10 years (t+2)"),
-  summarise_fit(m4_oecd_5y,     "R4a_OECD_Subsample_5y",    "OECD Member States Subsample (+5y)",          "+5 years (t+1)"),
-  summarise_fit(m4_oecd_10y,    "R4b_OECD_Subsample_10y",   "OECD Member States Subsample (+10y)",         "+10 years (t+2)"),
-  summarise_fit(rob_placebo,    "R5_Placebo_FutureZ_5y",    "Placebo Check: Future (t+1) Regime on Current Tax", "+5 years (t+1)")
+  summarise_fit(rob_pure_wdi,       "R1_Pure_WDI_Tax_10y",      "Pure Unadjusted WDI Tax/GDP (+10y)",          "+10 years (t+2)"),
+  summarise_fit(rob_nonoverlap,     "R2_NonOverlap_10y",        "Non-Overlapping Decadal Waves (+10y)",        "+10 years (t+2)"),
+  summarise_fit(rob_fe_5y,          "R3a_CountryFE_Demean_5y",  "Within-Country Demeaned Fixed Effects (+5y)", "+5 years (t+1)"),
+  summarise_fit(rob_fe_10y,         "R3b_CountryFE_Demean_10y", "Within-Country Demeaned Fixed Effects (+10y)","+10 years (t+2)"),
+  summarise_fit(rob_strict_obs_10y, "R4_Strict_Obs_Covar_10y",  "Strictly Observed Baseline Covariates (+10y)","+10 years (t+2)"),
+  summarise_fit(m4_oecd_5y,         "R4a_OECD_Subsample_5y",    "OECD Member States Subsample (+5y)",          "+5 years (t+1)"),
+  summarise_fit(m4_oecd_10y,        "R4b_OECD_Subsample_10y",   "OECD Member States Subsample (+10y)",         "+10 years (t+2)"),
+  summarise_fit(rob_placebo,        "R5_Placebo_LagY_5y",       "Placebo Check: Pre-Treatment Tax Change (t-1 to t)", "Pre-treatment (t-1 to t)")
 )
 
 write_csv(table4_robustness, file.path(tab_dir, "table4_robustness_checks.csv"))

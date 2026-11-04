@@ -211,7 +211,11 @@ p_fig2 <- ggplot(sum_fig2, aes(x = mean_val, y = horizon, colour = model)) +
   geom_point(size = 3.2, position = position_dodge(width = 0.55)) +
   geom_text(
     aes(
-      label = sprintf("%+.2f pp (P>0: %.0f%%)", mean_val, 100 * prob_pos),
+      label = ifelse(
+        prob_pos >= 0.995,
+        sprintf("%+.2f pp (P>0: >99%%)", mean_val),
+        sprintf("%+.2f pp (P>0: %.0f%%)", mean_val, 100 * prob_pos)
+      ),
       y = as.numeric(horizon) + ifelse(model == "Total Fiscal Effect (M1)", -0.27, 0.27)
     ),
     size = 3.0, fontface = "bold", show.legend = FALSE
@@ -476,7 +480,7 @@ p_figA1 <- ggplot(trace_df, aes(x = draw, y = ate_pp, colour = horizon)) +
     values = c("+5 years" = "#1b6ca8", "+10 years" = "#d9480f")
   ) +
   labs(
-    title = "Appendix Figure A1: Post-Burn-In MCMC Trace Plots for Mediator-Removed Direct Fiscal Effects",
+    title = "Post-Burn-In MCMC Trace Plots for Mediator-Removed Direct Fiscal Effects",
     subtitle = "1,250 post-burn-in Gibbs draws across all four disaggregated fiscal outcomes at +5 and +10 years",
     x = "Post-Burn-In MCMC Iteration",
     y = "Average Treatment Effect Draw (Percentage Points)"

@@ -241,19 +241,21 @@ def build_5y_panel(meta_by_iso3: dict, obs: dict) -> list[dict]:
             wave_data[iso3][w_idx] = w_rec
 
     # Compute within-income-group medians for clean regime indicators
-    inc_group_spend = defaultdict(list)
+    # Use un-winsorised tert_spend_raw for median regime splits so Low-income countries
+    # (where median per-student ratio exceeds 150% of GDP per person) have balanced 50/50 support
+    inc_group_spend_raw = defaultdict(list)
     inc_group_real_spend = defaultdict(list)
     inc_group_tert_gdp = defaultdict(list)
     inc_group_edu_total = defaultdict(list)
-    all_spend = []
+    all_spend_raw = []
 
     for iso3, m in meta_by_iso3.items():
         inc = m["income_group"]
         for w_idx in range(1, 9):
             cur = wave_data[iso3][w_idx]
-            if cur["tert_spend_per_student_winsor"] is not None:
-                inc_group_spend[inc].append(cur["tert_spend_per_student_winsor"])
-                all_spend.append(cur["tert_spend_per_student_winsor"])
+            if cur["tert_spend_raw"] is not None:
+                inc_group_spend_raw[inc].append(cur["tert_spend_raw"])
+                all_spend_raw.append(cur["tert_spend_raw"])
             if cur["log_real_tert_spend_per_student"] is not None:
                 inc_group_real_spend[inc].append(cur["log_real_tert_spend_per_student"])
             if cur["tert_spend_gdp_pct"] is not None:
@@ -261,8 +263,8 @@ def build_5y_panel(meta_by_iso3: dict, obs: dict) -> list[dict]:
             if cur["edu_spend_total_gdp_pct"] is not None:
                 inc_group_edu_total[inc].append(cur["edu_spend_total_gdp_pct"])
 
-    global_median_spend = safe_median(all_spend)
-    inc_medians = {k: safe_median(v) for k, v in inc_group_spend.items()}
+    global_median_spend = safe_median(all_spend_raw)
+    inc_medians = {k: safe_median(v) for k, v in inc_group_spend_raw.items()}
     inc_real_medians = {k: safe_median(v) for k, v in inc_group_real_spend.items()}
     inc_tert_gdp_medians = {k: safe_median(v) for k, v in inc_group_tert_gdp.items()}
     inc_edu_total_medians = {k: safe_median(v) for k, v in inc_group_edu_total.items()}
@@ -295,13 +297,30 @@ def build_5y_panel(meta_by_iso3: dict, obs: dict) -> list[dict]:
             }
             rec.update(cur)
 
-            # Strictly pre-treatment lagged (t-1) covariates
+            # Strictly pre-treatment lagged (t-1) covariates and pre-treatment tax changes (t-1 -> t)
             rec["lag_gdp_pc_growth_pct"] = prev["gdp_per_capita_growth_pct"] if prev else None
             rec["lag_nonres_tax_gdp_pct"] = prev["non_resource_tax_gdp_pct"] if prev else None
             rec["lag_inc_tax_share_pct"] = prev["income_profit_tax_share_rev_pct"] if prev else None
+            rec["d_prev_nonres_tax_gdp_pp"] = (
+                cur["non_resource_tax_gdp_pct"] - prev["non_resource_tax_gdp_pct"]
+                if (prev and cur["non_resource_tax_gdp_pct"] is not None and prev["non_resource_tax_gdp_pct"] is not None) else None
+            )
+            rec["d_prev_inc_tax_gdp_pp"] = (
+                cur["inc_tax_gdp_pct"] - prev["inc_tax_gdp_pct"]
+                if (prev and cur["inc_tax_gdp_pct"] is not None and prev["inc_tax_gdp_pct"] is not None) else None
+            )
+            rec["d_prev_inc_tax_share_pp"] = (
+                cur["income_profit_tax_share_rev_pct"] - prev["income_profit_tax_share_rev_pct"]
+                if (prev and cur["income_profit_tax_share_rev_pct"] is not None and prev["income_profit_tax_share_rev_pct"] is not None) else None
+            )
+            rec["d_prev_goods_tax_share_pp"] = (
+                cur["goods_services_tax_share_rev_pct"] - prev["goods_services_tax_share_rev_pct"]
+                if (prev and cur["goods_services_tax_share_rev_pct"] is not None and prev["goods_services_tax_share_rev_pct"] is not None) else None
+            )
 
             # Treatment 1: UNESCO Per-Student Spending Ratio (% of GDP per person)
             cur_sp = cur["tert_spend_per_student_winsor"]
+            cur_sp_raw = cur["tert_spend_raw"]
             prev_sp = prev["tert_spend_per_student_winsor"] if prev else None
             if cur_sp is not None and prev_sp is not None and prev_sp > 0:
                 rel_chg = ((cur_sp - prev_sp) / prev_sp) * 100.0
@@ -315,12 +334,12 @@ def build_5y_panel(meta_by_iso3: dict, obs: dict) -> list[dict]:
                 rec["Z_expansion_obs"] = None
 
             rec["Z_regime_inc"] = (
-                1 if (cur_sp is not None and inc_medians.get(inc) is not None and cur_sp > inc_medians[inc])
-                else (0 if cur_sp is not None else None)
+                1 if (cur_sp_raw is not None and inc_medians.get(inc) is not None and cur_sp_raw > inc_medians[inc])
+                else (0 if cur_sp_raw is not None else None)
             )
             rec["Z_regime_global"] = (
-                1 if (cur_sp is not None and global_median_spend is not None and cur_sp > global_median_spend)
-                else (0 if cur_sp is not None else None)
+                1 if (cur_sp_raw is not None and global_median_spend is not None and cur_sp_raw > global_median_spend)
+                else (0 if cur_sp_raw is not None else None)
             )
 
             # Treatment 2: Real PPP Dollars per Tertiary Student (No GDP denominator)
