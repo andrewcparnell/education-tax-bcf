@@ -58,10 +58,10 @@
           <div class="control-group">
             <label class="control-label" for="t1-outcome-select">Tax Measure</label>
             <select id="t1-outcome-select">
-              <option value="inc_gdp" selected>Income &amp; Profit Tax Revenue</option>
-              <option value="tax_gdp">Total Non-Resource Tax Revenue</option>
-              <option value="inc_share">Income Tax Share of Total Tax</option>
-              <option value="goods_share">Goods &amp; Services Tax Share</option>
+              <option value="inc_gdp" selected>Income &amp; Profit Tax Revenue (% of GDP)</option>
+              <option value="tax_gdp">Total Non-Resource Tax Revenue (% of GDP)</option>
+              <option value="inc_share">Income Tax Share (% of total tax)</option>
+              <option value="goods_share">Goods &amp; Services / VAT Share (% of total tax)</option>
             </select>
           </div>
 
@@ -73,8 +73,8 @@
 
             <div class="preset-pills">
               <button type="button" class="preset-pill" data-preset="default">Default</button>
-              <button type="button" class="preset-pill" data-preset="europe">Europe</button>
-              <button type="button" class="preset-pill" data-preset="anglo">Anglo-OECD</button>
+              <button type="button" class="preset-pill" data-preset="europe">EU &amp; UK</button>
+              <button type="button" class="preset-pill" data-preset="nordic_tuition">Nordic vs Tuition</button>
               <button type="button" class="preset-pill" data-preset="emerging">Emerging</button>
               <button type="button" class="preset-pill" data-preset="clear">Clear</button>
             </div>
@@ -87,7 +87,7 @@
         <div class="panel-card">
           <h3>
             <span id="t1-main-chart-title">Estimated Effect of Increasing University Funding on Annual Tax Revenue</span>
-            <span class="country-tag">80% (thick) &amp; 95% (thin) uncertainty ranges</span>
+            <span class="country-tag" id="t1-chart-subtitle">80% (thick) &amp; 95% (thin) uncertainty ranges | Hover for baseline &amp; national totals</span>
           </h3>
           <div id="t1-forest-plot" class="plot-box-lg"></div>
         </div>
@@ -110,33 +110,23 @@
 
           <div class="control-group">
             <label class="control-label" for="t2-x-select">Horizontal Axis (University Funding)</label>
-            <select id="t2-x-select">
-              <option value="tert_spend_gdp_pct" selected>University Spending (% of GDP)</option>
-              <option value="tert_spend_per_student_winsor">Spend per Student (% of GDP per person)</option>
-              <option value="tert_spend_abs_change">5-Year Change in Spend per Student</option>
-              <option value="d_tert_spend_gdp_pp">5-Year Change in Spending (% of GDP)</option>
-            </select>
+            <select id="t2-x-select"></select>
           </div>
 
           <div class="control-group">
             <label class="control-label" for="t2-y-select">Vertical Axis (Tax Revenue)</label>
-            <select id="t2-y-select">
-              <option value="income_profit_tax_share_rev_pct" selected>Income Tax Share (% of total tax)</option>
-              <option value="inc_tax_gdp_pct">Income Tax Revenue (% of GDP)</option>
-              <option value="non_resource_tax_gdp_pct">Total Tax Revenue (% of GDP)</option>
-              <option value="d_prev_inc_tax_share_pp">5-Year Change in Income Tax Share</option>
-              <option value="d_prev_nonres_tax_gdp_pp">5-Year Change in Total Tax (% of GDP)</option>
-            </select>
+            <select id="t2-y-select"></select>
           </div>
 
           <div class="control-group">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.35rem;">
               <span class="control-label" style="margin:0;">Highlighted Countries</span>
-              <span id="t2-selected-count" class="country-tag">5 selected</span>
+              <span id="t2-selected-count" class="country-tag">6 selected</span>
             </div>
 
             <div class="preset-pills">
               <button type="button" class="preset-pill" data-t2preset="default">Big Movers</button>
+              <button type="button" class="preset-pill" data-t2preset="trap">Denominator Trap</button>
               <button type="button" class="preset-pill" data-t2preset="risers">Long-Term Risers</button>
               <button type="button" class="preset-pill" data-t2preset="decliners">Long-Term Decliners</button>
               <button type="button" class="preset-pill" data-t2preset="clear">Clear</button>
@@ -168,7 +158,7 @@
           <div class="panel-card" style="margin-bottom:1rem;">
             <h3>
               <span id="t2-scatter-title">University Spending vs Tax Revenue Across Time</span>
-              <span class="country-tag">Bubble size = Population</span>
+              <span class="country-tag">Bubble size = Population | Click any bubble to highlight</span>
             </h3>
             <div id="t2-gapminder-plot" class="plot-box"></div>
           </div>
@@ -176,7 +166,7 @@
           <div class="panel-card">
             <h3>
               <span>Historical Trends for Highlighted Countries</span>
-              <span class="country-tag">Left: University Funding | Right: Tax Revenue</span>
+              <span class="country-tag">Left: University Funding | Right: Tax Revenue (dashed line = active period)</span>
             </h3>
             <div id="t2-timeseries-plot" class="plot-box-sm"></div>
           </div>
@@ -196,7 +186,17 @@
           </div>
 
           <div class="control-group">
-            <span class="control-label">University Funding Policy</span>
+            <span class="control-label">Quick Policy Scenarios</span>
+            <div class="preset-pills" id="t3-scenario-pills">
+              <button type="button" class="preset-pill active" data-scen="boost">Boost Per-Student</button>
+              <button type="button" class="preset-pill" data-scen="funded_exp">Funded Expansion</button>
+              <button type="button" class="preset-pill" data-scen="crowding">Unfunded Crowding</button>
+              <button type="button" class="preset-pill" data-scen="cut">Budget Cut</button>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <span class="control-label">University Funding Direction</span>
             <div class="segmented-group" id="t3-direction-group">
               <button type="button" class="seg-btn active" data-dir="1">Increase Funding</button>
               <button type="button" class="seg-btn" data-dir="-1">Reduce Funding</button>
@@ -207,7 +207,8 @@
             <span class="control-label">Timeframe</span>
             <div class="segmented-group" id="t3-horizon-group">
               <button type="button" class="seg-btn" data-h="5">5 Years</button>
-              <button type="button" class="seg-btn active" data-h="10">10 Years</button>
+              <button type="button" class="seg-btn" data-h="10">10 Years</button>
+              <button type="button" class="seg-btn active" data-h="both">5 vs 10 Years</button>
             </div>
           </div>
 
@@ -283,7 +284,7 @@
         <div class="panel-card">
           <h3>
             <span id="t3-chart-title">Estimated Tax Impact Across Revenue Streams</span>
-            <span class="country-tag">80% uncertainty range</span>
+            <span class="country-tag" id="t3-baseline-tag">80% uncertainty range</span>
           </h3>
           <div id="t3-scenario-plot" class="plot-box-lg"></div>
         </div>
@@ -297,31 +298,31 @@
       <div class="help-page-card">
         <h2>How This App Works &amp; How to Use It</h2>
         <p>
-          This tool lets policy makers explore how changes in government university funding affect a country's tax revenue over the following 5 to 10 years, based on historical data from 121 countries between 1985 and 2024.
+          This tool lets policy makers, tax specialists, and education analysts explore how changes in government university funding affect a country's tax revenue over the following 5 to 10 years, based on historical data from 121 countries between 1985 and 2024.
         </p>
 
         <h3>Choosing Units (EUR, USD, GBP, or Percentage Points)</h3>
         <p>
-          Use the <strong>Units</strong> menu in the top-right corner at any time to switch all estimates between <strong>EUR (&euro;)</strong>, <strong>USD ($)</strong>, <strong>GBP (&pound;)</strong> (shown as annual tax revenue per person, with total national amounts in billions or millions shown when you hover over any bar or point), or <strong>Percentage points (pp)</strong> of GDP / total tax revenue.
+          Use the <strong>Units</strong> menu in the top-right corner at any time to switch all estimates between <strong>EUR (&euro;)</strong>, <strong>USD ($)</strong>, <strong>GBP (&pound;)</strong> (shown as annual tax revenue per person, with national totals in billions or millions and underlying percentage-point changes shown when you hover over any bar or point), or <strong>Percentage points (pp)</strong> of GDP / total tax revenue.
         </p>
 
         <h3>1. Future Tax Estimation</h3>
         <ul>
-          <li><strong>What it shows:</strong> The estimated change in annual tax revenue 5 or 10 years after a country increases its investment in university education.</li>
-          <li><strong>How to use it:</strong> Pick a timeframe (5 years, 10 years, or compare both side by side), choose a tax measure, and tick any combination of countries on the left.</li>
-          <li><strong>Reading the chart:</strong> The vertical dashed line marks <strong>zero</strong> (no effect). Points to the right of zero indicate an increase in tax revenue, with thick bars showing the 80% uncertainty range and thin bars showing the 95% uncertainty range.</li>
+          <li><strong>What it shows:</strong> The estimated change in annual tax revenue 5 or 10 years after a country increases its per-student investment in university education.</li>
+          <li><strong>How to use it:</strong> Pick a timeframe (5 years, 10 years, or 5 vs 10 years side by side), choose a tax measure, and tick any combination of countries on the left (or use peer-group pills such as <em>EU &amp; UK</em> or <em>Nordic vs Tuition</em>).</li>
+          <li><strong>Reading the chart:</strong> The vertical dashed line marks <strong>zero</strong> (no effect). Points to the right of zero indicate an increase in tax revenue, with thick bars showing the 80% uncertainty range and thin bars showing the 95% uncertainty range. Hover over any country to view its current university funding level, peer-group threshold status, baseline tax structure, and national currency total.</li>
         </ul>
 
         <h3>2. Historical Data</h3>
         <ul>
-          <li><strong>What it shows:</strong> How university spending and tax revenues have actually moved over time across countries from 1990 to 2024.</li>
-          <li><strong>How to use it:</strong> Press <strong>Play</strong> to animate the progression across five-year periods, or drag the time slider manually. Tick countries on the left (or use presets such as <em>Big Movers</em>, <em>Long-Term Risers</em>, or <em>Long-Term Decliners</em>) to trace their historical paths on the scatter plot and in the time-series charts below.</li>
+          <li><strong>What it shows:</strong> How university spending (measured as % of GDP per person, real PPP dollars per student, university budget % of GDP, or enrolment %) and tax revenues have actually moved across countries from 1990 to 2024.</li>
+          <li><strong>How to use it:</strong> Press <strong>Play</strong> to animate the progression across five-year periods, or drag the time slider manually. Click any bubble directly on the scatter plot (or use presets such as <em>Big Movers</em> or <em>Denominator Trap</em>) to highlight a country's historical path on both charts.</li>
         </ul>
 
         <h3>3. Full policy scenarios</h3>
         <ul>
-          <li><strong>What it shows:</strong> How the estimated tax impact for a single country changes if you either increase or reduce university funding while other economic or demographic characteristics also change.</li>
-          <li><strong>How to use it:</strong> Select a country, choose whether to increase or reduce funding, and pick a 5-year or 10-year horizon. By default, all other country characteristics are set automatically to that country's observed average. Click <strong>Adjust other country factors</strong> to open the optional sliders and test custom scenarios.</li>
+          <li><strong>What it shows:</strong> How the estimated tax impact for a single country splits between <strong>Tax Revenue Mobilisation</strong> (left panel: Income Tax and Total Tax per person) and <strong>Tax Mix Shift</strong> (right panel: Income Tax Share vs Goods/VAT Share of total tax).</li>
+          <li><strong>How to use it:</strong> Select a country and click a one-click policy scenario (such as <em>Boost Per-Student</em>, <em>Funded Expansion</em>, <em>Unfunded Crowding</em>, or <em>Budget Cut</em>), or open <strong>Adjust other country factors</strong> to customise individual economic and demographic sliders.</li>
         </ul>
 
         <button type="button" class="back-btn" id="btn-close-help">&larr; Back to Explorer</button>

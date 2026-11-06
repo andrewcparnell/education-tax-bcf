@@ -276,6 +276,12 @@ input[type="text"]:focus {
   background: #e2e8f0;
 }
 
+.preset-pill.active {
+  background: var(--teal);
+  border-color: var(--teal);
+  color: #ffffff;
+}
+
 /* Country Checklist */
 .country-list-box {
   max-height: 290px;

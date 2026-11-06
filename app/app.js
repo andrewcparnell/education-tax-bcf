@@ -1,7 +1,7 @@
 // =============================================================================
 // Script: app/app.js
-// Purpose: Clean, Policy-Maker Focused Interactive Explorer for University
-//          Funding and Tax Revenue Returns
+// Purpose: Clean, Policy-Maker, Tax-Specialist, and Education-Analyst Focused
+//          Interactive Explorer for University Funding and Tax Revenue Returns
 // Author: Andrew C. Parnell
 // =============================================================================
 
@@ -31,6 +31,14 @@
     PP:  { code: "PP",  symbol: "pp", rate: 1.0, label: "Percentage points (pp)" }
   };
 
+  // World Bank Income-Group Median Thresholds (% of GDP per person per student)
+  const INCOME_GROUP_THRESHOLDS = {
+    "High income": 26.9,
+    "Upper middle income": 26.8,
+    "Lower middle income": 76.5,
+    "Low income": 205.2
+  };
+
   let currentUnit = "EUR";
   let lastActiveTab = "tab1";
 
@@ -38,25 +46,33 @@
     inc_gdp: {
       key: "inc_gdp",
       label: "Income & Profit Tax Revenue",
+      shortLabel: "Income & Profit Tax",
       isShareOfTax: false,
+      scaleNote: "of GDP",
       colour: "#0b2545"
     },
     tax_gdp: {
       key: "tax_gdp",
       label: "Total Non-Resource Tax Revenue",
+      shortLabel: "Total Non-Resource Tax",
       isShareOfTax: false,
+      scaleNote: "of GDP",
       colour: "#136f63"
     },
     inc_share: {
       key: "inc_share",
       label: "Income Tax Share of Total Tax",
+      shortLabel: "Income Tax Share",
       isShareOfTax: true,
+      scaleNote: "of total tax",
       colour: "#1d4ed8"
     },
     goods_share: {
       key: "goods_share",
-      label: "Goods & Services Tax Share",
+      label: "Goods & Services / VAT Share",
+      shortLabel: "Goods / VAT Share",
       isShareOfTax: true,
+      scaleNote: "of total tax",
       colour: "#d97706"
     }
   };
@@ -76,14 +92,15 @@
     2: "1990-1994",
     3: "1995-1999",
     4: "2000-2004",
-    5: "2005-2009",
+    5: "1995-1999",
     6: "2010-2014",
     7: "2015-2019",
     8: "2020-2024"
   };
+  WAVE_LABELS[5] = "2005-2009";
 
   // Convert percentage-point (pp) effect for country c and outcome outKey into active unit
-  function convertValue(ppVal, c, outKey) {
+  function convertValue(ppVal, c, outKey, customGdpMultiplier) {
     if (ppVal === null || ppVal === undefined || !Number.isFinite(Number(ppVal))) {
       return null;
     }
@@ -92,7 +109,8 @@
       return pp;
     }
     const u = UNIT_CONFIG[currentUnit];
-    const gdpPc = Number(c.gdp_per_capita_latest || c.gdp_per_capita_ppp || 25000);
+    const mult = Number.isFinite(customGdpMultiplier) && customGdpMultiplier > 0 ? customGdpMultiplier : 1.0;
+    const gdpPc = Number(c.gdp_per_capita_latest || c.gdp_per_capita_ppp || 25000) * mult;
     const meta = OUTCOME_META[outKey];
     if (meta && meta.isShareOfTax) {
       const taxShareGdp = Number(c.non_resource_tax_gdp_pct || 20) / 100;
@@ -101,37 +119,118 @@
     return (pp / 100) * gdpPc * u.rate;
   }
 
-  function formatEffectValue(val) {
+  // Always convert pp to currency per person (even if currentUnit === "PP", defaults to EUR if PP)
+  function convertToCurrencyPerPerson(ppVal, c, outKey, customGdpMultiplier) {
+    if (ppVal === null || ppVal === undefined || !Number.isFinite(Number(ppVal))) {
+      return null;
+    }
+    const pp = Number(ppVal);
+    const uKey = currentUnit === "PP" ? "EUR" : currentUnit;
+    const u = UNIT_CONFIG[uKey];
+    const mult = Number.isFinite(customGdpMultiplier) && customGdpMultiplier > 0 ? customGdpMultiplier : 1.0;
+    const gdpPc = Number(c.gdp_per_capita_latest || c.gdp_per_capita_ppp || 25000) * mult;
+    const meta = OUTCOME_META[outKey];
+    if (meta && meta.isShareOfTax) {
+      const taxShareGdp = Number(c.non_resource_tax_gdp_pct || 20) / 100;
+      return (pp / 100) * taxShareGdp * gdpPc * u.rate;
+    }
+    return (pp / 100) * gdpPc * u.rate;
+  }
+
+  function formatPP(ppVal, scaleNote) {
+    if (ppVal === null || ppVal === undefined || !Number.isFinite(Number(ppVal))) return "N/A";
+    const n = Number(ppVal);
+    const sign = n >= 0 ? "+" : "-";
+    const suffix = scaleNote ? ` pp ${scaleNote}` : " pp";
+    return `${sign}${Math.abs(n).toFixed(2)}${suffix}`;
+  }
+
+  function formatCurrencyPerPerson(currVal, forceUnitKey) {
+    if (currVal === null || currVal === undefined || !Number.isFinite(Number(currVal))) return "N/A";
+    const n = Number(currVal);
+    const sign = n >= 0 ? "+" : "-";
+    const uKey = forceUnitKey || (currentUnit === "PP" ? "EUR" : currentUnit);
+    const sym = UNIT_CONFIG[uKey].symbol;
+    return `${sign}${sym}${Math.round(Math.abs(n)).toLocaleString("en-GB")} / person`;
+  }
+
+  function formatEffectValue(val, forcePP) {
     if (val === null || val === undefined || !Number.isFinite(Number(val))) return "N/A";
     const n = Number(val);
     const sign = n >= 0 ? "+" : "-";
     const absVal = Math.abs(n);
-    if (currentUnit === "PP") {
+    if (forcePP || currentUnit === "PP") {
       return `${sign}${absVal.toFixed(2)} pp`;
     }
     const sym = UNIT_CONFIG[currentUnit].symbol;
     return `${sign}${sym}${Math.round(absVal).toLocaleString("en-GB")}`;
   }
 
-  function formatNationalTotal(perPersonVal, c) {
+  function formatDualEstimate(ppVal, c, outKey, customGdpMultiplier) {
+    if (ppVal === null || ppVal === undefined || !Number.isFinite(Number(ppVal))) return "N/A";
+    const meta = OUTCOME_META[outKey] || {};
+    const currVal = convertToCurrencyPerPerson(ppVal, c, outKey, customGdpMultiplier);
+    const ppStr = formatPP(ppVal, meta.scaleNote);
+    const currStr = formatCurrencyPerPerson(currVal);
+    if (currentUnit === "PP") {
+      return `${ppStr} (approx. ${currStr})`;
+    }
+    return `${currStr} (${ppStr})`;
+  }
+
+  function formatNationalTotal(perPersonCurrVal, c, forceUnitKey) {
     if (
-      currentUnit === "PP" ||
-      perPersonVal === null ||
-      perPersonVal === undefined ||
-      !Number.isFinite(Number(perPersonVal))
+      perPersonCurrVal === null ||
+      perPersonCurrVal === undefined ||
+      !Number.isFinite(Number(perPersonCurrVal))
     ) {
       return "";
     }
     const pop = Number(c.population_latest || 0);
     if (!pop || pop <= 0) return "";
-    const total = Number(perPersonVal) * pop;
+    const total = Number(perPersonCurrVal) * pop;
     const sign = total >= 0 ? "+" : "-";
     const absTot = Math.abs(total);
-    const sym = UNIT_CONFIG[currentUnit].symbol;
+    const uKey = forceUnitKey || (currentUnit === "PP" ? "EUR" : currentUnit);
+    const sym = UNIT_CONFIG[uKey].symbol;
     if (absTot >= 1e9) {
       return `National total: ${sign}${sym}${(absTot / 1e9).toFixed(2)} billion / yr`;
     }
     return `National total: ${sign}${sym}${Math.round(absTot / 1e6).toLocaleString("en-GB")} million / yr`;
+  }
+
+  function formatCountryContextLines(c) {
+    if (!c) return "";
+    const thresh = INCOME_GROUP_THRESHOLDS[c.income_group] || 26.9;
+    const spendRatio = Number(c.tert_spend_per_student_gdp_pc);
+    const realPpp = Number(c.real_tert_spend_per_student_ppp);
+    const budgetGdp = Number(c.tert_spend_gdp_pct);
+
+    const statusStr = Number.isFinite(spendRatio)
+      ? spendRatio >= thresh
+        ? `Above peer median (${thresh.toFixed(1)}%)`
+        : `Below peer median (${thresh.toFixed(1)}%)`
+      : c.income_group || "";
+
+    const pppStr = Number.isFinite(realPpp)
+      ? `$${Math.round(realPpp).toLocaleString("en-GB")} PPP/student`
+      : "N/A";
+    const ratioStr = Number.isFinite(spendRatio) ? `${spendRatio.toFixed(1)}% GDP/pc` : "N/A";
+    const budgetStr = Number.isFinite(budgetGdp) ? `${budgetGdp.toFixed(2)}% GDP` : "N/A";
+
+    const taxGdp = Number(c.non_resource_tax_gdp_pct);
+    const incShare = Number(c.inc_tax_share_pct);
+    const goodsShare = Number(c.goods_tax_share_pct);
+
+    const taxLine =
+      `Baseline tax: ${Number.isFinite(taxGdp) ? taxGdp.toFixed(1) + "% GDP" : "N/A"}` +
+      ` (Direct: ${Number.isFinite(incShare) ? incShare.toFixed(1) + "%" : "N/A"}` +
+      ` | Goods/VAT: ${Number.isFinite(goodsShare) ? goodsShare.toFixed(1) + "%" : "N/A"})`;
+
+    return (
+      `Current uni spend: ${pppStr} (${ratioStr} - ${statusStr}) | Budget: ${budgetStr}<br>` +
+      taxLine
+    );
   }
 
   // ===========================================================================
@@ -195,7 +294,7 @@
   const t1Presets = {
     default: ["IRL", "GBR", "NOR", "AUT", "CHL", "ZAF"],
     europe: ["IRL", "GBR", "NOR", "AUT", "SWE", "DEU", "FRA"],
-    anglo: ["IRL", "GBR", "USA", "CAN", "AUS", "NZL"],
+    nordic_tuition: ["NOR", "DNK", "SWE", "AUT", "USA", "GBR", "CHL", "IRL"],
     emerging: ["CHL", "COL", "ZAF", "MEX", "BRA", "THA"],
     clear: []
   };
@@ -294,6 +393,7 @@
       return;
     }
 
+    plotDiv.innerHTML = "";
     const outKey = t1State.outcome;
     const meta = OUTCOME_META[outKey];
     const uCfg = UNIT_CONFIG[currentUnit];
@@ -310,75 +410,127 @@
       }
     ];
 
-    const zeroAnnotation = [
-      {
-        x: 0,
-        y: 1.04,
-        xref: "x",
-        yref: "paper",
-        text: "Zero (no effect)",
-        showarrow: false,
-        font: { size: 12, color: "#be123c", weight: "bold" }
-      }
-    ];
+    const zeroAnnotation = {
+      x: 0,
+      y: 1.04,
+      xref: "x",
+      yref: "paper",
+      text: "Zero (no effect)",
+      showarrow: false,
+      font: { size: 12, color: "#be123c", weight: "bold" }
+    };
 
     if (t1State.horizon === "both") {
       titleEl.textContent = `${meta.label}: 5 Years vs 10 Years After Increasing University Funding`;
-      const yNames = selected.map((c) => c.country_name);
 
-      const x5 = selected.map((c) => convertValue(c["tau5_" + outKey], c, outKey));
-      const x5High = selected.map((c) => convertValue(c[`tau5_${outKey}_high80`], c, outKey));
-      const x5Low = selected.map((c) => convertValue(c[`tau5_${outKey}_low80`], c, outKey));
+      const sortedRows = selected
+        .map((c) => {
+          const pp5 = c["tau5_" + outKey];
+          const pp10 = c["tau10_" + outKey];
+          const x5 = convertValue(pp5, c, outKey);
+          const x5Low = convertValue(c[`tau5_${outKey}_low80`], c, outKey);
+          const x5High = convertValue(c[`tau5_${outKey}_high80`], c, outKey);
+          const x10 = convertValue(pp10, c, outKey);
+          const x10Low = convertValue(c[`tau10_${outKey}_low80`], c, outKey);
+          const x10High = convertValue(c[`tau10_${outKey}_high80`], c, outKey);
+          const sortKey = x10 !== null ? x10 : x5 !== null ? x5 : -1e9;
+          return { c, pp5, pp10, x5, x5Low, x5High, x10, x10Low, x10High, sortKey };
+        })
+        .sort((a, b) => a.sortKey - b.sortKey);
 
-      const x10 = selected.map((c) => convertValue(c["tau10_" + outKey], c, outKey));
-      const x10High = selected.map((c) => convertValue(c[`tau10_${outKey}_high80`], c, outKey));
-      const x10Low = selected.map((c) => convertValue(c[`tau10_${outKey}_low80`], c, outKey));
+      const nRows = sortedRows.length;
+      const tickVals = sortedRows.map((_, i) => i);
+      const tickText = sortedRows.map((r) => r.c.country_name);
+
+      // Vertically offset 5-year (-0.16) and 10-year (+0.16) so horizontal bars never collide
+      const y5 = sortedRows.map((_, i) => i - 0.16);
+      const y10 = sortedRows.map((_, i) => i + 0.16);
 
       const trace5 = {
         type: "scatter",
         mode: "markers",
         name: "After 5 Years (80% range)",
-        y: yNames,
-        x: x5,
-        marker: { color: "#0b2545", size: 11, symbol: "circle" },
+        y: y5,
+        x: sortedRows.map((r) => r.x5),
+        marker: { color: "#0b2545", size: 10, symbol: "circle" },
         error_x: {
           type: "data",
           symmetric: false,
-          array: x5.map((v, i) => (v !== null && x5High[i] !== null ? x5High[i] - v : 0)),
-          arrayminus: x5.map((v, i) => (v !== null && x5Low[i] !== null ? v - x5Low[i] : 0)),
+          array: sortedRows.map((r) => (r.x5 !== null && r.x5High !== null ? r.x5High - r.x5 : 0)),
+          arrayminus: sortedRows.map((r) => (r.x5 !== null && r.x5Low !== null ? r.x5 - r.x5Low : 0)),
           color: "#0b2545",
-          thickness: 2.5,
+          thickness: 2.6,
           width: 5
         },
-        customdata: selected.map((c, i) => [
-          formatEffectValue(x5[i]),
-          formatNationalTotal(x5[i], c)
-        ]),
-        hovertemplate: "<b>%{y} (5 Years)</b><br>Estimated change: %{customdata[0]}<br>%{customdata[1]}<extra></extra>"
+        customdata: sortedRows.map((r) => {
+          const currVal = convertToCurrencyPerPerson(r.pp5, r.c, outKey);
+          return [
+            r.c.country_name,
+            formatDualEstimate(r.pp5, r.c, outKey),
+            formatEffectValue(r.x5Low),
+            formatEffectValue(r.x5High),
+            formatNationalTotal(currVal, r.c),
+            formatCountryContextLines(r.c)
+          ];
+        }),
+        hovertemplate:
+          "<b>%{customdata[0]} (After 5 Years)</b><br>" +
+          "Estimated annual change: <b>%{customdata[1]}</b><br>" +
+          "80% range: [%{customdata[2]}, %{customdata[3]}]<br>" +
+          "%{customdata[4]}<br>" +
+          "%{customdata[5]}<extra></extra>"
       };
 
       const trace10 = {
         type: "scatter",
         mode: "markers",
         name: "After 10 Years (80% range)",
-        y: yNames,
-        x: x10,
-        marker: { color: "#136f63", size: 12, symbol: "diamond" },
+        y: y10,
+        x: sortedRows.map((r) => r.x10),
+        marker: { color: "#136f63", size: 11, symbol: "diamond" },
         error_x: {
           type: "data",
           symmetric: false,
-          array: x10.map((v, i) => (v !== null && x10High[i] !== null ? x10High[i] - v : 0)),
-          arrayminus: x10.map((v, i) => (v !== null && x10Low[i] !== null ? v - x10Low[i] : 0)),
+          array: sortedRows.map((r) => (r.x10 !== null && r.x10High !== null ? r.x10High - r.x10 : 0)),
+          arrayminus: sortedRows.map((r) => (r.x10 !== null && r.x10Low !== null ? r.x10 - r.x10Low : 0)),
           color: "#136f63",
           thickness: 2.8,
           width: 5
         },
-        customdata: selected.map((c, i) => [
-          formatEffectValue(x10[i]),
-          formatNationalTotal(x10[i], c)
-        ]),
-        hovertemplate: "<b>%{y} (10 Years)</b><br>Estimated change: %{customdata[0]}<br>%{customdata[1]}<extra></extra>"
+        customdata: sortedRows.map((r) => {
+          const currVal = convertToCurrencyPerPerson(r.pp10, r.c, outKey);
+          return [
+            r.c.country_name,
+            formatDualEstimate(r.pp10, r.c, outKey),
+            formatEffectValue(r.x10Low),
+            formatEffectValue(r.x10High),
+            formatNationalTotal(currVal, r.c),
+            formatCountryContextLines(r.c)
+          ];
+        }),
+        hovertemplate:
+          "<b>%{customdata[0]} (After 10 Years)</b><br>" +
+          "Estimated annual change: <b>%{customdata[1]}</b><br>" +
+          "80% range: [%{customdata[2]}, %{customdata[3]}]<br>" +
+          "%{customdata[4]}<br>" +
+          "%{customdata[5]}<extra></extra>"
       };
+
+      const annotations = [zeroAnnotation];
+      sortedRows.forEach((r, idx) => {
+        if (r.x10 === null) {
+          annotations.push({
+            x: 0,
+            y: idx + 0.16,
+            xref: "x",
+            yref: "y",
+            text: "  10-yr unavailable (5-yr data only)",
+            xanchor: "left",
+            showarrow: false,
+            font: { size: 11, color: "#64748b" }
+          });
+        }
+      });
 
       const layout = {
         margin: { t: 38, r: 30, b: 60, l: 150 },
@@ -387,9 +539,15 @@
           gridcolor: "#f1f5f9",
           zeroline: false
         },
-        yaxis: { automargin: true },
-        shapes: makeZeroShapes(yNames.length),
-        annotations: zeroAnnotation,
+        yaxis: {
+          automargin: true,
+          tickmode: "array",
+          tickvals: tickVals,
+          ticktext: tickText,
+          range: [-0.5, Math.max(0.5, nRows - 0.5)]
+        },
+        shapes: makeZeroShapes(nRows),
+        annotations: annotations,
         legend: { orientation: "h", y: 1.11, x: 0 },
         paper_bgcolor: "#ffffff",
         plot_bgcolor: "#ffffff"
@@ -409,12 +567,13 @@
 
     const rows = selected
       .map((c) => {
-        const mean = convertValue(c[pref + outKey], c, outKey);
+        const ppMean = c[pref + outKey];
+        const mean = convertValue(ppMean, c, outKey);
         const low80 = convertValue(c[`${pref}${outKey}_low80`], c, outKey);
         const high80 = convertValue(c[`${pref}${outKey}_high80`], c, outKey);
         const low95 = convertValue(c[`${pref}${outKey}_low95`], c, outKey);
         const high95 = convertValue(c[`${pref}${outKey}_high95`], c, outKey);
-        return { c, mean, low80, high80, low95, high95 };
+        return { c, ppMean, mean, low80, high80, low95, high95 };
       })
       .sort((a, b) => (a.mean !== null ? a.mean : -1e9) - (b.mean !== null ? b.mean : -1e9));
 
@@ -433,7 +592,7 @@
         array: rows.map((r) => (r.mean !== null && r.high95 !== null ? r.high95 - r.mean : 0)),
         arrayminus: rows.map((r) => (r.mean !== null && r.low95 !== null ? r.mean - r.low95 : 0)),
         color: "#94a3b8",
-        thickness: 1.5,
+        thickness: 1.6,
         width: 0
       },
       hoverinfo: "skip"
@@ -455,18 +614,39 @@
         thickness: 4,
         width: 6
       },
-      customdata: rows.map((r) => [
-        formatEffectValue(r.mean),
-        formatEffectValue(r.low80),
-        formatEffectValue(r.high80),
-        formatNationalTotal(r.mean, r.c)
-      ]),
+      customdata: rows.map((r) => {
+        const currVal = convertToCurrencyPerPerson(r.ppMean, r.c, outKey);
+        return [
+          formatDualEstimate(r.ppMean, r.c, outKey),
+          formatEffectValue(r.low80),
+          formatEffectValue(r.high80),
+          formatNationalTotal(currVal, r.c),
+          formatCountryContextLines(r.c)
+        ];
+      }),
       hovertemplate:
         "<b>%{y}</b><br>" +
         "Estimated annual change: <b>%{customdata[0]}</b><br>" +
         "80% range: [%{customdata[1]}, %{customdata[2]}]<br>" +
-        "%{customdata[3]}<extra></extra>"
+        "%{customdata[3]}<br>" +
+        "%{customdata[4]}<extra></extra>"
     };
+
+    const annotations = [zeroAnnotation];
+    rows.forEach((r) => {
+      if (r.mean === null) {
+        annotations.push({
+          x: 0,
+          y: r.c.country_name,
+          xref: "x",
+          yref: "y",
+          text: "  5-yr data only (switch to 5 Years)",
+          xanchor: "left",
+          showarrow: false,
+          font: { size: 11, color: "#64748b" }
+        });
+      }
+    });
 
     const layout = {
       margin: { t: 38, r: 30, b: 60, l: 150 },
@@ -477,7 +657,7 @@
       },
       yaxis: { automargin: true },
       shapes: makeZeroShapes(yLabels.length),
-      annotations: zeroAnnotation,
+      annotations: annotations,
       legend: { orientation: "h", y: 1.11, x: 0 },
       paper_bgcolor: "#ffffff",
       plot_bgcolor: "#ffffff"
@@ -490,37 +670,98 @@
   }
 
   // ===========================================================================
-  // TAB 2: Historical Data (Compelling Multi-Wave Default Countries)
+  // TAB 2: Historical Data (Mode-Aware Variables, Denominator Trap, Click-to-Select)
   // ===========================================================================
   const t2State = {
     mode: "levels",
-    xVar: "tert_spend_gdp_pct",
+    xVar: "tert_spend_per_student_winsor",
     yVar: "income_profit_tax_share_rev_pct",
     wave: 8,
     playing: false,
     timer: null,
-    selectedIsos: ["NOR", "CHL", "AUT", "LTU", "ZAF"],
+    selectedIsos: ["IRL", "NOR", "CHL", "AUT", "LTU", "ZAF"],
     searchQuery: ""
   };
 
-  const t2VarLabels = {
-    tert_spend_gdp_pct: "University Spending (% of GDP)",
-    tert_spend_per_student_winsor: "Spend per Student (% of GDP per person)",
-    tert_spend_abs_change: "5-Year Change in Spend per Student (pp)",
-    d_tert_spend_gdp_pp: "5-Year Change in University Spending (% of GDP)",
-    income_profit_tax_share_rev_pct: "Income Tax Share (% of total tax revenue)",
-    inc_tax_gdp_pct: "Income Tax Revenue (% of GDP)",
-    non_resource_tax_gdp_pct: "Total Non-Resource Tax Revenue (% of GDP)",
-    d_prev_inc_tax_share_pp: "5-Year Change in Income Tax Share (pp)",
-    d_prev_nonres_tax_gdp_pp: "5-Year Change in Total Tax (% of GDP)"
+  const T2_AXIS_OPTIONS = {
+    levels: {
+      x: [
+        { value: "tert_spend_per_student_winsor", label: "Spend per Student (% of GDP per person, UNESCO)" },
+        { value: "real_tert_spend_per_student_ppp", label: "Real Spend per Student (2021 PPP USD)" },
+        { value: "tert_spend_gdp_pct", label: "Total University Budget (% of GDP)" },
+        { value: "gross_tert_enrolment_pct", label: "University Enrolment (%)" }
+      ],
+      y: [
+        { value: "income_profit_tax_share_rev_pct", label: "Income & Profit Tax Share (% of total tax)" },
+        { value: "goods_services_tax_share_rev_pct", label: "Goods & Services / VAT Share (% of total tax)" },
+        { value: "inc_tax_gdp_pct", label: "Income & Profit Tax Revenue (% of GDP)" },
+        { value: "non_resource_tax_gdp_pct", label: "Total Non-Resource Tax Revenue (% of GDP)" }
+      ]
+    },
+    changes: {
+      x: [
+        { value: "tert_spend_abs_change", label: "5-Year Change in Spend per Student (pp of GDP/pc)" },
+        { value: "d_log_real_spend_stu_pct", label: "5-Year % Change in Real Spend per Student (PPP)" },
+        { value: "d_tert_spend_gdp_pp", label: "5-Year Change in University Budget (% of GDP, pp)" }
+      ],
+      y: [
+        { value: "d_prev_inc_tax_share_pp", label: "5-Year Change in Income Tax Share (pp)" },
+        { value: "d_prev_goods_tax_share_pp", label: "5-Year Change in Goods / VAT Tax Share (pp)" },
+        { value: "d_prev_inc_tax_gdp_pp", label: "5-Year Change in Income Tax Revenue (% of GDP, pp)" },
+        { value: "d_prev_nonres_tax_gdp_pp", label: "5-Year Change in Total Tax Revenue (% of GDP, pp)" }
+      ]
+    }
   };
 
+  const t2VarLabels = {};
+  Object.values(T2_AXIS_OPTIONS).forEach((grp) => {
+    grp.x.forEach((o) => { t2VarLabels[o.value] = o.label; });
+    grp.y.forEach((o) => { t2VarLabels[o.value] = o.label; });
+  });
+
   const t2Presets = {
-    default: ["NOR", "CHL", "AUT", "LTU", "ZAF"],
+    default: ["IRL", "NOR", "CHL", "AUT", "LTU", "ZAF"],
+    trap: ["IRL", "CHL", "NOR", "AUT", "ETH", "MWI"],
     risers: ["NOR", "CHL", "AUT", "DNK", "MEX"],
-    decliners: ["LTU", "COL", "IRL", "ZAF", "SWE"],
+    decliners: ["IRL", "LTU", "COL", "ZAF", "SWE"],
     clear: []
   };
+
+  function populateTab2AxisMenus() {
+    const xSel = document.getElementById("t2-x-select");
+    const ySel = document.getElementById("t2-y-select");
+    const opts = T2_AXIS_OPTIONS[t2State.mode] || T2_AXIS_OPTIONS.levels;
+
+    xSel.innerHTML = "";
+    opts.x.forEach((o) => {
+      const el = document.createElement("option");
+      el.value = o.value;
+      el.textContent = o.label;
+      xSel.appendChild(el);
+    });
+
+    ySel.innerHTML = "";
+    opts.y.forEach((o) => {
+      const el = document.createElement("option");
+      el.value = o.value;
+      el.textContent = o.label;
+      ySel.appendChild(el);
+    });
+
+    if (opts.x.some((o) => o.value === t2State.xVar)) {
+      xSel.value = t2State.xVar;
+    } else {
+      t2State.xVar = opts.x[0].value;
+      xSel.value = t2State.xVar;
+    }
+
+    if (opts.y.some((o) => o.value === t2State.yVar)) {
+      ySel.value = t2State.yVar;
+    } else {
+      t2State.yVar = opts.y[0].value;
+      ySel.value = t2State.yVar;
+    }
+  }
 
   function buildTab2CountryList() {
     const box = document.getElementById("t2-country-list");
@@ -570,21 +811,15 @@
     const xSel = document.getElementById("t2-x-select");
     const ySel = document.getElementById("t2-y-select");
 
+    populateTab2AxisMenus();
+
     document.querySelectorAll("#t2-mode-group .seg-btn").forEach((btn) => {
       btn.addEventListener("click", () => {
         document
           .querySelectorAll("#t2-mode-group .seg-btn")
           .forEach((b) => b.classList.toggle("active", b === btn));
         t2State.mode = btn.getAttribute("data-mode");
-        if (t2State.mode === "levels") {
-          xSel.value = "tert_spend_gdp_pct";
-          ySel.value = "income_profit_tax_share_rev_pct";
-        } else {
-          xSel.value = "d_tert_spend_gdp_pp";
-          ySel.value = "d_prev_inc_tax_share_pp";
-        }
-        t2State.xVar = xSel.value;
-        t2State.yVar = ySel.value;
+        populateTab2AxisMenus();
         renderTab2();
       });
     });
@@ -620,6 +855,10 @@
         const key = btn.getAttribute("data-t2preset");
         if (t2Presets[key]) {
           t2State.selectedIsos = t2Presets[key].filter((iso) => COUNTRY_MAP[iso]);
+          if (key === "trap" && t2State.mode === "levels") {
+            t2State.xVar = "tert_spend_per_student_winsor";
+            document.getElementById("t2-x-select").value = t2State.xVar;
+          }
           buildTab2CountryList();
           renderTab2();
         }
@@ -712,14 +951,27 @@
       if (!sub.length) return;
       traces.push({
         type: "scatter",
-        mode: "markers",
+        mode: "markers+text",
         name: reg,
         x: sub.map((r) => r[xCol]),
         y: sub.map((r) => r[yCol]),
-        text: sub.map((r) => `${r.country_name} (${r.wave_label})`),
+        text: sub.map((r) => (t2State.selectedIsos.includes(r.iso3) ? "" : r.iso3)),
+        textposition: "top center",
+        textfont: {
+          size: 9,
+          color: t2State.selectedIsos.length > 0 ? "rgba(71, 85, 105, 0.42)" : "rgba(15, 23, 42, 0.65)"
+        },
+        customdata: sub.map((r) => [
+          r.iso3,
+          `${r.country_name} (${r.wave_label})`,
+          r.income_group || "",
+          r.real_tert_spend_per_student_ppp
+            ? `$${Math.round(Number(r.real_tert_spend_per_student_ppp)).toLocaleString("en-GB")} PPP`
+            : "N/A"
+        ]),
         marker: {
           color: REGION_COLOURS[reg] || "#475569",
-          opacity: t2State.selectedIsos.length > 0 ? 0.32 : 0.75,
+          opacity: t2State.selectedIsos.length > 0 ? 0.34 : 0.78,
           size: sub.map((r) => {
             const pop = Number(r.population_total) || 5e6;
             return Math.max(8, Math.min(32, Math.sqrt(pop / 1e6) * 2.1));
@@ -727,9 +979,11 @@
           line: { color: "#ffffff", width: 1 }
         },
         hovertemplate:
-          "<b>%{text}</b><br>" +
-          `${t2VarLabels[xCol]}: %{x:.2f}<br>` +
-          `${t2VarLabels[yCol]}: %{y:.2f}<extra></extra>`
+          "<b>%{customdata[1]}</b> (%{customdata[2]})<br>" +
+          `${t2VarLabels[xCol]}: <b>%{x:.2f}</b><br>` +
+          `${t2VarLabels[yCol]}: <b>%{y:.2f}</b><br>` +
+          "Real spend/student: %{customdata[3]}<br>" +
+          "<i>Click bubble to toggle country trail</i><extra></extra>"
       });
     });
 
@@ -759,10 +1013,11 @@
           symbol: cRows.map((_, i) => (i === cRows.length - 1 ? "diamond" : "circle")),
           line: { color: "#ffffff", width: 1.5 }
         },
-        customdata: cRows.map((r) => r.wave_label),
+        customdata: cRows.map((r) => [iso, r.wave_label]),
         hovertemplate:
-          `<b>${cName} (%{customdata})</b><br>` +
-          `University funding: %{x:.2f}<br>Tax revenue: %{y:.2f}<extra></extra>`
+          `<b>${cName} (%{customdata[1]})</b><br>` +
+          `${t2VarLabels[xCol]}: <b>%{x:.2f}</b><br>` +
+          `${t2VarLabels[yCol]}: <b>%{y:.2f}</b><extra></extra>`
       });
     });
 
@@ -799,15 +1054,34 @@
     };
 
     Plotly.newPlot(plotDiv, traces, layout, { responsive: true, displayModeBar: false });
+
+    // Click any bubble to toggle country selection
+    if (typeof plotDiv.on === "function") {
+      plotDiv.on("plotly_click", (evt) => {
+        if (!evt || !evt.points || !evt.points.length) return;
+        const pt = evt.points[0];
+        const cd = pt.customdata;
+        const iso = Array.isArray(cd) ? cd[0] : null;
+        if (!iso || !COUNTRY_MAP[iso]) return;
+        if (t2State.selectedIsos.includes(iso)) {
+          t2State.selectedIsos = t2State.selectedIsos.filter((x) => x !== iso);
+        } else {
+          t2State.selectedIsos.push(iso);
+        }
+        buildTab2CountryList();
+        renderTab2();
+      });
+    }
   }
 
   function renderTab2TimeSeriesPlot() {
     const plotDiv = document.getElementById("t2-timeseries-plot");
     const xCol = t2State.xVar;
     const yCol = t2State.yVar;
+    const activeWaveLabel = WAVE_LABELS[t2State.wave];
     const isos = t2State.selectedIsos.length
       ? t2State.selectedIsos
-      : ["NOR", "CHL", "AUT", "LTU", "ZAF"];
+      : ["IRL", "NOR", "CHL", "AUT", "LTU", "ZAF"];
     const palette = ["#be123c", "#0b2545", "#136f63", "#d97706", "#2563eb", "#7c3aed"];
 
     const traces = [];
@@ -831,7 +1105,7 @@
         yaxis: "y",
         line: { color: col, width: 2.5 },
         marker: { size: 7, color: col },
-        hovertemplate: `<b>${name}</b> (%{x})<br>Funding: %{y:.2f}<extra></extra>`
+        hovertemplate: `<b>${name}</b> (%{x})<br>${t2VarLabels[xCol]}: %{y:.2f}<extra></extra>`
       });
 
       traces.push({
@@ -846,23 +1120,57 @@
         yaxis: "y2",
         line: { color: col, width: 2.5 },
         marker: { size: 7, color: col, symbol: "diamond" },
-        hovertemplate: `<b>${name}</b> (%{x})<br>Tax: %{y:.2f}<extra></extra>`
+        hovertemplate: `<b>${name}</b> (%{x})<br>${t2VarLabels[yCol]}: %{y:.2f}<extra></extra>`
       });
     });
+
+    const allWaveLabels = ["1990-1994", "1995-1999", "2000-2004", "2005-2009", "2010-2014", "2015-2019", "2020-2024"];
 
     const layout = {
       grid: { rows: 1, columns: 2, pattern: "independent" },
       margin: { t: 28, r: 25, b: 48, l: 60 },
-      xaxis: { title: "Five-Year Period" },
+      xaxis: {
+        title: "Five-Year Period",
+        type: "category",
+        categoryorder: "array",
+        categoryarray: allWaveLabels
+      },
       yaxis: {
         title: t2VarLabels[xCol] || "University Funding",
         gridcolor: "#f1f5f9"
       },
-      xaxis2: { title: "Five-Year Period" },
+      xaxis2: {
+        title: "Five-Year Period",
+        type: "category",
+        categoryorder: "array",
+        categoryarray: allWaveLabels
+      },
       yaxis2: {
         title: t2VarLabels[yCol] || "Tax Revenue",
         gridcolor: "#f1f5f9"
       },
+      shapes: [
+        {
+          type: "line",
+          xref: "x",
+          yref: "paper",
+          x0: activeWaveLabel,
+          x1: activeWaveLabel,
+          y0: 0,
+          y1: 1,
+          line: { color: "#be123c", width: 1.8, dash: "dot" }
+        },
+        {
+          type: "line",
+          xref: "x2",
+          yref: "paper",
+          x0: activeWaveLabel,
+          x1: activeWaveLabel,
+          y0: 0,
+          y1: 1,
+          line: { color: "#be123c", width: 1.8, dash: "dot" }
+        }
+      ],
       legend: { orientation: "h", y: 1.16, x: 0 },
       paper_bgcolor: "#ffffff",
       plot_bgcolor: "#ffffff"
@@ -872,12 +1180,13 @@
   }
 
   // ===========================================================================
-  // TAB 3: Full policy scenarios
+  // TAB 3: Full policy scenarios (Two-Panel Revenue vs Tax Mix, Presets, 5 vs 10y)
   // ===========================================================================
   const t3State = {
     iso3: "IRL",
+    scenarioPreset: "boost",
     direction: 1,
-    horizon: 10,
+    horizon: "both",
     drawerOpen: false,
     moderators: {},
     baselineModerators: {}
@@ -887,39 +1196,62 @@
     {
       id: "gross_tert_enrolment_pct",
       countryField: "gross_tert_enrolment_pct",
-      fmt: (v) => `${Number(v).toFixed(0)}%`
+      fmt: (v) => `${Number(v).toFixed(0)}%`,
+      deltaFmt: (d) => `${d >= 0 ? "+" : ""}${d.toFixed(0)}%`
     },
     {
       id: "gdp_pc_ppp",
       countryField: "gdp_per_capita_ppp",
-      fmt: (v) => `$${Math.round(Number(v)).toLocaleString("en-GB")}`
+      fmt: (v) => `$${Math.round(Number(v)).toLocaleString("en-GB")}`,
+      deltaFmt: (d) => `${d >= 0 ? "+" : "-"}$${Math.round(Math.abs(d)).toLocaleString("en-GB")}`
     },
     {
       id: "gross_seco_enrolment_pct",
       countryField: "gross_seco_enrolment_pct",
-      fmt: (v) => `${Number(v).toFixed(0)}%`
+      fmt: (v) => `${Number(v).toFixed(0)}%`,
+      deltaFmt: (d) => `${d >= 0 ? "+" : ""}${d.toFixed(0)}%`
     },
     {
       id: "income_profit_tax_share_rev_pct",
       countryField: "inc_tax_share_pct",
-      fmt: (v) => `${Number(v).toFixed(1)}%`
+      fmt: (v) => `${Number(v).toFixed(1)}%`,
+      deltaFmt: (d) => `${d >= 0 ? "+" : ""}${d.toFixed(1)}%`
     },
     {
       id: "working_age_pop_15_64_pct",
       countryField: "working_age_pop_pct",
-      fmt: (v) => `${Number(v).toFixed(1)}%`
+      fmt: (v) => `${Number(v).toFixed(1)}%`,
+      deltaFmt: (d) => `${d >= 0 ? "+" : ""}${d.toFixed(1)}%`
     },
     {
       id: "gini_disp_harmonised",
       countryField: "gini_disp",
-      fmt: (v) => `${Number(v).toFixed(1)}`
+      fmt: (v) => `${Number(v).toFixed(1)}`,
+      deltaFmt: (d) => `${d >= 0 ? "+" : ""}${d.toFixed(1)}`
     },
     {
       id: "life_expectancy_birth_yrs",
       countryField: "life_expectancy_yrs",
-      fmt: (v) => `${Number(v).toFixed(1)} yrs`
+      fmt: (v) => `${Number(v).toFixed(1)} yrs`,
+      deltaFmt: (d) => `${d >= 0 ? "+" : ""}${d.toFixed(1)}y`
     }
   ];
+
+  function updateSliderDisplay(spec) {
+    const inputEl = document.getElementById(`mod-${spec.id}`);
+    const valEl = document.getElementById(`val-${spec.id}`);
+    const cur = Number(t3State.moderators[spec.id]);
+    const base = Number(t3State.baselineModerators[spec.id]);
+    if (inputEl) inputEl.value = String(cur);
+    if (valEl) {
+      const diff = cur - base;
+      if (Math.abs(diff) > 0.05) {
+        valEl.textContent = `${spec.fmt(cur)} (${spec.deltaFmt(diff)} vs base)`;
+      } else {
+        valEl.textContent = spec.fmt(cur);
+      }
+    }
+  }
 
   function loadCountryDefaultsIntoTab3(iso3) {
     const c = COUNTRY_MAP[iso3] || COUNTRIES[0];
@@ -936,12 +1268,48 @@
       }
       t3State.baselineModerators[spec.id] = Number(val);
       t3State.moderators[spec.id] = Number(val);
-
-      const inputEl = document.getElementById(`mod-${spec.id}`);
-      const valEl = document.getElementById(`val-${spec.id}`);
-      if (inputEl) inputEl.value = String(val);
-      if (valEl) valEl.textContent = spec.fmt(val);
+      updateSliderDisplay(spec);
     });
+  }
+
+  function applyTab3ScenarioPreset(scenKey) {
+    t3State.scenarioPreset = scenKey;
+    document.querySelectorAll("#t3-scenario-pills .preset-pill").forEach((b) => {
+      b.classList.toggle("active", b.getAttribute("data-scen") === scenKey);
+    });
+
+    // Reset moderators to baseline first
+    MODERATOR_SPECS.forEach((spec) => {
+      t3State.moderators[spec.id] = Number(t3State.baselineModerators[spec.id]);
+    });
+
+    if (scenKey === "boost") {
+      t3State.direction = 1;
+    } else if (scenKey === "funded_exp") {
+      t3State.direction = 1;
+      t3State.moderators.gross_tert_enrolment_pct = Math.min(
+        115,
+        Number(t3State.baselineModerators.gross_tert_enrolment_pct) + 15
+      );
+      t3State.moderators.gross_seco_enrolment_pct = Math.min(
+        140,
+        Number(t3State.baselineModerators.gross_seco_enrolment_pct) + 10
+      );
+    } else if (scenKey === "crowding") {
+      t3State.direction = -1;
+      t3State.moderators.gross_tert_enrolment_pct = Math.min(
+        115,
+        Number(t3State.baselineModerators.gross_tert_enrolment_pct) + 20
+      );
+    } else if (scenKey === "cut") {
+      t3State.direction = -1;
+    }
+
+    // Sync direction buttons & slider displays
+    document.querySelectorAll("#t3-direction-group .seg-btn").forEach((b) => {
+      b.classList.toggle("active", Number(b.getAttribute("data-dir")) === t3State.direction);
+    });
+    MODERATOR_SPECS.forEach((spec) => updateSliderDisplay(spec));
   }
 
   function initTab3Controls() {
@@ -958,7 +1326,15 @@
     cSel.addEventListener("change", () => {
       t3State.iso3 = cSel.value;
       loadCountryDefaultsIntoTab3(t3State.iso3);
+      applyTab3ScenarioPreset(t3State.scenarioPreset || "boost");
       renderTab3();
+    });
+
+    document.querySelectorAll("#t3-scenario-pills .preset-pill").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        applyTab3ScenarioPreset(btn.getAttribute("data-scen"));
+        renderTab3();
+      });
     });
 
     document.querySelectorAll("#t3-direction-group .seg-btn").forEach((btn) => {
@@ -967,6 +1343,9 @@
           .querySelectorAll("#t3-direction-group .seg-btn")
           .forEach((b) => b.classList.toggle("active", b === btn));
         t3State.direction = Number(btn.getAttribute("data-dir"));
+        document
+          .querySelectorAll("#t3-scenario-pills .preset-pill")
+          .forEach((b) => b.classList.remove("active"));
         renderTab3();
       });
     });
@@ -976,7 +1355,7 @@
         document
           .querySelectorAll("#t3-horizon-group .seg-btn")
           .forEach((b) => b.classList.toggle("active", b === btn));
-        t3State.horizon = Number(btn.getAttribute("data-h"));
+        t3State.horizon = btn.getAttribute("data-h");
         renderTab3();
       });
     });
@@ -994,27 +1373,35 @@
 
     MODERATOR_SPECS.forEach((spec) => {
       const inputEl = document.getElementById(`mod-${spec.id}`);
-      const valEl = document.getElementById(`val-${spec.id}`);
       if (!inputEl) return;
       inputEl.addEventListener("input", () => {
-        const v = Number(inputEl.value);
-        t3State.moderators[spec.id] = v;
-        if (valEl) valEl.textContent = spec.fmt(v);
+        t3State.moderators[spec.id] = Number(inputEl.value);
+        updateSliderDisplay(spec);
+        document
+          .querySelectorAll("#t3-scenario-pills .preset-pill")
+          .forEach((b) => b.classList.remove("active"));
         renderTab3();
       });
     });
 
     document.getElementById("t3-reset-btn").addEventListener("click", () => {
       loadCountryDefaultsIntoTab3(t3State.iso3);
+      applyTab3ScenarioPreset("boost");
       renderTab3();
     });
 
     loadCountryDefaultsIntoTab3(t3State.iso3);
   }
 
-  function evaluateScenarioPP(c, outKey) {
-    const hKey = t3State.horizon === 5 ? "h5" : "h10";
-    const pref = t3State.horizon === 5 ? "tau5_" : "tau10_";
+  function hasCustomModerators() {
+    return MODERATOR_SPECS.some(
+      (s) => Math.abs(Number(t3State.moderators[s.id]) - Number(t3State.baselineModerators[s.id])) > 0.05
+    );
+  }
+
+  function evaluateScenarioForHorizon(c, outKey, numHorizon) {
+    const hKey = numHorizon === 5 ? "h5" : "h10";
+    const pref = numHorizon === 5 ? "tau5_" : "tau10_";
     const sur = SURROGATES[hKey] && SURROGATES[hKey][outKey];
     const coefs = (sur && sur.coefs) || {};
     const dir = t3State.direction;
@@ -1053,96 +1440,463 @@
       Number(coefs.life_expectancy_birth_yrs || 0) *
         (curMods.life_expectancy_birth_yrs - baseMods.life_expectancy_birth_yrs);
 
-    const halfWidth80 =
+    const halfWidth80PP =
       c[`${pref}${outKey}_high80`] !== null && c[`${pref}${outKey}_low80`] !== null
-        ? (c[`${pref}${outKey}_high80`] - c[`${pref}${outKey}_low80`]) / 2
+        ? Math.abs(c[`${pref}${outKey}_high80`] - c[`${pref}${outKey}_low80`]) / 2
         : 1.28 * Number((sur && sur.mean_sd) || 0.5);
 
     const basePP = dir * baseMean;
     const simPP = dir * (baseMean + deltaMod);
+    const gdpMult =
+      baseMods.gdp_pc_ppp > 0 ? Number(curMods.gdp_pc_ppp) / Number(baseMods.gdp_pc_ppp) : 1.0;
 
     return {
-      baseVal: convertValue(basePP, c, outKey),
-      simVal: convertValue(simPP, c, outKey),
-      errVal: Math.abs(convertValue(halfWidth80, c, outKey))
+      basePP,
+      simPP,
+      halfWidth80PP,
+      baseVal: convertValue(basePP, c, outKey, 1.0),
+      simVal: convertValue(simPP, c, outKey, gdpMult),
+      errBaseVal: Math.abs(convertValue(halfWidth80PP, c, outKey, 1.0)),
+      errSimVal: Math.abs(convertValue(halfWidth80PP, c, outKey, gdpMult)),
+      gdpMult
     };
   }
 
   function renderTab3() {
     const c = COUNTRY_MAP[t3State.iso3] || COUNTRIES[0];
-    const dirLabel = t3State.direction === 1 ? "Increasing University Funding" : "Reducing University Funding";
+    const dirLabel =
+      t3State.direction === 1 ? "Increasing University Funding" : "Reducing University Funding";
     const uCfg = UNIT_CONFIG[currentUnit];
 
-    document.getElementById("t3-chart-title").textContent =
-      `${c.country_name}: Estimated Tax Impact ${t3State.horizon} Years After ${dirLabel}`;
+    const thresh = INCOME_GROUP_THRESHOLDS[c.income_group] || 26.9;
+    const spendRatio = Number(c.tert_spend_per_student_gdp_pc);
+    const tagEl = document.getElementById("t3-baseline-tag");
+    if (tagEl) {
+      const ratioTxt = Number.isFinite(spendRatio)
+        ? `${spendRatio.toFixed(1)}% GDP/pc (${spendRatio >= thresh ? "Above" : "Below"} peer median ${thresh.toFixed(1)}%)`
+        : "80% uncertainty range";
+      tagEl.textContent = `Current spend/student: ${ratioTxt} | Baseline tax: ${Number(c.non_resource_tax_gdp_pct || 0).toFixed(1)}% GDP`;
+    }
 
-    const outcomes = [
-      { key: "inc_gdp", label: "Income & Profit Tax\nRevenue" },
-      { key: "tax_gdp", label: "Total Non-Resource\nTax Revenue" },
-      { key: "inc_share", label: "Income Tax Share\nof Total Tax" },
-      { key: "goods_share", label: "Goods & Services\nTax Share" }
+    const revOutcomes = [
+      { key: "inc_gdp", label: "Income & Profit\nTax Revenue" },
+      { key: "tax_gdp", label: "Total Non-Resource\nTax Revenue" }
+    ];
+    const mixOutcomes = [
+      { key: "inc_share", label: "Income Tax\nShare of Tax" },
+      { key: "goods_share", label: "Goods / VAT\nShare of Tax" }
     ];
 
-    const evals = outcomes.map((o) => evaluateScenarioPP(c, o.key));
+    const contextLines = formatCountryContextLines(c);
+    const traces = [];
 
-    const traceBase = {
-      type: "bar",
-      name: `${c.country_name} Baseline Profile`,
-      x: outcomes.map((o) => o.label),
-      y: evals.map((e) => e.baseVal),
-      marker: { color: "#0b2545" },
-      error_y: {
-        type: "data",
-        array: evals.map((e) => e.errVal),
-        color: "#334155",
-        thickness: 2,
-        width: 5
-      },
-      customdata: evals.map((e) => [
-        formatEffectValue(e.baseVal),
-        formatNationalTotal(e.baseVal, c)
-      ]),
-      hovertemplate:
-        "<b>%{x} (Baseline Profile)</b><br>Estimated change: <b>%{customdata[0]}</b><br>%{customdata[1]}<extra></extra>"
-    };
+    if (t3State.horizon === "both") {
+      document.getElementById("t3-chart-title").textContent =
+        `${c.country_name}: 5-Year vs 10-Year Impact After ${dirLabel}`;
 
-    const traceSim = {
-      type: "bar",
-      name: "Custom Policy Scenario",
-      x: outcomes.map((o) => o.label),
-      y: evals.map((e) => e.simVal),
-      marker: { color: "#136f63" },
-      error_y: {
-        type: "data",
-        array: evals.map((e) => e.errVal),
-        color: "#0f766e",
-        thickness: 2,
-        width: 5
-      },
-      customdata: evals.map((e) => [
-        formatEffectValue(e.simVal),
-        formatNationalTotal(e.simVal, c)
-      ]),
-      hovertemplate:
-        "<b>%{x} (Custom Scenario)</b><br>Estimated change: <b>%{customdata[0]}</b><br>%{customdata[1]}<extra></extra>"
-    };
+      const rev5 = revOutcomes.map((o) => evaluateScenarioForHorizon(c, o.key, 5));
+      const rev10 = revOutcomes.map((o) => evaluateScenarioForHorizon(c, o.key, 10));
+      const mix5 = mixOutcomes.map((o) => evaluateScenarioForHorizon(c, o.key, 5));
+      const mix10 = mixOutcomes.map((o) => evaluateScenarioForHorizon(c, o.key, 10));
+
+      // Left Panel: Revenue Mobilisation (Currency or pp of GDP)
+      traces.push({
+        type: "bar",
+        name: "After 5 Years",
+        legendgroup: "h5",
+        xaxis: "x",
+        yaxis: "y",
+        x: revOutcomes.map((o) => o.label),
+        y: rev5.map((e) => e.simVal),
+        text: rev5.map((e) => formatEffectValue(e.simVal)),
+        textposition: "outside",
+        cliponaxis: false,
+        marker: { color: "#0b2545" },
+        error_y: {
+          type: "data",
+          array: rev5.map((e) => e.errSimVal),
+          color: "#334155",
+          thickness: 2,
+          width: 5
+        },
+        customdata: rev5.map((e, i) => {
+          const currVal = convertToCurrencyPerPerson(e.simPP, c, revOutcomes[i].key, e.gdpMult);
+          return [
+            formatDualEstimate(e.simPP, c, revOutcomes[i].key, e.gdpMult),
+            formatNationalTotal(currVal, c),
+            contextLines
+          ];
+        }),
+        hovertemplate:
+          "<b>%{x} (After 5 Years)</b><br>" +
+          "Estimated annual change: <b>%{customdata[0]}</b><br>" +
+          "%{customdata[1]}<br>%{customdata[2]}<extra></extra>"
+      });
+
+      traces.push({
+        type: "bar",
+        name: "After 10 Years",
+        legendgroup: "h10",
+        xaxis: "x",
+        yaxis: "y",
+        x: revOutcomes.map((o) => o.label),
+        y: rev10.map((e) => e.simVal),
+        text: rev10.map((e) => formatEffectValue(e.simVal)),
+        textposition: "outside",
+        cliponaxis: false,
+        marker: { color: "#136f63" },
+        error_y: {
+          type: "data",
+          array: rev10.map((e) => e.errSimVal),
+          color: "#0f766e",
+          thickness: 2,
+          width: 5
+        },
+        customdata: rev10.map((e, i) => {
+          const currVal = convertToCurrencyPerPerson(e.simPP, c, revOutcomes[i].key, e.gdpMult);
+          return [
+            formatDualEstimate(e.simPP, c, revOutcomes[i].key, e.gdpMult),
+            formatNationalTotal(currVal, c),
+            contextLines
+          ];
+        }),
+        hovertemplate:
+          "<b>%{x} (After 10 Years)</b><br>" +
+          "Estimated annual change: <b>%{customdata[0]}</b><br>" +
+          "%{customdata[1]}<br>%{customdata[2]}<extra></extra>"
+      });
+
+      // Right Panel: Tax Mix Shift (Always in percentage points of total tax)
+      traces.push({
+        type: "bar",
+        name: "After 5 Years",
+        legendgroup: "h5",
+        showlegend: false,
+        xaxis: "x2",
+        yaxis: "y2",
+        x: mixOutcomes.map((o) => o.label),
+        y: mix5.map((e) => e.simPP),
+        text: mix5.map((e) => formatEffectValue(e.simPP, true)),
+        textposition: "outside",
+        cliponaxis: false,
+        marker: { color: "#0b2545" },
+        error_y: {
+          type: "data",
+          array: mix5.map((e) => e.halfWidth80PP),
+          color: "#334155",
+          thickness: 2,
+          width: 5
+        },
+        customdata: mix5.map((e, i) => {
+          const currVal = convertToCurrencyPerPerson(e.simPP, c, mixOutcomes[i].key, e.gdpMult);
+          return [
+            formatPP(e.simPP, "of total tax"),
+            formatCurrencyPerPerson(currVal),
+            formatNationalTotal(currVal, c),
+            contextLines
+          ];
+        }),
+        hovertemplate:
+          "<b>%{x} (After 5 Years)</b><br>" +
+          "Tax mix shift: <b>%{customdata[0]}</b> (equiv. %{customdata[1]})<br>" +
+          "%{customdata[2]}<br>%{customdata[3]}<extra></extra>"
+      });
+
+      traces.push({
+        type: "bar",
+        name: "After 10 Years",
+        legendgroup: "h10",
+        showlegend: false,
+        xaxis: "x2",
+        yaxis: "y2",
+        x: mixOutcomes.map((o) => o.label),
+        y: mix10.map((e) => e.simPP),
+        text: mix10.map((e) => formatEffectValue(e.simPP, true)),
+        textposition: "outside",
+        cliponaxis: false,
+        marker: { color: "#136f63" },
+        error_y: {
+          type: "data",
+          array: mix10.map((e) => e.halfWidth80PP),
+          color: "#0f766e",
+          thickness: 2,
+          width: 5
+        },
+        customdata: mix10.map((e, i) => {
+          const currVal = convertToCurrencyPerPerson(e.simPP, c, mixOutcomes[i].key, e.gdpMult);
+          return [
+            formatPP(e.simPP, "of total tax"),
+            formatCurrencyPerPerson(currVal),
+            formatNationalTotal(currVal, c),
+            contextLines
+          ];
+        }),
+        hovertemplate:
+          "<b>%{x} (After 10 Years)</b><br>" +
+          "Tax mix shift: <b>%{customdata[0]}</b> (equiv. %{customdata[1]})<br>" +
+          "%{customdata[2]}<br>%{customdata[3]}<extra></extra>"
+      });
+    } else {
+      // Single horizon (5 or 10 years)
+      const h = Number(t3State.horizon);
+      const customActive = hasCustomModerators();
+      document.getElementById("t3-chart-title").textContent =
+        `${c.country_name}: Estimated Tax Impact ${h} Years After ${dirLabel}`;
+
+      const revEvals = revOutcomes.map((o) => evaluateScenarioForHorizon(c, o.key, h));
+      const mixEvals = mixOutcomes.map((o) => evaluateScenarioForHorizon(c, o.key, h));
+
+      if (customActive) {
+        // Show Baseline vs Custom Scenario side by side
+        traces.push({
+          type: "bar",
+          name: `${c.country_name} Baseline`,
+          legendgroup: "base",
+          xaxis: "x",
+          yaxis: "y",
+          x: revOutcomes.map((o) => o.label),
+          y: revEvals.map((e) => e.baseVal),
+          text: revEvals.map((e) => formatEffectValue(e.baseVal)),
+          textposition: "outside",
+          cliponaxis: false,
+          marker: { color: "#0b2545" },
+          error_y: {
+            type: "data",
+            array: revEvals.map((e) => e.errBaseVal),
+            color: "#334155",
+            thickness: 2,
+            width: 5
+          },
+          customdata: revEvals.map((e, i) => {
+            const currVal = convertToCurrencyPerPerson(e.basePP, c, revOutcomes[i].key, 1.0);
+            return [
+              formatDualEstimate(e.basePP, c, revOutcomes[i].key, 1.0),
+              formatNationalTotal(currVal, c),
+              contextLines
+            ];
+          }),
+          hovertemplate:
+            "<b>%{x} (Country Baseline)</b><br>" +
+            "Estimated annual change: <b>%{customdata[0]}</b><br>" +
+            "%{customdata[1]}<br>%{customdata[2]}<extra></extra>"
+        });
+
+        traces.push({
+          type: "bar",
+          name: "Custom Scenario",
+          legendgroup: "sim",
+          xaxis: "x",
+          yaxis: "y",
+          x: revOutcomes.map((o) => o.label),
+          y: revEvals.map((e) => e.simVal),
+          text: revEvals.map((e) => formatEffectValue(e.simVal)),
+          textposition: "outside",
+          cliponaxis: false,
+          marker: { color: "#136f63" },
+          error_y: {
+            type: "data",
+            array: revEvals.map((e) => e.errSimVal),
+            color: "#0f766e",
+            thickness: 2,
+            width: 5
+          },
+          customdata: revEvals.map((e, i) => {
+            const currVal = convertToCurrencyPerPerson(e.simPP, c, revOutcomes[i].key, e.gdpMult);
+            return [
+              formatDualEstimate(e.simPP, c, revOutcomes[i].key, e.gdpMult),
+              formatNationalTotal(currVal, c),
+              contextLines
+            ];
+          }),
+          hovertemplate:
+            "<b>%{x} (Custom Scenario)</b><br>" +
+            "Estimated annual change: <b>%{customdata[0]}</b><br>" +
+            "%{customdata[1]}<br>%{customdata[2]}<extra></extra>"
+        });
+
+        traces.push({
+          type: "bar",
+          name: `${c.country_name} Baseline`,
+          legendgroup: "base",
+          showlegend: false,
+          xaxis: "x2",
+          yaxis: "y2",
+          x: mixOutcomes.map((o) => o.label),
+          y: mixEvals.map((e) => e.basePP),
+          text: mixEvals.map((e) => formatEffectValue(e.basePP, true)),
+          textposition: "outside",
+          cliponaxis: false,
+          marker: { color: "#0b2545" },
+          error_y: {
+            type: "data",
+            array: mixEvals.map((e) => e.halfWidth80PP),
+            color: "#334155",
+            thickness: 2,
+            width: 5
+          },
+          customdata: mixEvals.map((e, i) => {
+            const currVal = convertToCurrencyPerPerson(e.basePP, c, mixOutcomes[i].key, 1.0);
+            return [
+              formatPP(e.basePP, "of total tax"),
+              formatCurrencyPerPerson(currVal),
+              formatNationalTotal(currVal, c),
+              contextLines
+            ];
+          }),
+          hovertemplate:
+            "<b>%{x} (Country Baseline)</b><br>" +
+            "Tax mix shift: <b>%{customdata[0]}</b> (equiv. %{customdata[1]})<br>" +
+            "%{customdata[2]}<br>%{customdata[3]}<extra></extra>"
+        });
+
+        traces.push({
+          type: "bar",
+          name: "Custom Scenario",
+          legendgroup: "sim",
+          showlegend: false,
+          xaxis: "x2",
+          yaxis: "y2",
+          x: mixOutcomes.map((o) => o.label),
+          y: mixEvals.map((e) => e.simPP),
+          text: mixEvals.map((e) => formatEffectValue(e.simPP, true)),
+          textposition: "outside",
+          cliponaxis: false,
+          marker: { color: "#136f63" },
+          error_y: {
+            type: "data",
+            array: mixEvals.map((e) => e.halfWidth80PP),
+            color: "#0f766e",
+            thickness: 2,
+            width: 5
+          },
+          customdata: mixEvals.map((e, i) => {
+            const currVal = convertToCurrencyPerPerson(e.simPP, c, mixOutcomes[i].key, e.gdpMult);
+            return [
+              formatPP(e.simPP, "of total tax"),
+              formatCurrencyPerPerson(currVal),
+              formatNationalTotal(currVal, c),
+              contextLines
+            ];
+          }),
+          hovertemplate:
+            "<b>%{x} (Custom Scenario)</b><br>" +
+            "Tax mix shift: <b>%{customdata[0]}</b> (equiv. %{customdata[1]})<br>" +
+            "%{customdata[2]}<br>%{customdata[3]}<extra></extra>"
+        });
+      } else {
+        // Single clean bar per outcome when sliders are at country baseline
+        traces.push({
+          type: "bar",
+          name: `After ${h} Years (80% range)`,
+          xaxis: "x",
+          yaxis: "y",
+          x: revOutcomes.map((o) => o.label),
+          y: revEvals.map((e) => e.baseVal),
+          text: revEvals.map((e) => formatEffectValue(e.baseVal)),
+          textposition: "outside",
+          cliponaxis: false,
+          marker: { color: "#136f63" },
+          error_y: {
+            type: "data",
+            array: revEvals.map((e) => e.errBaseVal),
+            color: "#0f766e",
+            thickness: 2.2,
+            width: 6
+          },
+          customdata: revEvals.map((e, i) => {
+            const currVal = convertToCurrencyPerPerson(e.basePP, c, revOutcomes[i].key, 1.0);
+            return [
+              formatDualEstimate(e.basePP, c, revOutcomes[i].key, 1.0),
+              formatNationalTotal(currVal, c),
+              contextLines
+            ];
+          }),
+          hovertemplate:
+            "<b>%{x}</b><br>" +
+            "Estimated annual change: <b>%{customdata[0]}</b><br>" +
+            "%{customdata[1]}<br>%{customdata[2]}<extra></extra>"
+        });
+
+        traces.push({
+          type: "bar",
+          name: `After ${h} Years (Tax Mix)`,
+          showlegend: false,
+          xaxis: "x2",
+          yaxis: "y2",
+          x: mixOutcomes.map((o) => o.label),
+          y: mixEvals.map((e) => e.basePP),
+          text: mixEvals.map((e) => formatEffectValue(e.basePP, true)),
+          textposition: "outside",
+          cliponaxis: false,
+          marker: { color: "#0b2545" },
+          error_y: {
+            type: "data",
+            array: mixEvals.map((e) => e.halfWidth80PP),
+            color: "#334155",
+            thickness: 2.2,
+            width: 6
+          },
+          customdata: mixEvals.map((e, i) => {
+            const currVal = convertToCurrencyPerPerson(e.basePP, c, mixOutcomes[i].key, 1.0);
+            return [
+              formatPP(e.basePP, "of total tax"),
+              formatCurrencyPerPerson(currVal),
+              formatNationalTotal(currVal, c),
+              contextLines
+            ];
+          }),
+          hovertemplate:
+            "<b>%{x}</b><br>" +
+            "Tax mix shift: <b>%{customdata[0]}</b> (equiv. %{customdata[1]})<br>" +
+            "%{customdata[2]}<br>%{customdata[3]}<extra></extra>"
+        });
+      }
+    }
 
     const layout = {
       barmode: "group",
-      margin: { t: 35, r: 25, b: 60, l: 75 },
+      grid: { rows: 1, columns: 2, pattern: "independent" },
+      margin: { t: 48, r: 28, b: 60, l: 75 },
       yaxis: {
-        title: `Estimated Annual Change (${uCfg.label})`,
+        title: `Tax Revenue Change (${uCfg.label})`,
         zeroline: true,
         zerolinecolor: "#be123c",
         zerolinewidth: 2,
         gridcolor: "#f1f5f9"
       },
-      legend: { orientation: "h", y: 1.11, x: 0 },
+      yaxis2: {
+        title: "Tax Mix Shift (pp of total tax)",
+        zeroline: true,
+        zerolinecolor: "#be123c",
+        zerolinewidth: 2,
+        gridcolor: "#f1f5f9"
+      },
+      annotations: [
+        {
+          x: 0.22,
+          y: 1.07,
+          xref: "paper",
+          yref: "paper",
+          text: "<b>Tax Revenue Mobilisation</b>",
+          showarrow: false,
+          font: { size: 12, color: "#0b2545" }
+        },
+        {
+          x: 0.80,
+          y: 1.07,
+          xref: "paper",
+          yref: "paper",
+          text: "<b>Shift in Tax Mix (% of Total Tax)</b>",
+          showarrow: false,
+          font: { size: 12, color: "#0b2545" }
+        }
+      ],
+      legend: { orientation: "h", y: 1.16, x: 0 },
       paper_bgcolor: "#ffffff",
       plot_bgcolor: "#ffffff"
     };
 
-    Plotly.newPlot("t3-scenario-plot", [traceBase, traceSim], layout, {
+    Plotly.newPlot("t3-scenario-plot", traces, layout, {
       responsive: true,
       displayModeBar: false
     });
