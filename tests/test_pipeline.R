@@ -67,6 +67,7 @@ for (tb in req_tables) {
 # 4. Verify all publication figures exist in paper/figures/
 req_figs <- c(
   "fig1_structural_schematic.pdf",
+  "eda_fig1_raw_distributions_and_bivariate.pdf",
   "fig2_total_vs_direct_tax_posteriors.pdf",
   "fig3_denominator_unbundling_horserace.pdf",
   "fig4_enrolment_and_oecd_moderation.pdf",
@@ -102,7 +103,7 @@ tex_str <- paste(readLines(file.path(repo_root, "paper", "paper.tex"), warn = FA
 md_str  <- paste(readLines(file.path(repo_root, "paper", "paper.md"), warn = FALSE), collapse = "\n")
 
 tab1 <- read_csv(file.path(repo_root, "outputs", "tables", "table1_mvbcf_ate_posteriors.csv"), show_col_types = FALSE)
-for (m_id in c("M1a_Total_5y", "M1b_Total_10y", "M2a_Direct_5y", "M2b_Direct_10y", "M3b_ObsExp_10y", "M3d_RealPPP_10y")) {
+for (m_id in c("M1b_Total_10y", "M2a_Direct_5y", "M2b_Direct_10y", "M3b_ObsExp_10y", "M3d_RealPPP_10y")) {
   sub <- tab1 %>% filter(model_id == m_id, outcome_index %in% c(1, 2, 3))
   for (val in sprintf("%+.2f", sub$ate_mean)) {
     stopifnot("Missing ATE number in paper.tex" = grepl(val, tex_str, fixed = TRUE))

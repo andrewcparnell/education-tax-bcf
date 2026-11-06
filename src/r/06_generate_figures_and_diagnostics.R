@@ -67,126 +67,171 @@ theme_pub <- function(base_size = 12) {
 cat("Generating Figure 1: Structural Schematic of the Study...\n")
 
 boxes <- tibble(
-  xmin = c(0.2, 3.6, 3.6, 7.0),
-  xmax = c(2.9, 6.3, 6.3, 9.8),
-  ymin = c(1.2, 3.3, 0.7, 1.2),
-  ymax = c(5.3, 5.5, 2.8, 5.3),
+  xmin = c(0.15, 3.55, 3.55, 6.95),
+  xmax = c(3.05, 6.45, 6.45, 9.85),
+  ymin = c(1.0,  3.25, 0.75, 1.0),
+  ymax = c(5.35, 5.45, 2.85, 5.35),
   fill = c("#e6f2f8", "#edf7ed", "#fff4e6", "#f0f4f8"),
   border = c("#1b6ca8", "#2b8a3e", "#d9480f", "#0f2537"),
   header = c(
-    "1. Tertiary Education Spending\n(Four Unbundled Measures)",
-    "2A. Baseline Country Context\n(Pre-Treatment Confounders X)",
-    "2B. Mediating Macro Changes\n(Separated Out in Direct Model)",
-    "3. Future National Tax Take\n(+5 Year and +10 Year Changes)"
+    "1. University Funding\n(Four Ways of Measuring)",
+    "2A. Starting Country Context\n(Measured Before Funding)",
+    "2B. Economic Growth Controls\n(During Follow-Up Period)",
+    "3. Future Tax Revenue\n(+5 Year & +10 Year Changes)"
   ),
   body = c(
     paste(
-      "Four Observed Measures:",
       "* Per-Student Spending Ratio",
       "  (% of GDP per person)",
-      "* Within-Country Expansion",
-      "  (>= +2.5 pp ratio increase)",
-      "* Real PPP Dollars per Student",
-      "  (removes GDP denominator)",
-      "* Tertiary Budget % of GDP",
-      "  (removes student headcount)",
       "",
-      "Moderators W Tested:",
-      "* Enrolment, Income & Tuition",
+      "* Within-Country Increases",
+      "  (5-year funding jump)",
+      "",
+      "* Real PPP Dollars per Student",
+      "  (purchasing-power adjusted)",
+      "",
+      "* University Budget % of GDP",
+      "  (share of national income)",
       sep = "\n"
     ),
     paste(
-      "Measured Before Funding Wave:",
       "* Starting GDP & Tax Structure",
       "* Prior 5-Year Economic Growth",
-      "* Starting Tertiary Enrolment",
-      "* Demographics & Trade Openness",
-      "* Propensity Score pi_hat(X)",
+      "* Starting University Enrolment",
+      "* Demographics & Inequality",
+      "* Likelihood of High Funding",
       sep = "\n"
     ),
     paste(
-      "Changes During Follow-Up Window:",
       "* Overall GDP per Person Growth",
-      "* Expansion in Student Numbers",
-      "* Changes in Income Inequality",
-      "* Changes in Life Expectancy",
+      "* Growth in Student Numbers",
+      "* Income Inequality Changes",
+      "* Life Expectancy Changes",
       sep = "\n"
     ),
     paste(
-      "Tracked Jointly Over Time:",
+      "1. Total Non-Resource Tax",
+      "   (% of GDP)",
       "",
-      "1. Overall Non-Resource Tax",
+      "2. Income & Profit Tax",
       "   (% of GDP)",
-      "2. Direct Income & Profit Tax",
-      "   (% of GDP)",
-      "3. Direct Income & Profit Share",
-      "   (% of Total Revenue)",
+      "",
+      "3. Income & Profit Tax Share",
+      "   (% of Total Tax Revenue)",
+      "",
       "4. Goods & Services Tax Share",
-      "   (Negative-Control Check)",
+      "   (% of Total Tax Revenue)",
       sep = "\n"
     )
   )
 )
 
-# Directed causal pathways:
-# - Box 2A -> Box 1 (pre-treatment confounders X drive treatment selection Z)
-# - Box 2A -> Box 3 (pre-treatment confounders X drive future fiscal outcomes Y)
-# - Box 2A -> Box 2B (pre-treatment confounders X influence intermediate growth M)
-# - Box 1  -> Box 2B (treatment Z influences mediating macro changes M)
-# - Box 2B -> Box 3  (mediating macro changes M influence future fiscal outcomes Y)
 arrows_df <- tibble(
-  x    = c(3.55, 2.92, 6.32, 6.32, 4.95),
-  y    = c(4.4,  2.1,  4.4,  1.8,  3.25),
-  xend = c(2.92, 3.55, 6.95, 6.95, 4.95),
-  yend = c(4.2,  1.8,  4.0,  2.3,  2.85)
+  x    = c(3.52, 3.08, 6.48, 6.48, 5.00),
+  y    = c(4.35, 2.05, 4.35, 1.80, 3.22),
+  xend = c(3.08, 3.52, 6.92, 6.92, 5.00),
+  yend = c(4.15, 1.80, 4.00, 2.25, 2.88)
 )
 
 p_fig1 <- ggplot() +
   geom_rect(
     data = boxes,
     aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax),
-    fill = boxes$fill, colour = boxes$border, linewidth = 0.9
+    fill = boxes$fill, colour = boxes$border, linewidth = 1.0
   ) +
   geom_text(
     data = boxes,
-    aes(x = (xmin + xmax) / 2, y = ymax - 0.35, label = header),
-    fontface = "bold", size = 3.8, colour = "#0f2537", lineheight = 1.05
+    aes(x = (xmin + xmax) / 2, y = ymax - 0.36, label = header),
+    fontface = "bold", size = 4.4, colour = "#0f2537", lineheight = 1.05
   ) +
   geom_text(
     data = boxes,
-    aes(x = xmin + 0.15, y = (ymin + ymax) / 2 - 0.25, label = body),
-    hjust = 0, size = 3.10, colour = "#102a43", lineheight = 1.13
+    aes(x = xmin + 0.16, y = (ymin + ymax) / 2 - 0.24, label = body),
+    hjust = 0, size = 3.85, colour = "#102a43", lineheight = 1.15
   ) +
   geom_segment(
     data = arrows_df,
     aes(x = x, y = y, xend = xend, yend = yend),
-    arrow = arrow(length = unit(0.22, "cm"), type = "closed"),
-    linewidth = 0.8, colour = "#243b53"
+    arrow = arrow(length = unit(0.24, "cm"), type = "closed"),
+    linewidth = 0.9, colour = "#243b53"
   ) +
   annotate(
-    "text", x = 5.0, y = 5.85,
-    label = "Study Design: Isolating the Direct Fiscal Dividend of Government Tertiary Education Spending",
-    fontface = "bold", size = 4.5, colour = "#0f2537"
+    "text", x = 5.0, y = 5.82,
+    label = "Study Design: Estimating the Effect of Government University Spending on Future Tax Revenue",
+    fontface = "bold", size = 4.7, colour = "#0f2537"
   ) +
   annotate(
-    "text", x = 5.0, y = 0.3,
-    label = "Comparing Total Effects (adjusting for 2A) against Mediator-Removed Direct Effects (net of 2B) across 121 countries (1985 to 2024)",
-    size = 3.3, colour = "#334e68"
+    "text", x = 5.0, y = 0.32,
+    label = "Separating university funding effects from starting conditions (2A) and general economic growth (2B) across 121 countries (1985-2024)",
+    size = 3.7, colour = "#334e68"
   ) +
-  coord_cartesian(xlim = c(0, 10), ylim = c(0.1, 6.1), expand = FALSE) +
+  coord_cartesian(xlim = c(0, 10), ylim = c(0.05, 6.1), expand = FALSE) +
   theme_void() +
   theme(plot.background = element_rect(fill = "white", colour = NA))
 
-save_pub_fig(p_fig1, "fig1_structural_schematic", 10.5, 5.6)
+save_pub_fig(p_fig1, "fig1_structural_schematic", 10.8, 5.6)
 
 # ==============================================================================
-# Figure 2: Total Fiscal Effect vs Mediator-Removed Direct Effect Posteriors
+# Section 3 Data Summary Figure: Raw Data Overview Across Income Groups
 # ==============================================================================
-cat("Generating Figure 2: Total vs Mediator-Removed Direct Fiscal Posteriors...\n")
+cat("Generating Section 3 Data Summary Figure (eda_fig1_raw_distributions_and_bivariate)...\n")
+
+df_clean <- read_csv(file.path(proc_dir, "clean_tax_panel.csv"), show_col_types = FALSE) %>%
+  filter(!is.na(tert_spend_per_student_winsor) | !is.na(non_resource_tax_gdp_pct)) %>%
+  mutate(
+    income_group = factor(
+      income_group,
+      levels = c("Low income", "Lower middle income", "Upper middle income", "High income"),
+      labels = c("Low\nIncome", "Lower Middle\nIncome", "Upper Middle\nIncome", "High\nIncome")
+    )
+  ) %>%
+  filter(!is.na(income_group))
+
+eda_long <- df_clean %>%
+  transmute(
+    iso3,
+    income_group,
+    `A. UNESCO Per-Student Ratio (% of GDP/person)` = tert_spend_per_student_winsor,
+    `B. Real Spending per Student (2021 PPP $)` = real_tert_spend_per_student_ppp,
+    `C. Gross Tertiary Enrolment Ratio (%)` = gross_tert_enrolment_pct,
+    `D. Direct Income & Profit Tax Share (% of Tax)` = income_profit_tax_share_rev_pct
+  ) %>%
+  pivot_longer(
+    cols = starts_with(c("A.", "B.", "C.", "D.")),
+    names_to = "panel",
+    values_to = "val"
+  ) %>%
+  filter(!is.na(val), is.finite(val))
+
+p_data_overview <- ggplot(eda_long, aes(x = income_group, y = val, fill = income_group, colour = income_group)) +
+  geom_jitter(width = 0.18, alpha = 0.28, size = 1.3, show.legend = FALSE) +
+  geom_boxplot(width = 0.48, alpha = 0.55, outlier.shape = NA, colour = "#102a43", linewidth = 0.45, show.legend = FALSE) +
+  facet_wrap(~ panel, ncol = 2, scales = "free_y") +
+  scale_fill_manual(values = c("#d9480f", "#e67700", "#1b6ca8", "#2b8a3e")) +
+  scale_colour_manual(values = c("#d9480f", "#e67700", "#1b6ca8", "#2b8a3e")) +
+  labs(
+    title = "Overview of University Spending, Enrolment, and Tax Structure Across Income Groups",
+    subtitle = "Observed five-year country-wave distributions (boxes show median and interquartile range; points show country-waves)",
+    x = "World Bank Income Group",
+    y = "Observed Value"
+  ) +
+  theme_pub(11)
+
+save_pub_fig(p_data_overview, "eda_fig1_raw_distributions_and_bivariate", 10.2, 5.8)
+if (dir.exists(file.path(repo_root, "eda", "figures"))) {
+  ggsave(file.path(repo_root, "eda", "figures", "eda_fig1_raw_distributions_and_bivariate.pdf"), p_data_overview, width = 10.2, height = 5.8)
+  ggsave(file.path(repo_root, "eda", "figures", "eda_fig1_raw_distributions_and_bivariate.png"), p_data_overview, width = 10.2, height = 5.8, dpi = 300)
+}
+
+# ==============================================================================
+# Figure 2: Posterior Treatment Effects at +5 and +10 Years (Primary Model)
+# ==============================================================================
+cat("Generating Figure 2: Posterior Treatment Effects at +5 and +10 Years...\n")
 
 draws_df <- read_csv(file.path(proc_dir, "mvbcf_ate_posterior_draws.csv"), show_col_types = FALSE)
 
 draws_long <- draws_df %>%
+  filter(model == "Mediator-Removed Direct Effect (M2)") %>%
   pivot_longer(
     cols = c(tax_gdp_pp, inc_tax_gdp_pp, inc_tax_share_pp, goods_tax_share_pp),
     names_to = "outcome_code",
@@ -197,18 +242,17 @@ draws_long <- draws_df %>%
       outcome_code,
       levels = c("tax_gdp_pp", "inc_tax_gdp_pp", "inc_tax_share_pp", "goods_tax_share_pp"),
       labels = c(
-        "1. Non-Resource Tax / GDP (pp)",
-        "2. Direct Income & Profit Tax / GDP (pp)",
-        "3. Direct Income & Profit Share of Revenue (pp)",
-        "4. Goods & Services Tax Share (pp, Negative Control)"
+        "1. Total Tax Revenue (% of GDP, pp)",
+        "2. Direct Income & Profit Tax (% of GDP, pp)",
+        "3. Direct Income & Profit Share of Tax (pp)",
+        "4. Goods & Services Tax Share (pp)"
       )
     ),
-    horizon = factor(horizon, levels = c("+5 years", "+10 years")),
-    model = factor(model, levels = c("Total Fiscal Effect (M1)", "Mediator-Removed Direct Effect (M2)"))
+    horizon = factor(horizon, levels = c("+5 years", "+10 years"))
   )
 
 sum_fig2 <- draws_long %>%
-  group_by(outcome_label, horizon, model) %>%
+  group_by(outcome_label, horizon) %>%
   summarise(
     mean_val = mean(ate_pp),
     q025 = quantile(ate_pp, 0.025),
@@ -219,45 +263,39 @@ sum_fig2 <- draws_long %>%
     .groups = "drop"
   )
 
-p_fig2 <- ggplot(sum_fig2, aes(x = mean_val, y = horizon, colour = model)) +
-  geom_vline(xintercept = 0, linetype = "dashed", colour = "#829ab1", linewidth = 0.6) +
+p_fig2 <- ggplot(sum_fig2, aes(x = mean_val, y = horizon, colour = horizon)) +
+  geom_vline(xintercept = 0, linetype = "dashed", colour = "#829ab1", linewidth = 0.7) +
   geom_errorbar(
     aes(xmin = q025, xmax = q975),
-    width = 0.18, linewidth = 0.7, position = position_dodge(width = 0.55),
-    orientation = "y"
+    width = 0.16, linewidth = 0.75, orientation = "y"
   ) +
   geom_errorbar(
     aes(xmin = q10, xmax = q90),
-    width = 0.0, linewidth = 1.9, position = position_dodge(width = 0.55),
-    orientation = "y"
+    width = 0.0, linewidth = 2.2, orientation = "y"
   ) +
-  geom_point(size = 3.2, position = position_dodge(width = 0.55)) +
+  geom_point(size = 3.6) +
   geom_text(
     aes(
-      label = ifelse(
-        prob_pos >= 0.995,
-        sprintf("%+.2f pp (P>0: >99%%)", mean_val),
-        sprintf("%+.2f pp (P>0: %.0f%%)", mean_val, 100 * prob_pos)
-      ),
-      y = as.numeric(horizon) + ifelse(model == "Total Fiscal Effect (M1)", -0.27, 0.27)
+      label = sprintf("%+.2f pp (P = %.2f)", mean_val, round(prob_pos + 1e-9, 2)),
+      y = as.numeric(horizon) + 0.26
     ),
-    size = 3.0, fontface = "bold", show.legend = FALSE
+    size = 3.25, fontface = "bold", show.legend = FALSE
   ) +
   facet_wrap(~ outcome_label, ncol = 2, scales = "free_x") +
   scale_colour_manual(
-    name = "Causal Model Specification:",
-    values = c("Total Fiscal Effect (M1)" = "#1b6ca8", "Mediator-Removed Direct Effect (M2)" = "#2b8a3e")
+    name = "Time Horizon After Funding Wave:",
+    values = c("+5 years" = "#1b6ca8", "+10 years" = "#2b8a3e")
   ) +
   labs(
-    title = "Posterior Treatment Effect Estimates Across the Four Tax Outcomes (+5 and +10 Years)",
-    subtitle = "Posterior mean treatment effects (with 80% and 95% CIs) comparing Total (M1) and Mediator-Removed Direct (M2) specifications",
-    x = "Treatment Effect on Tax Outcome (Percentage Points)",
-    y = "Time Horizon After Funding Wave",
-    caption = "Note: Thick bars show 80% credible intervals (CIs); thin bars show 95% CIs. P>0 is the posterior probability of a positive fiscal return."
+    title = "Estimated Effect of Above-Median Per-Student University Funding (+5 vs +10 Years)",
+    subtitle = "Posterior mean effects (in percentage points, pp) with 80% (thick) and 95% (thin) credible intervals (CIs)",
+    x = "Estimated Change in Tax Outcome (Percentage Points, pp)",
+    y = "Time Horizon",
+    caption = "Note: P is the posterior probability that the effect is greater than zero given the data, P(tau > 0 | data)."
   ) +
   theme_pub(11.5)
 
-save_pub_fig(p_fig2, "fig2_total_vs_direct_tax_posteriors", 10.5, 6.2)
+save_pub_fig(p_fig2, "fig2_total_vs_direct_tax_posteriors", 10.5, 5.8)
 
 # ==============================================================================
 # Figure 3: Unbundling the Tertiary Denominator Trap (Exclusively Tertiary)
@@ -277,47 +315,47 @@ fig3_df <- tab1 %>%
       model_id,
       levels = rev(c("M2b_Direct_10y", "M3b_ObsExp_10y", "M3d_RealPPP_10y", "M3f_TertGDP_10y")),
       labels = rev(c(
-        "1. Per-Student Tertiary Ratio Regime\n(% of GDP per person)",
-        "2. Observed Per-Student Expansion\n(>=2.5 pp increase over wave)",
-        "3. Real PPP Dollars per Student\n(removes GDP denominator)",
-        "4. Public Tertiary Budget % of GDP\n(removes student headcount)"
+        "1. Per-Student Spending Ratio\n(% of GDP per person)",
+        "2. Within-Country Per-Student Increase\n(>= +2.5 pp over 5-year wave)",
+        "3. Real PPP Dollars per Student\n(removes GDP from denominator)",
+        "4. University Budget % of GDP\n(removes student headcount)"
       ))
     ),
     outcome_clean = factor(
       outcome_index,
       levels = c(1, 2, 3),
       labels = c(
-        "1. Non-Resource Tax / GDP (pp)",
-        "2. Direct Income Tax / GDP (pp)",
+        "1. Total Tax Revenue (% of GDP, pp)",
+        "2. Direct Income Tax (% of GDP, pp)",
         "3. Direct Income Tax Share (pp)"
       )
     )
   )
 
 p_fig3 <- ggplot(fig3_df, aes(x = ate_mean, y = exposure_label, colour = outcome_clean)) +
-  geom_vline(xintercept = 0, linetype = "dashed", colour = "#829ab1", linewidth = 0.6) +
-  geom_errorbar(aes(xmin = ate_cri95_low, xmax = ate_cri95_high), width = 0.2, linewidth = 0.65, orientation = "y") +
-  geom_errorbar(aes(xmin = ate_cri80_low, xmax = ate_cri80_high), width = 0.0, linewidth = 1.8, orientation = "y") +
-  geom_point(size = 3.0) +
+  geom_vline(xintercept = 0, linetype = "dashed", colour = "#829ab1", linewidth = 0.7) +
+  geom_errorbar(aes(xmin = ate_cri95_low, xmax = ate_cri95_high), width = 0.2, linewidth = 0.7, orientation = "y") +
+  geom_errorbar(aes(xmin = ate_cri80_low, xmax = ate_cri80_high), width = 0.0, linewidth = 1.9, orientation = "y") +
+  geom_point(size = 3.2) +
   geom_text(
-    aes(label = sprintf("%+.2f pp (P=%.2f)", ate_mean, prob_positive)),
-    vjust = -0.85, size = 2.85, fontface = "bold", show.legend = FALSE
+    aes(label = sprintf("%+.2f pp (P = %.2f)", ate_mean, round(prob_positive + 1e-9, 2))),
+    vjust = -0.85, size = 2.95, fontface = "bold", show.legend = FALSE
   ) +
   facet_wrap(~ outcome_clean, ncol = 3, scales = "free_x") +
   scale_colour_manual(
     values = c(
-      "1. Non-Resource Tax / GDP (pp)" = "#1b6ca8",
-      "2. Direct Income Tax / GDP (pp)" = "#2b8a3e",
+      "1. Total Tax Revenue (% of GDP, pp)" = "#1b6ca8",
+      "2. Direct Income Tax (% of GDP, pp)" = "#2b8a3e",
       "3. Direct Income Tax Share (pp)" = "#d9480f"
     ),
     guide = "none"
   ) +
   labs(
-    title = "Comparison of +10-Year Direct Fiscal Returns Across Tertiary Spending Definitions",
-    subtitle = "Comparing per-student ratios, observed expansions, real PPP dollars per student, and budget % of GDP",
-    x = "+10-Year Mediator-Removed Direct Effect (Percentage Points)",
-    y = "Tertiary Spending Exposure Definition",
-    caption = "Note: Thin bars show 95% credible intervals; thick bars show 80% credible intervals. P is the posterior probability of a positive return."
+    title = "Comparing the Four Ways of Measuring University Funding (+10-Year Horizon)",
+    subtitle = "Posterior mean effects (in percentage points, pp) with 80% (thick) and 95% (thin) credible intervals (CIs)",
+    x = "+10-Year Effect on Tax Outcome (Percentage Points, pp)",
+    y = "University Funding Measure",
+    caption = "Note: P is the posterior probability that the effect is greater than zero given the data, P(tau > 0 | data)."
   ) +
   theme_pub(11)
 
@@ -335,16 +373,62 @@ df_10y_ic <- read_csv(file.path(proc_dir, "panel_10y_with_icates.csv"), show_col
     ))
   )
 
+fig4_plot_df <- df_10y_ic %>%
+  filter(!is.na(gross_tert_enrolment_pct), !is.na(m2_10y_tau_inc_tax_share_pp))
+
+# Select notable extremes and running-example country-waves to label clearly
+highlight_waves <- fig4_plot_df %>%
+  filter(
+    (iso3 == "IRL" & wave_label == "2005-2009") |
+    (iso3 == "ETH" & wave_label == "1995-1999") |
+    (iso3 == "MWI" & wave_label == "2010-2014") |
+    (iso3 == "KHM" & wave_label == "2010-2014") |
+    (iso3 == "ARM" & wave_label == "2010-2014") |
+    (iso3 == "USA" & wave_label == "2010-2014") |
+    (iso3 == "AUT" & wave_label == "2010-2014") |
+    (iso3 == "CHL" & wave_label == "2010-2014") |
+    (iso3 == "BRA" & wave_label == "2010-2014")
+  ) %>%
+  mutate(
+    point_label = case_when(
+      iso3 == "IRL" ~ "Ireland (2005-09: +3.01 pp)",
+      iso3 == "ETH" ~ "Ethiopia (1995-99: -0.83 pp, >150% ratio)",
+      iso3 == "MWI" ~ "Malawi (2010-14: -0.51 pp, >150% ratio)",
+      iso3 == "KHM" ~ "Cambodia (2010-14: 5.9% ratio)",
+      iso3 == "ARM" ~ "Armenia (2010-14: 7.1% ratio)",
+      iso3 == "USA" ~ "United States (2010-14: +2.67 pp)",
+      iso3 == "AUT" ~ "Austria (2010-14: +2.72 pp)",
+      iso3 == "CHL" ~ "Chile (2010-14)",
+      iso3 == "BRA" ~ "Brazil (2010-14)"
+    )
+  )
+
 p_fig4 <- ggplot(
-  df_10y_ic %>% filter(!is.na(gross_tert_enrolment_pct), !is.na(m2_10y_tau_inc_tax_share_pp)),
+  fig4_plot_df,
   aes(x = gross_tert_enrolment_pct, y = m2_10y_tau_inc_tax_share_pp, colour = income_group)
 ) +
   geom_hline(yintercept = 0, linetype = "dashed", colour = "#829ab1", linewidth = 0.6) +
   geom_linerange(
     aes(ymin = m2_10y_tau_low80_inc_tax_share_pp, ymax = m2_10y_tau_high80_inc_tax_share_pp),
-    alpha = 0.28, linewidth = 0.48
+    alpha = 0.25, linewidth = 0.48
   ) +
   geom_point(alpha = 0.72, size = 2.1) +
+  geom_point(data = highlight_waves, size = 3.2, shape = 21, fill = "white", stroke = 1.2, show.legend = FALSE) +
+  ggrepel::geom_label_repel(
+    data = highlight_waves,
+    aes(label = point_label),
+    size = 2.85,
+    fontface = "bold",
+    fill = "white",
+    box.padding = 0.45,
+    point.padding = 0.3,
+    max.overlaps = 20,
+    min.segment.length = 0,
+    segment.colour = "#334e68",
+    segment.size = 0.45,
+    show.legend = FALSE,
+    seed = 42
+  ) +
   geom_smooth(aes(group = 1), method = "loess", formula = y ~ x, se = FALSE, colour = "#0f2537", linewidth = 1.1) +
   scale_colour_manual(
     name = "World Bank Income Group:",
@@ -356,15 +440,15 @@ p_fig4 <- ggplot(
     )
   ) +
   labs(
-    title = "Unit-Level +10-Year Direct Effect on Income Tax Share by Baseline Tertiary Enrolment",
-    subtitle = "Posterior mean unit-level treatment effects (pp, with 80% unit CI bars and LOESS trend) across World Bank income groups",
-    x = "Baseline Gross Tertiary Enrolment Ratio (%)",
-    y = "+10-Year Direct Effect on Income Tax Share (pp)",
-    caption = "Note: Vertical bars show 80% unit-level posterior credible intervals (CIs); solid dark curve shows the LOESS conditional mean trend.\nGross tertiary enrolment can exceed 100% because the numerator includes students of all ages while the denominator is the official 5-year age cohort."
+    title = "Unit-Level +10-Year Effect on Income Tax Share by Starting University Enrolment",
+    subtitle = "Posterior mean unit-level treatment effects (pp, with 80% CI bars and LOESS trend) across World Bank income groups",
+    x = "Starting Gross Tertiary Enrolment Ratio (%)",
+    y = "+10-Year Effect on Income Tax Share (pp)",
+    caption = "Note: Vertical bars show 80% unit-level credible intervals (CIs); solid dark curve shows the LOESS trend.\nHighlighted points show notable extremes in spending ratios (>150% vs <8%) and 10-year effects (+3.01 pp in Ireland vs -0.83 pp in Ethiopia)."
   ) +
   theme_pub(11.5)
 
-save_pub_fig(p_fig4, "fig4_enrolment_and_oecd_moderation", 9.5, 5.4)
+save_pub_fig(p_fig4, "fig4_enrolment_and_oecd_moderation", 9.8, 5.6)
 
 # ==============================================================================
 # Figure 5: Longitudinal Trajectories with Posterior Credible Fan & Country CrIs
