@@ -12,8 +12,9 @@ __pycache__/
 venv/
 .ipynb_checkpoints/
 
-# Large intermediate MCMC objects (keep summary CSVs)
+# Large intermediate MCMC objects (keep summary CSVs and JSON metadata)
 results/models/*.rds
+outputs/models/*.rds
 
 # Quarto / Typst / LaTeX build artifacts
 *.aux

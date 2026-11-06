@@ -1,0 +1,9 @@
+series_label,type,lag1_acf,lag2_acf,country_icc,region_icc,panel_convergence_p
+1. Non-Resource Tax / GDP (Level %),Baseline Level (Y_t),0.939,0.891,0.878,0.16,<0.001 (Stationary)
+2. Direct Income Tax / GDP (Level %),Baseline Level (Y_t),0.941,0.907,0.866,0.13,<0.001 (Stationary)
+3. Direct Income Tax Share (Level %),Baseline Level (Y_t),0.945,0.895,0.844,0.221,<0.001 (Stationary)
+4. Goods & Services Share (Level %),Baseline Level (Y_t),0.91,0.793,0.749,0.151,<0.001 (Stationary)
+5. 5y Change Non-Resource Tax / GDP (pp),First Difference (Delta Y_t+1),-0.094,-0.083,0,0,<0.001 (Stationary)
+6. 5y Change Direct Income Tax / GDP (pp),First Difference (Delta Y_t+1),-0.079,-0.139,0.036,0,<0.001 (Stationary)
+7. 5y Change Direct Income Tax Share (pp),First Difference (Delta Y_t+1),-0.001,-0.066,0,0.005,<0.001 (Stationary)
+8. 5y Change Goods & Services Share (pp),First Difference (Delta Y_t+1),0.065,-0.099,0.029,0.019,<0.001 (Stationary)

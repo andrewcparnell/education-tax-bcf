@@ -1,16 +1,16 @@
-dimension,horizon,subgroup,n_obs,n_countries,cate_tax_gdp_pp,cate_tax_gdp_low,cate_tax_gdp_high,cate_inc_gdp_pp,cate_inc_gdp_low,cate_inc_gdp_high,cate_inc_share_pp,cate_inc_share_low,cate_inc_share_high,prob_inc_share_pos,cate_goods_share_pp
-University Enrolment Regime,+5 years (t+1),1. Elite (<20% enrolment),93,50,0.13,-0.43,0.71,0.25,-0.04,0.58,1.07,-0.42,2.46,0.934,-0.14
-University Enrolment Regime,+5 years (t+1),2. Massifying (20-50% enrolment),88,46,0.08,-0.44,0.6,0.21,-0.04,0.49,1.26,0.09,2.43,0.982,-0.18
-University Enrolment Regime,+5 years (t+1),3. High-Participation (>=50% enrolment),152,60,0.04,-0.5,0.57,0.21,-0.06,0.49,1.3,0.06,2.54,0.982,-0.26
-University Enrolment Regime,+10 years (t+2),1. Elite (<20% enrolment),74,43,0.95,-0.06,1.92,0.48,-0.09,0.99,1.21,-0.67,3.3,0.882,0.33
-University Enrolment Regime,+10 years (t+2),2. Massifying (20-50% enrolment),73,42,0.62,-0.23,1.41,0.29,-0.16,0.71,1.75,0.2,3.4,0.984,-0.04
-University Enrolment Regime,+10 years (t+2),3. High-Participation (>=50% enrolment),97,44,0.18,-0.63,1.08,0.18,-0.26,0.63,1.71,0.04,3.32,0.977,-0.7
-World Bank Income Group,+10 years (t+2),High income,145,47,0.16,-0.63,1,0.19,-0.24,0.62,1.68,-0.02,3.23,0.973,-0.85
-World Bank Income Group,+10 years (t+2),Low income,15,9,0.98,-0.72,2.45,0.63,-0.1,1.42,-0.33,-3.39,2.54,0.417,0.41
-World Bank Income Group,+10 years (t+2),Lower middle income,47,21,0.98,-0.08,1.96,0.45,-0.09,0.96,1.56,-0.38,3.96,0.929,0.28
-World Bank Income Group,+10 years (t+2),Upper middle income,76,35,0.73,-0.12,1.56,0.31,-0.15,0.76,1.76,0.12,3.46,0.978,0.18
-OECD Financing Model,+10 years (t+2),High-Tuition_High-Subsidy,11,5,-0.65,-1.44,0.16,-0.09,-0.84,0.62,1.64,-0.8,4.1,0.907,-1.11
-OECD Financing Model,+10 years (t+2),High-Tuition_Low-Subsidy,13,4,-0.54,-1.34,0.26,-0.04,-0.73,0.64,1.42,-1.02,3.79,0.859,-1.9
-OECD Financing Model,+10 years (t+2),Hybrid_Public-Fee,29,8,-0.62,-1.35,0.13,-0.08,-0.73,0.57,1.56,-0.79,3.7,0.904,-1.54
-OECD Financing Model,+10 years (t+2),Low-Tuition_Public,46,15,-0.62,-1.38,0.13,-0.04,-0.69,0.63,1.54,-0.77,3.74,0.906,-1.35
-OECD Financing Model,+10 years (t+2),Nordic_High-Public,20,5,-0.67,-1.43,0.07,-0.03,-0.7,0.65,1.72,-0.61,3.97,0.916,-1.32
+dimension,horizon,subgroup,n_obs,n_countries,cate_tax_gdp_pp,cate_tax_gdp_low,cate_tax_gdp_high,prob_tax_gdp_pos,cate_inc_gdp_pp,cate_inc_gdp_low,cate_inc_gdp_high,prob_inc_gdp_pos,cate_inc_share_pp,cate_inc_share_low,cate_inc_share_high,prob_inc_share_pos,cate_goods_share_pp,cate_goods_share_low,cate_goods_share_high,prob_goods_share_pos
+Tertiary Enrolment Regime,+5 years (t+1),1. Elite (<20% enrolment),93,50,0.1,-0.49,0.72,0.623,0.25,-0.05,0.56,0.947,1.11,-0.25,2.44,0.941,-0.12,-1.58,1.33,0.426
+Tertiary Enrolment Regime,+5 years (t+1),2. Massifying (20-50% enrolment),88,46,0.03,-0.47,0.52,0.551,0.2,-0.07,0.47,0.924,1.3,0.25,2.56,0.989,-0.27,-1.4,0.83,0.338
+Tertiary Enrolment Regime,+5 years (t+1),3. High-Participation (>=50% enrolment),152,60,0,-0.51,0.48,0.506,0.2,-0.06,0.46,0.931,1.29,0.23,2.41,0.988,-0.39,-1.47,0.77,0.25
+Tertiary Enrolment Regime,+10 years (t+2),1. Elite (<20% enrolment),74,43,0.77,-0.22,1.79,0.93,0.47,0,0.96,0.974,0.9,-1.07,2.76,0.825,-0.3,-2.25,2.06,0.382
+Tertiary Enrolment Regime,+10 years (t+2),2. Massifying (20-50% enrolment),73,42,0.52,-0.32,1.33,0.902,0.35,-0.07,0.76,0.94,1.53,-0.16,3.18,0.963,-0.45,-2.09,1.39,0.308
+Tertiary Enrolment Regime,+10 years (t+2),3. High-Participation (>=50% enrolment),97,44,0.22,-0.77,1.19,0.679,0.25,-0.23,0.71,0.846,1.87,0.16,3.63,0.985,-0.68,-2.49,1.39,0.239
+World Bank Income Group,+10 years (t+2),High income,145,47,0.21,-0.75,1.09,0.682,0.28,-0.18,0.74,0.88,1.76,0.12,3.55,0.986,-0.8,-2.56,1.24,0.189
+World Bank Income Group,+10 years (t+2),Low income,15,9,0.86,-0.54,2.18,0.882,0.56,-0.01,1.23,0.973,-0.03,-3.31,2.67,0.542,-0.19,-2.97,3.15,0.419
+World Bank Income Group,+10 years (t+2),Lower middle income,47,21,0.79,-0.23,1.86,0.937,0.46,-0.02,0.96,0.967,1.06,-0.88,3.04,0.857,-0.29,-2.29,2.22,0.382
+World Bank Income Group,+10 years (t+2),Upper middle income,76,35,0.61,-0.22,1.46,0.93,0.35,-0.09,0.78,0.942,1.5,-0.26,3.23,0.952,-0.34,-2.02,1.62,0.359
+OECD Financing Model,+10 years (t+2),High-Tuition_High-Subsidy,11,5,-0.69,-1.45,0.08,0.039,-0.03,-0.7,0.62,0.478,1.67,-0.71,4.06,0.915,-1.54,-3.65,0.42,0.069
+OECD Financing Model,+10 years (t+2),High-Tuition_Low-Subsidy,13,4,-0.63,-1.45,0.1,0.043,0.01,-0.65,0.66,0.525,1.65,-0.76,4.05,0.906,-2,-3.96,-0.12,0.018
+OECD Financing Model,+10 years (t+2),Hybrid_Public-Fee,29,8,-0.69,-1.38,0.05,0.03,-0.03,-0.71,0.6,0.48,1.67,-0.58,3.99,0.917,-1.71,-3.58,-0.02,0.025
+OECD Financing Model,+10 years (t+2),Low-Tuition_Public,46,15,-0.7,-1.41,0.03,0.03,-0.01,-0.69,0.62,0.509,1.69,-0.49,4.06,0.921,-1.52,-3.35,0.31,0.054
+OECD Financing Model,+10 years (t+2),Nordic_High-Public,20,5,-0.72,-1.46,0.04,0.029,-0.01,-0.68,0.63,0.502,1.72,-0.69,4.11,0.922,-1.53,-3.44,0.33,0.063

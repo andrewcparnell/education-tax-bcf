@@ -199,9 +199,9 @@ public:
     std::vector<int> valid_indices;
     
     for (int i = 0; i < node_vector.size(); i++) {
-      if(node_vector[i].in_use & !node_vector[i].is_terminal)
+      if(node_vector[i].in_use && !node_vector[i].is_terminal && (2*i+2 < (int)node_vector.size()))
       {
-        if(node_vector[2*i+1].in_use & node_vector[2*i+1].is_terminal & node_vector[2*i+2].in_use & node_vector[2*i+2].is_terminal)
+        if(node_vector[2*i+1].in_use && node_vector[2*i+1].is_terminal && node_vector[2*i+2].in_use && node_vector[2*i+2].is_terminal)
         {
           valid_indices.push_back(i);
         }
@@ -216,6 +216,31 @@ public:
     {
       return -1;
     }
+  }
+
+  // Count terminal (leaf) nodes b(T) for Chipman et al. (1998, 2010) MH transition ratio
+  int num_terminal_nodes() const {
+    int count = 0;
+    for (size_t i = 0; i < node_vector.size(); i++) {
+      if (node_vector[i].in_use && node_vector[i].is_terminal) {
+        count++;
+      }
+    }
+    return count;
+  }
+
+  // Count singly-internal ("nog") nodes w(T) (parents of two terminal leaves)
+  int num_nog_nodes() const {
+    int count = 0;
+    for (size_t i = 0; i < node_vector.size(); i++) {
+      if (node_vector[i].in_use && !node_vector[i].is_terminal && (2*i+2 < node_vector.size())) {
+        if (node_vector[2*i+1].in_use && node_vector[2*i+1].is_terminal &&
+            node_vector[2*i+2].in_use && node_vector[2*i+2].is_terminal) {
+          count++;
+        }
+      }
+    }
+    return count;
   }
   
   
@@ -555,11 +580,10 @@ NumericVector rowSumsWithoutColumn(NumericMatrix mat, int columnToRemove) {
   
   NumericVector rowSums(numRows, 0.0);
   
-  for (int i = 0; i < numRows; i++) {
-    for (int j = 0; j < numCols; j++) {
-      if (j != columnToRemove) {
-        rowSums[i] += mat(i, j);
-      }
+  for (int j = 0; j < numCols; j++) {
+    if (j == columnToRemove) continue;
+    for (int i = 0; i < numRows; i++) {
+      rowSums[i] += mat(i, j);
     }
   }
   
@@ -676,13 +700,18 @@ List fast_lbcf3(NumericMatrix X_mu,
   
   for(int iter = 0; iter < n_iter; iter++)
   {
+    NumericVector inv_growth  = Z_growth  * rowSumsWithoutColumn(tree_preds_growth, -1);
+    NumericVector inv_treat   = Z_treat   * rowSumsWithoutColumn(tree_preds_treat, -1);
+    NumericVector inv_growth2 = Z_growth2 * rowSumsWithoutColumn(tree_preds_growth2, -1);
+    NumericVector inv_treat2  = Z_treat2  * rowSumsWithoutColumn(tree_preds_treat2, -1);
+
     for(int tree_num = 0; tree_num < n_tree_mu; tree_num++)
     {
       NumericVector y_resid = y_scaled-rowSumsWithoutColumn(tree_preds_mu, tree_num)
-      -Z_growth*rowSumsWithoutColumn(tree_preds_growth, -1)
-      -Z_treat*rowSumsWithoutColumn(tree_preds_treat, -1)
-      -Z_growth2*rowSumsWithoutColumn(tree_preds_growth2, -1)
-      -Z_treat2*rowSumsWithoutColumn(tree_preds_treat2, -1);
+      -inv_growth
+      -inv_treat
+      -inv_growth2
+      -inv_treat2;
       
       String choice = sample(choices, 1)[0];
       
@@ -721,7 +750,15 @@ List fast_lbcf3(NumericMatrix X_mu,
                                                                 beta_mu,
                                                                 y_resid);
           
-        double a = exp(lnew-lold);
+        double log_trans_ratio = 0.0;
+        if (choice == "Grow" && proposal_tree.num_terminal_nodes() > mu_forest.tree_vector[tree_num].num_terminal_nodes()) {
+          log_trans_ratio = std::log((double)std::max(1, mu_forest.tree_vector[tree_num].num_terminal_nodes()) /
+                                     (double)std::max(1, proposal_tree.num_nog_nodes()));
+        } else if (choice == "Prune" && proposal_tree.num_terminal_nodes() < mu_forest.tree_vector[tree_num].num_terminal_nodes()) {
+          log_trans_ratio = std::log((double)std::max(1, mu_forest.tree_vector[tree_num].num_nog_nodes()) /
+                                     (double)std::max(1, proposal_tree.num_terminal_nodes()));
+        }
+        double a = exp(lnew - lold + log_trans_ratio);
         if(a > R::runif(0, 1))
         {
           mu_forest.tree_vector[tree_num] = Tree(proposal_tree);
@@ -744,13 +781,15 @@ List fast_lbcf3(NumericMatrix X_mu,
     
     }
     
+    NumericVector inv_mu = rowSumsWithoutColumn(tree_preds_mu, -1);
+    if (sum(abs(Z_growth)) > 1e-9) {
     for(int tree_num = 0; tree_num < n_tree_growth; tree_num++)
     {
-      NumericVector y_resid = y_scaled-rowSumsWithoutColumn(tree_preds_mu, -1)
+      NumericVector y_resid = y_scaled-inv_mu
       -Z_growth*rowSumsWithoutColumn(tree_preds_growth, tree_num)
-      -Z_treat*rowSumsWithoutColumn(tree_preds_treat, -1)
-      -Z_growth2*rowSumsWithoutColumn(tree_preds_growth2, -1)
-      -Z_treat2*rowSumsWithoutColumn(tree_preds_treat2, -1);
+      -inv_treat
+      -inv_growth2
+      -inv_treat2;
       
       String choice = sample(choices, 1)[0];
       
@@ -791,7 +830,15 @@ List fast_lbcf3(NumericMatrix X_mu,
                                                                 y_resid,
                                                                 Z_growth);
         
-        double a = exp(lnew-lold);
+        double log_trans_ratio = 0.0;
+        if (choice == "Grow" && proposal_tree.num_terminal_nodes() > growth_forest.tree_vector[tree_num].num_terminal_nodes()) {
+          log_trans_ratio = std::log((double)std::max(1, growth_forest.tree_vector[tree_num].num_terminal_nodes()) /
+                                     (double)std::max(1, proposal_tree.num_nog_nodes()));
+        } else if (choice == "Prune" && proposal_tree.num_terminal_nodes() < growth_forest.tree_vector[tree_num].num_terminal_nodes()) {
+          log_trans_ratio = std::log((double)std::max(1, growth_forest.tree_vector[tree_num].num_nog_nodes()) /
+                                     (double)std::max(1, proposal_tree.num_terminal_nodes()));
+        }
+        double a = exp(lnew - lold + log_trans_ratio);
         if(a > R::runif(0, 1))
         {
           growth_forest.tree_vector[tree_num] = Tree(proposal_tree);
@@ -813,15 +860,17 @@ List fast_lbcf3(NumericMatrix X_mu,
       }
       
     }
+    }
     
     
+    inv_growth = Z_growth * rowSumsWithoutColumn(tree_preds_growth, -1);
     for(int tree_num = 0; tree_num < n_tree_treat; tree_num++)
     {
-      NumericVector y_resid = y_scaled-rowSumsWithoutColumn(tree_preds_mu, -1)
-      -Z_growth*rowSumsWithoutColumn(tree_preds_growth, -1)
+      NumericVector y_resid = y_scaled-inv_mu
+      -inv_growth
       -Z_treat*rowSumsWithoutColumn(tree_preds_treat, tree_num)
-      -Z_growth2*rowSumsWithoutColumn(tree_preds_growth2, -1)
-      -Z_treat2*rowSumsWithoutColumn(tree_preds_treat2, -1);
+      -inv_growth2
+      -inv_treat2;
       
       String choice = sample(choices, 1)[0];
       
@@ -862,7 +911,15 @@ List fast_lbcf3(NumericMatrix X_mu,
                                                                       y_resid,
                                                                       Z_treat);
         
-        double a = exp(lnew-lold);
+        double log_trans_ratio = 0.0;
+        if (choice == "Grow" && proposal_tree.num_terminal_nodes() > treat_forest.tree_vector[tree_num].num_terminal_nodes()) {
+          log_trans_ratio = std::log((double)std::max(1, treat_forest.tree_vector[tree_num].num_terminal_nodes()) /
+                                     (double)std::max(1, proposal_tree.num_nog_nodes()));
+        } else if (choice == "Prune" && proposal_tree.num_terminal_nodes() < treat_forest.tree_vector[tree_num].num_terminal_nodes()) {
+          log_trans_ratio = std::log((double)std::max(1, treat_forest.tree_vector[tree_num].num_nog_nodes()) /
+                                     (double)std::max(1, proposal_tree.num_terminal_nodes()));
+        }
+        double a = exp(lnew - lold + log_trans_ratio);
         if(a > R::runif(0, 1))
         {
           treat_forest.tree_vector[tree_num] = Tree(proposal_tree);
@@ -885,13 +942,14 @@ List fast_lbcf3(NumericMatrix X_mu,
       
     }
     
+    inv_treat = Z_treat * rowSumsWithoutColumn(tree_preds_treat, -1);
     for(int tree_num = 0; tree_num < n_tree_growth; tree_num++)
     {
-      NumericVector y_resid = y_scaled-rowSumsWithoutColumn(tree_preds_mu, -1)
-      -Z_growth*rowSumsWithoutColumn(tree_preds_growth, -1)
-      -Z_treat*rowSumsWithoutColumn(tree_preds_treat, -1)
+      NumericVector y_resid = y_scaled-inv_mu
+      -inv_growth
+      -inv_treat
       -Z_growth2*rowSumsWithoutColumn(tree_preds_growth2, tree_num)
-      -Z_treat2*rowSumsWithoutColumn(tree_preds_treat2, -1);
+      -inv_treat2;
       
       String choice = sample(choices, 1)[0];
       
@@ -923,7 +981,7 @@ List fast_lbcf3(NumericMatrix X_mu,
                                                 alpha_growth,
                                                 beta_growth,
                                                 y_resid,
-                                                Z_growth2);
+                                            Z_growth2);
         
         double lold = growth_forest2.tree_vector[tree_num].log_lik_tau(tau_growth, 
                                                                       tau,
@@ -932,7 +990,15 @@ List fast_lbcf3(NumericMatrix X_mu,
                                                                       y_resid,
                                                                       Z_growth2);
         
-        double a = exp(lnew-lold);
+        double log_trans_ratio = 0.0;
+        if (choice == "Grow" && proposal_tree.num_terminal_nodes() > growth_forest2.tree_vector[tree_num].num_terminal_nodes()) {
+          log_trans_ratio = std::log((double)std::max(1, growth_forest2.tree_vector[tree_num].num_terminal_nodes()) /
+                                     (double)std::max(1, proposal_tree.num_nog_nodes()));
+        } else if (choice == "Prune" && proposal_tree.num_terminal_nodes() < growth_forest2.tree_vector[tree_num].num_terminal_nodes()) {
+          log_trans_ratio = std::log((double)std::max(1, growth_forest2.tree_vector[tree_num].num_nog_nodes()) /
+                                     (double)std::max(1, proposal_tree.num_terminal_nodes()));
+        }
+        double a = exp(lnew - lold + log_trans_ratio);
         if(a > R::runif(0, 1))
         {
           growth_forest2.tree_vector[tree_num] = Tree(proposal_tree);
@@ -956,12 +1022,13 @@ List fast_lbcf3(NumericMatrix X_mu,
     }
     
     
+    inv_growth2 = Z_growth2 * rowSumsWithoutColumn(tree_preds_growth2, -1);
     for(int tree_num = 0; tree_num < n_tree_treat; tree_num++)
     {
-      NumericVector y_resid = y_scaled-rowSumsWithoutColumn(tree_preds_mu, -1)
-      -Z_growth*rowSumsWithoutColumn(tree_preds_growth, -1)
-      -Z_treat*rowSumsWithoutColumn(tree_preds_treat, -1)
-      -Z_growth2*rowSumsWithoutColumn(tree_preds_growth2, -1)
+      NumericVector y_resid = y_scaled-inv_mu
+      -inv_growth
+      -inv_treat
+      -inv_growth2
       -Z_treat2*rowSumsWithoutColumn(tree_preds_treat2, tree_num);
       
       String choice = sample(choices, 1)[0];
@@ -1003,7 +1070,15 @@ List fast_lbcf3(NumericMatrix X_mu,
                                                                      y_resid,
                                                                      Z_treat2);
         
-        double a = exp(lnew-lold);
+        double log_trans_ratio = 0.0;
+        if (choice == "Grow" && proposal_tree.num_terminal_nodes() > treat_forest2.tree_vector[tree_num].num_terminal_nodes()) {
+          log_trans_ratio = std::log((double)std::max(1, treat_forest2.tree_vector[tree_num].num_terminal_nodes()) /
+                                     (double)std::max(1, proposal_tree.num_nog_nodes()));
+        } else if (choice == "Prune" && proposal_tree.num_terminal_nodes() < treat_forest2.tree_vector[tree_num].num_terminal_nodes()) {
+          log_trans_ratio = std::log((double)std::max(1, treat_forest2.tree_vector[tree_num].num_nog_nodes()) /
+                                     (double)std::max(1, proposal_tree.num_terminal_nodes()));
+        }
+        double a = exp(lnew - lold + log_trans_ratio);
         if(a > R::runif(0, 1))
         {
           treat_forest2.tree_vector[tree_num] = Tree(proposal_tree);

@@ -1,0 +1,17 @@
+model,horizon,outcome_code,ppc_rmse,ppc_r2,ppc_cov95_pct
+Total Fiscal Effect (M1),+5 years,tax_gdp_pp,1.85,0.265,96.5
+Total Fiscal Effect (M1),+5 years,inc_tax_gdp_pp,0.98,0.187,96.8
+Total Fiscal Effect (M1),+5 years,inc_tax_share_pp,3.89,0.31,94.9
+Total Fiscal Effect (M1),+5 years,goods_tax_share_pp,3.95,0.4,97.6
+Total Fiscal Effect (M1),+10 years,tax_gdp_pp,2.54,0.306,94.7
+Total Fiscal Effect (M1),+10 years,inc_tax_gdp_pp,1.33,0.27,96.1
+Total Fiscal Effect (M1),+10 years,inc_tax_share_pp,4.84,0.434,97.2
+Total Fiscal Effect (M1),+10 years,goods_tax_share_pp,4.34,0.63,97.5
+Mediator-Removed Direct Effect (M2),+5 years,tax_gdp_pp,1.76,0.338,96
+Mediator-Removed Direct Effect (M2),+5 years,inc_tax_gdp_pp,0.98,0.192,96.5
+Mediator-Removed Direct Effect (M2),+5 years,inc_tax_share_pp,3.94,0.293,95.4
+Mediator-Removed Direct Effect (M2),+5 years,goods_tax_share_pp,3.93,0.408,97.3
+Mediator-Removed Direct Effect (M2),+10 years,tax_gdp_pp,2.5,0.327,95.8
+Mediator-Removed Direct Effect (M2),+10 years,inc_tax_gdp_pp,1.33,0.27,96.5
+Mediator-Removed Direct Effect (M2),+10 years,inc_tax_share_pp,4.76,0.453,97.2
+Mediator-Removed Direct Effect (M2),+10 years,goods_tax_share_pp,4.56,0.592,97.5

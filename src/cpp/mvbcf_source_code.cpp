@@ -237,9 +237,9 @@ public:
     std::vector<int> valid_indices;
     
     for (int i = 0; i < node_vector.size(); i++) {
-      if(node_vector[i].in_use & !node_vector[i].is_terminal)
+      if(node_vector[i].in_use && !node_vector[i].is_terminal && (2*i+2 < (int)node_vector.size()))
       {
-        if(node_vector[2*i+1].in_use & node_vector[2*i+1].is_terminal & node_vector[2*i+2].in_use & node_vector[2*i+2].is_terminal)
+        if(node_vector[2*i+1].in_use && node_vector[2*i+1].is_terminal && node_vector[2*i+2].in_use && node_vector[2*i+2].is_terminal)
         {
           valid_indices.push_back(i);
         }
@@ -254,6 +254,31 @@ public:
     {
       return -1;
     }
+  }
+
+  // Count terminal (leaf) nodes b(T) for Chipman et al. (1998, 2010) MH transition ratio
+  int num_terminal_nodes() const {
+    int count = 0;
+    for (size_t i = 0; i < node_vector.size(); i++) {
+      if (node_vector[i].in_use && node_vector[i].is_terminal) {
+        count++;
+      }
+    }
+    return count;
+  }
+
+  // Count singly-internal ("nog") nodes w(T) (parents of two terminal leaves)
+  int num_nog_nodes() const {
+    int count = 0;
+    for (size_t i = 0; i < node_vector.size(); i++) {
+      if (node_vector[i].in_use && !node_vector[i].is_terminal && (2*i+2 < node_vector.size())) {
+        if (node_vector[2*i+1].in_use && node_vector[2*i+1].is_terminal &&
+            node_vector[2*i+2].in_use && node_vector[2*i+2].is_terminal) {
+          count++;
+        }
+      }
+    }
+    return count;
   }
   
   
@@ -780,7 +805,16 @@ List fast_bart(arma::mat X_con,
                                                                 beta,
                                                                 y_resid);
         
-        double a = exp(lnew-lold);
+        double log_trans_ratio = 0.0;
+        if (choice == "Grow" && proposal_tree.num_terminal_nodes() > bart_forest.tree_vector[tree_num].num_terminal_nodes()) {
+          log_trans_ratio = std::log((double)std::max(1, bart_forest.tree_vector[tree_num].num_terminal_nodes()) /
+                                     (double)std::max(1, proposal_tree.num_nog_nodes()));
+        } else if (choice == "Prune" && proposal_tree.num_terminal_nodes() < bart_forest.tree_vector[tree_num].num_terminal_nodes()) {
+          log_trans_ratio = std::log((double)std::max(1, bart_forest.tree_vector[tree_num].num_nog_nodes()) /
+                                     (double)std::max(1, proposal_tree.num_terminal_nodes()));
+        }
+        
+        double a = exp(lnew - lold + log_trans_ratio);
         if(a > R::runif(0, 1))
         {
           bart_forest.tree_vector[tree_num] = Tree(proposal_tree);
@@ -851,7 +885,16 @@ List fast_bart(arma::mat X_con,
                                                                    y_resid,
                                                                    Z);
         
-        double a = exp(lnew-lold);
+        double log_trans_ratio = 0.0;
+        if (choice == "Grow" && proposal_tree.num_terminal_nodes() > tau_forest.tree_vector[tree_num].num_terminal_nodes()) {
+          log_trans_ratio = std::log((double)std::max(1, tau_forest.tree_vector[tree_num].num_terminal_nodes()) /
+                                     (double)std::max(1, proposal_tree.num_nog_nodes()));
+        } else if (choice == "Prune" && proposal_tree.num_terminal_nodes() < tau_forest.tree_vector[tree_num].num_terminal_nodes()) {
+          log_trans_ratio = std::log((double)std::max(1, tau_forest.tree_vector[tree_num].num_nog_nodes()) /
+                                     (double)std::max(1, proposal_tree.num_terminal_nodes()));
+        }
+        
+        double a = exp(lnew - lold + log_trans_ratio);
         if(a > R::runif(0, 1))
         {
           tau_forest.tree_vector[tree_num] = Tree(proposal_tree);

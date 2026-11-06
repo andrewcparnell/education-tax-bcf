@@ -7,9 +7,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Andrew C. Parnell (School of Mathematics and Statistics, University College Dublin)">
-<meta name="dcterms.date" content="2026-11-03">
+<meta name="dcterms.date" content="2026-11-05">
 
-<title>Exploratory Data Analysis: Public University Funding and the National Tax Take</title>
+<title>Exploratory Data Analysis: Government Spending on Tertiary Education and the Future Tax Take</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -79,12 +79,26 @@ window.Quarto = {
 
 <div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
 <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-<div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="eda_report.html"><i class="bi bi-file-pdf"></i>Typst</a></li></ul></div></div>
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#overview-and-research-question" id="toc-overview-and-research-question" class="nav-link active" data-scroll-target="#overview-and-research-question"><span class="header-section-number">1</span> Overview and Research Question</a></li>
+  <li><a href="#sample-coverage-quality-screening-and-attrition" id="toc-sample-coverage-quality-screening-and-attrition" class="nav-link" data-scroll-target="#sample-coverage-quality-screening-and-attrition"><span class="header-section-number">2</span> Sample Coverage, Quality Screening, and Attrition</a></li>
+  <li><a href="#unbundling-the-unesco-denominator-trap-across-income-groups" id="toc-unbundling-the-unesco-denominator-trap-across-income-groups" class="nav-link" data-scroll-target="#unbundling-the-unesco-denominator-trap-across-income-groups"><span class="header-section-number">3</span> Unbundling the UNESCO Denominator Trap Across Income Groups</a></li>
+  <li><a href="#raw-unadjusted-fiscal-trajectories-and-marginal-distributions" id="toc-raw-unadjusted-fiscal-trajectories-and-marginal-distributions" class="nav-link" data-scroll-target="#raw-unadjusted-fiscal-trajectories-and-marginal-distributions"><span class="header-section-number">4</span> Raw Unadjusted Fiscal Trajectories and Marginal Distributions</a></li>
+  <li><a href="#common-support-and-positivity-audit" id="toc-common-support-and-positivity-audit" class="nav-link" data-scroll-target="#common-support-and-positivity-audit"><span class="header-section-number">5</span> Common Support and Positivity Audit</a></li>
+  <li><a href="#missing-data-analysis-and-mechanisms" id="toc-missing-data-analysis-and-mechanisms" class="nav-link" data-scroll-target="#missing-data-analysis-and-mechanisms"><span class="header-section-number">6</span> Missing Data Analysis and Mechanisms</a></li>
+  <li><a href="#temporal-autocorrelation-stationarity-and-spatial-clustering" id="toc-temporal-autocorrelation-stationarity-and-spatial-clustering" class="nav-link" data-scroll-target="#temporal-autocorrelation-stationarity-and-spatial-clustering"><span class="header-section-number">7</span> Temporal Autocorrelation, Stationarity, and Spatial Clustering</a></li>
+  <li><a href="#feature-correlation-structure-and-variance-inflation-factors" id="toc-feature-correlation-structure-and-variance-inflation-factors" class="nav-link" data-scroll-target="#feature-correlation-structure-and-variance-inflation-factors"><span class="header-section-number">8</span> Feature Correlation Structure and Variance Inflation Factors</a></li>
+  </ul>
+<div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="eda_report.pdf"><i class="bi bi-file-pdf"></i>Typst</a></li></ul></div></nav>
+</div>
 <main class="content" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Exploratory Data Analysis: Public University Funding and the National Tax Take</h1>
+<h1 class="title">Exploratory Data Analysis: Government Spending on Tertiary Education and the Future Tax Take</h1>
 </div>
 
 
@@ -101,7 +115,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">November 3, 2026</p>
+      <p class="date">November 5, 2026</p>
     </div>
   </div>
   
@@ -113,35 +127,125 @@ window.Quarto = {
 </header>
 
 
-<section id="overview-and-research-question" class="level2">
-<h2 class="anchored" data-anchor-id="overview-and-research-question">Overview and Research Question</h2>
-<p>This exploratory data analysis (EDA) inspects the newly constructed global fiscal and education panel (<code>data/processed/clean_tax_panel.csv</code>, spanning 1,736 country-waves across 217 sovereign countries from <code>1985-1989</code> to <code>2020-2024</code>). Our central question is whether increased national spending on university (tertiary) education produces short-term (<span class="math inline">\(+5\)</span>-year) and long-term (<span class="math inline">\(+10\)</span>-year) benefits to a country’s tax take once mediating macroeconomic variables are separated out.</p>
-<p>To avoid the mechanical identities and ratio distortions identified in previous macro-education studies, this dataset implements three structural improvements:</p>
+<section id="overview-and-research-question" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="overview-and-research-question"><span class="header-section-number">1</span> Overview and Research Question</h2>
+<p>This exploratory data analysis (EDA) audits the global fiscal and tertiary education panel (<code>data/processed/clean_tax_panel.csv</code>, spanning 1,736 country-waves across 217 sovereign countries from <code>1985-1989</code> to <code>2020-2024</code>) prior to estimating our Multivariate and Longitudinal Bayesian Causal Forest models. Our primary hypothesis is that increasing national government expenditure on tertiary (university) education improves a country’s future tax take at the <span class="math inline">\(+5\)</span>-year and <span class="math inline">\(+10\)</span>-year horizons once mediating macroeconomic growth is separated out.</p>
+<p>To eliminate mechanical accounting identities, denominator distortions, and collider bias, the dataset incorporates three design safeguards:</p>
 <ol type="1">
-<li><strong>Four Pure Disaggregated Fiscal Outcomes (Zero GDP Product Identities):</strong>
+<li><strong>Four Pure Disaggregated Tax Outcomes (Zero GDP Product Identities):</strong>
 <ul>
-<li><span class="math inline">\(Y_1\)</span>: <strong>Total Domestic Non-Resource Tax-to-GDP Change (<span class="math inline">\(\Delta \text{Tax/GDP}\)</span>, percentage points of GDP)</strong> (alongside pure unadjusted World Bank WDI <span class="math inline">\(\Delta \text{Tax/GDP}\)</span>).</li>
+<li><span class="math inline">\(Y_1\)</span>: <strong>Domestic Non-Resource Tax-to-GDP Change (<span class="math inline">\(\Delta \text{Tax/GDP}\)</span>, percentage points of GDP)</strong>, paired with unadjusted World Bank WDI <span class="math inline">\(\Delta \text{Tax/GDP}\)</span> as a sensitivity check.</li>
 <li><span class="math inline">\(Y_2\)</span>: <strong>Direct Income, Profit, and Capital Gains Tax-to-GDP Change (<span class="math inline">\(\Delta \text{IncomeTax/GDP}\)</span>, percentage points of GDP)</strong>.</li>
 <li><span class="math inline">\(Y_3\)</span>: <strong>Direct Income and Profit Share of Revenue Change (<span class="math inline">\(\Delta \text{IncomeTax/Rev}\)</span>, percentage points of revenue)</strong>.</li>
 <li><span class="math inline">\(Y_4\)</span>: <strong>Indirect Goods and Services (Consumption / VAT) Share of Revenue Change (<span class="math inline">\(\Delta \text{GoodsTax/Rev}\)</span>, percentage points of revenue)</strong>, which acts as a built-in specificity (negative-control) channel.</li>
 </ul></li>
-<li><strong>Unbundling the UNESCO Denominator Trap:</strong> We compare three strictly observed university funding exposures side by side (with zero cross-sectional proxy imputation):
+<li><strong>Unbundling Tertiary Education Spending Denominators:</strong> Focusing exclusively on public tertiary education, we compare three strictly observed tertiary spending measures side by side (with zero cross-sectional proxy imputation):
 <ul>
-<li><strong>UNESCO Per-Student Spending Ratio (<code>tert_spend_per_student_winsor</code>):</strong> Public spending per university student as a percentage of GDP per person.</li>
-<li><strong>Real 2021 PPP Dollars per Student (<code>real_tert_spend_per_student_ppp</code>):</strong> Removes GDP per person from the treatment denominator.</li>
-<li><strong>Public University Budget Share of GDP (<code>tert_spend_gdp_pct</code>):</strong> Removes student headcount from the treatment denominator (paired with total public education spending as a percentage of GDP, <code>edu_spend_total_gdp_pct</code>).</li>
+<li><strong>UNESCO Per-Student Tertiary Ratio (<code>tert_spend_per_student_winsor</code>):</strong> Public expenditure per tertiary student as a percentage of GDP per person.</li>
+<li><strong>Real 2021 PPP Dollars per Tertiary Student (<code>real_tert_spend_per_student_ppp</code>):</strong> Removes GDP per person from the treatment denominator.</li>
+<li><strong>Public Tertiary Budget Share of GDP (<code>tert_spend_gdp_pct</code>):</strong> Removes student headcount from the treatment denominator.</li>
 </ul></li>
-<li><strong>Separating Pre-Treatment Controls from Macroeconomic Mediators:</strong> Baseline controls use lagged (<span class="math inline">\(t-1\)</span>) GDP per person growth (<code>lag_gdp_pc_growth_pct</code>) rather than contemporaneous wave-<span class="math inline">\(t\)</span> growth, while contemporaneous forward GDP growth, enrolment expansion, inequality changes, and life expectancy changes are reserved explicitly for the <strong>Mediator-Removed Direct Fiscal Effect</strong> model.</li>
+<li><strong>Strict Temporal Ordering of Pre-Treatment Controls vs Post-Treatment Mediators:</strong> Baseline confounders <span class="math inline">\(X_{i,t}\)</span> are measured strictly at or before wave <span class="math inline">\(t\)</span> (using lagged <span class="math inline">\(t-1\)</span> GDP per person growth rather than contemporaneous wave-<span class="math inline">\(t\)</span> growth), while forward GDP per person growth, tertiary enrolment expansion, income inequality changes, and life expectancy changes over <span class="math inline">\([t, t+h]\)</span> are reserved for the <strong>Mediator-Removed Direct Fiscal Effect (<code>M2</code>)</strong> specification.</li>
 </ol>
 <hr>
 </section>
-<section id="unbundling-the-unesco-denominator-trap-across-income-groups" class="level2">
-<h2 class="anchored" data-anchor-id="unbundling-the-unesco-denominator-trap-across-income-groups">Unbundling the UNESCO Denominator Trap Across Income Groups</h2>
-<p>Table 1 summarises the three university funding measures and baseline tax structure across the four World Bank income groups.</p>
+<section id="sample-coverage-quality-screening-and-attrition" class="level2" data-number="2">
+<h2 data-number="2" class="anchored" data-anchor-id="sample-coverage-quality-screening-and-attrition"><span class="header-section-number">2</span> Sample Coverage, Quality Screening, and Attrition</h2>
+<p>Before constructing the estimation samples, our hygiene audit in <code>02_build_clean_tax_panel.R</code> verifies zero duplicate <code>(iso3, wave_index)</code> keys and screens out four physically or accounting-impossible raw World Bank WDI tax-to-GDP observations (<code>&lt;0.5%</code> or <code>&gt;60.0%</code> of GDP): Sudan in <code>1995-1999</code> (<code>629.19%</code> of GDP due to a historical currency-unit mismatch), Timor-Leste in <code>2010-2014</code> (<code>109.99%</code> of non-oil GDP due to offshore petroleum fund accounting), and the United Arab Emirates in <code>2010-2014</code> (<code>0.34%</code>) and <code>2015-2019</code> (<code>0.23%</code>, recording only federal-level fees rather than emirate-level revenues). <a href="#tbl-attrition" class="quarto-xref">Table&nbsp;1</a> documents sample coverage and attrition at each filtering stage.</p>
+<div id="tbl-attrition" class="quarto-float quarto-figure quarto-figure-center anchored" data-tbl-colwidths="[28, 36, 13, 11, 12]">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-attrition-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;1: Sample coverage and attrition across the global 5-year panel (<code>1985-1989</code> to <code>2020-2024</code>).
+</figcaption>
+<div aria-describedby="tbl-attrition-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 28%">
+<col style="width: 36%">
+<col style="width: 13%">
+<col style="width: 11%">
+<col style="width: 12%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Filtering Stage</th>
+<th style="text-align: left;">Sample Definition</th>
+<th style="text-align: center;">Country-Waves</th>
+<th style="text-align: center;">Countries</th>
+<th style="text-align: center;">Retention (%)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong>1. Full Global 5-Year Panel</strong></td>
+<td style="text-align: left;">217 sovereign countries <span class="math inline">\(\times\)</span> 8 waves (<code>1985-2024</code>)</td>
+<td style="text-align: center;">1,736</td>
+<td style="text-align: center;">217</td>
+<td style="text-align: center;">100.0%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>2. Valid Domestic Tax / GDP</strong></td>
+<td style="text-align: left;">Observed non-resource tax-to-GDP after anomaly screen</td>
+<td style="text-align: center;">914</td>
+<td style="text-align: center;">159</td>
+<td style="text-align: center;">52.6%</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>3. Complete 4-Channel Tax Vector</strong></td>
+<td style="text-align: left;">All 4 disaggregated tax outcomes observed at wave <span class="math inline">\(t\)</span></td>
+<td style="text-align: center;">883</td>
+<td style="text-align: center;">157</td>
+<td style="text-align: center;">50.9%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>4. Observed Per-Student Tertiary Spend</strong></td>
+<td style="text-align: left;">Observed UNESCO per-student tertiary ratio (<span class="math inline">\(Z_{\text{regime}}\)</span>)</td>
+<td style="text-align: center;">512</td>
+<td style="text-align: center;">166</td>
+<td style="text-align: center;">29.5%</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>5. Observed Tertiary Budget (% GDP)</strong></td>
+<td style="text-align: left;">Observed public tertiary budget share of GDP</td>
+<td style="text-align: center;">785</td>
+<td style="text-align: center;">183</td>
+<td style="text-align: center;">45.2%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>6. Complete <span class="math inline">\(+5\text{y}\)</span> Sample (<code>mvbcf</code>)</strong></td>
+<td style="text-align: left;">Complete 4-channel fiscal changes over <span class="math inline">\([t, t+1]\)</span> + <span class="math inline">\(Z_{\text{regime}}\)</span></td>
+<td style="text-align: center;"><strong>372</strong></td>
+<td style="text-align: center;"><strong>121</strong></td>
+<td style="text-align: center;"><strong>21.4%</strong></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>7. Complete <span class="math inline">\(+10\text{y}\)</span> Sample (<code>mvbcf</code>)</strong></td>
+<td style="text-align: left;">Complete 4-channel fiscal changes over <span class="math inline">\([t, t+2]\)</span> + <span class="math inline">\(Z_{\text{regime}}\)</span></td>
+<td style="text-align: center;"><strong>283</strong></td>
+<td style="text-align: center;"><strong>112</strong></td>
+<td style="text-align: center;"><strong>16.3%</strong></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>8. Complete 3-Wave Sample (<code>lbcf</code>)</strong></td>
+<td style="text-align: left;">Complete 3-wave trajectory (<span class="math inline">\(t, t+1, t+2\)</span>) across all 4 channels</td>
+<td style="text-align: center;"><strong>282</strong></td>
+<td style="text-align: center;"><strong>112</strong></td>
+<td style="text-align: center;"><strong>16.2%</strong></td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<hr>
+</section>
+<section id="unbundling-the-unesco-denominator-trap-across-income-groups" class="level2" data-number="3">
+<h2 data-number="3" class="anchored" data-anchor-id="unbundling-the-unesco-denominator-trap-across-income-groups"><span class="header-section-number">3</span> Unbundling the UNESCO Denominator Trap Across Income Groups</h2>
+<p>Why is unbundling the tertiary spending denominator essential in cross-national work? <a href="#tbl-eda1" class="quarto-xref">Table&nbsp;2</a> compares the three tertiary spending measures and baseline tax composition across the four World Bank income groups.</p>
 <div id="tbl-eda1" class="quarto-float quarto-figure quarto-figure-center anchored" data-tbl-colwidths="[28, 15, 15, 14, 14, 14]">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-eda1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;1: University spending indicators and baseline fiscal structure by World Bank income group (medians for skewed spending/enrolment indicators; means for tax shares).
+Table&nbsp;2: Tertiary spending indicators and baseline fiscal structure by World Bank income group (medians for skewed spending and enrolment variables; means for direct income tax share; UNESCO ratio winsorised at 150% for display).
 </figcaption>
 <div aria-describedby="tbl-eda1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
@@ -158,8 +262,8 @@ Table&nbsp;1: University spending indicators and baseline fiscal structure by Wo
 <th style="text-align: left;">Income Group (Countries, Waves)</th>
 <th style="text-align: center;">UNESCO Ratio (% GDP/pc)</th>
 <th style="text-align: center;"><strong>Real PPP $ / Student</strong></th>
-<th style="text-align: center;"><strong>Univ. Budget (% GDP)</strong></th>
-<th style="text-align: center;">Univ. Enrolment (%)</th>
+<th style="text-align: center;"><strong>Tertiary Budget (% GDP)</strong></th>
+<th style="text-align: center;">Tertiary Enrolment (%)</th>
 <th style="text-align: center;">Direct Income Tax Share (%)</th>
 </tr>
 </thead>
@@ -201,85 +305,559 @@ Table&nbsp;1: University spending indicators and baseline fiscal structure by Wo
 </div>
 </figure>
 </div>
-<p>Table 1 illustrates why comparing the raw UNESCO ratio across income groups is misleading without conditioning on income group or unbundling the denominators:</p>
+<p>As shown in <a href="#tbl-eda1" class="quarto-xref">Table&nbsp;2</a>:</p>
 <ul>
-<li>In <strong>Low income</strong> countries, only <strong>2.3%</strong> of the age cohort attends university, so dividing modest public university budgets (<code>0.47%</code> of GDP) by a tiny student headcount and a low GDP per person yields a median UNESCO ratio of <strong>150.0%</strong>.</li>
-<li>Once we unbundle the ratio into <strong>Real 2021 PPP Dollars per Student</strong> and <strong>Public University Budget (% of GDP)</strong>, <strong>High income</strong> countries invest nearly three times as much in real terms (<strong>$11,148</strong> per student vs <strong>$3,957</strong>) and twice as much as a share of national income (<strong>0.94%</strong> of GDP vs <strong>0.47%</strong>), while collecting a substantially higher share of revenue from direct income and profit taxes (<strong>38.4%</strong> vs <strong>29.2%</strong>).</li>
+<li>In <strong>Low income</strong> countries, only <strong>2.3%</strong> of the age cohort attends university, so dividing a modest public university budget (<strong>0.47%</strong> of GDP) by a tiny student headcount and a low GDP per person produces a winsorised median UNESCO ratio of <strong>150.0%</strong>.</li>
+<li>In <strong>High income</strong> countries, <strong>58.3%</strong> of the cohort attends university. Although their UNESCO ratio appears lower (<strong>26.9%</strong> of GDP per person), they actually spend nearly three times as much per student in real purchasing power (<strong>$11,148</strong> vs <strong>$3,957</strong>) and twice as much of their GDP on public universities (<strong>0.94%</strong> vs <strong>0.47%</strong>), while collecting <strong>38.4%</strong> of total revenue from direct income, profit, and capital gains taxes.</li>
 </ul>
+<p>To prevent this cross-income-group inversion from confounding treatment assignment, our primary regime indicator (<span class="math inline">\(Z_{\text{regime}} = 1\)</span>) compares each country-wave’s un-winsorised per-student spending ratio against the median of <strong>its own World Bank income group</strong>, and we evaluate all unbundled tertiary spending definitions side by side in our causal forest models.</p>
 <hr>
 </section>
-<section id="unadjusted-5-year-and-10-year-changes-in-the-four-tax-channels" class="level2">
-<h2 class="anchored" data-anchor-id="unadjusted-5-year-and-10-year-changes-in-the-four-tax-channels">Unadjusted <span class="math inline">\(+5\)</span>-Year and <span class="math inline">\(+10\)</span>-Year Changes in the Four Tax Channels</h2>
-<p>Table 2 compares the raw mean changes in our four fiscal outcomes between countries investing above their income-group benchmark (<span class="math inline">\(Z = 1\)</span>) and those below it (<span class="math inline">\(Z = 0\)</span>) across the outlier-screened four-outcome fiscal sample (<span class="math inline">\(N = 372\)</span> country-waves across 121 countries at <span class="math inline">\(+5\)</span> years; <span class="math inline">\(N = 283\)</span> country-waves across 112 countries at <span class="math inline">\(+10\)</span> years, after screening out two raw WDI reporting anomalies in Sudan <code>1995-1999</code> and Timor-Leste <code>2010-2014</code> where recorded tax revenue exceeded <code>100%</code> of GDP).</p>
-<div id="tbl-eda2" class="quarto-float quarto-figure quarto-figure-center anchored" data-tbl-colwidths="[28, 14, 15, 15, 14, 14]">
+<section id="raw-unadjusted-fiscal-trajectories-and-marginal-distributions" class="level2" data-number="4">
+<h2 data-number="4" class="anchored" data-anchor-id="raw-unadjusted-fiscal-trajectories-and-marginal-distributions"><span class="header-section-number">4</span> Raw Unadjusted Fiscal Trajectories and Marginal Distributions</h2>
+<p><a href="#tbl-eda2" class="quarto-xref">Table&nbsp;3</a> and <a href="#fig-eda1" class="quarto-xref">Figure&nbsp;1</a> present the raw, unadjusted <span class="math inline">\(+5\)</span>-year and <span class="math inline">\(+10\)</span>-year percentage-point changes across all four fiscal outcomes before any covariate or causal forest adjustment.</p>
+<div id="tbl-eda2" class="quarto-float quarto-figure quarto-figure-center anchored" data-tbl-colwidths="[22, 10, 16, 13, 13, 13, 13]">
 <figure class="quarto-float quarto-float-tbl figure">
 <figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-eda2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;2: Unadjusted mean changes across the four disaggregated fiscal outcomes by within-income-group university funding regime (<code>Z_regime_inc</code>).
+Table&nbsp;3: Raw unadjusted mean changes across the four disaggregated fiscal outcomes by within-income-group per-student tertiary funding regime.
 </figcaption>
 <div aria-describedby="tbl-eda2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
 <table class="caption-top table">
 <colgroup>
-<col style="width: 28%">
-<col style="width: 14%">
-<col style="width: 15%">
-<col style="width: 15%">
-<col style="width: 14%">
-<col style="width: 14%">
+<col style="width: 22%">
+<col style="width: 10%">
+<col style="width: 16%">
+<col style="width: 13%">
+<col style="width: 13%">
+<col style="width: 13%">
+<col style="width: 13%">
 </colgroup>
 <thead>
 <tr class="header">
-<th style="text-align: left;">Funding Regime (Horizon)</th>
-<th style="text-align: center;"><span class="math inline">\(N\)</span> (Countries)</th>
-<th style="text-align: center;"><strong>Non-Resource Tax / GDP (pp)</strong></th>
-<th style="text-align: center;"><strong>Direct Income Tax / GDP (pp)</strong></th>
-<th style="text-align: center;"><strong>Direct Income Tax Share (pp)</strong></th>
-<th style="text-align: center;">Goods &amp; Services Share (pp)</th>
+<th style="text-align: left;">Tertiary Funding Regime</th>
+<th style="text-align: center;">Horizon</th>
+<th style="text-align: center;">Country-Waves (Countries)</th>
+<th style="text-align: center;"><span class="math inline">\(\Delta\)</span> Non-Resource Tax / GDP (pp)</th>
+<th style="text-align: center;"><span class="math inline">\(\Delta\)</span> Direct Income Tax / GDP (pp)</th>
+<th style="text-align: center;"><strong><span class="math inline">\(\Delta\)</span> Direct Income Tax Share (pp)</strong></th>
+<th style="text-align: center;"><span class="math inline">\(\Delta\)</span> Goods &amp; Services Share (pp)</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;"><strong>Low Funding (<span class="math inline">\(Z = 0\)</span>, <span class="math inline">\(+5\text{y}\)</span>)</strong></td>
-<td style="text-align: center;">203 (83)</td>
-<td style="text-align: center;">+0.39</td>
-<td style="text-align: center;">+0.27</td>
-<td style="text-align: center;">+0.90</td>
-<td style="text-align: center;">+0.70</td>
+<td style="text-align: left;"><strong>Low Regime (<span class="math inline">\(Z=0\)</span>)</strong></td>
+<td style="text-align: center;"><span class="math inline">\(+5\text{y}\)</span></td>
+<td style="text-align: center;">196 (80)</td>
+<td style="text-align: center;">+0.35</td>
+<td style="text-align: center;">+0.26</td>
+<td style="text-align: center;">+0.89</td>
+<td style="text-align: center;">+0.57</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;"><strong>High Funding (<span class="math inline">\(Z = 1\)</span>, <span class="math inline">\(+5\text{y}\)</span>)</strong></td>
-<td style="text-align: center;">169 (70)</td>
-<td style="text-align: center;"><strong>+0.33</strong></td>
+<td style="text-align: left;"><strong>High Regime (<span class="math inline">\(Z=1\)</span>)</strong></td>
+<td style="text-align: center;"><span class="math inline">\(+5\text{y}\)</span></td>
+<td style="text-align: center;">176 (74)</td>
+<td style="text-align: center;">+0.37</td>
 <td style="text-align: center;"><strong>+0.40</strong></td>
-<td style="text-align: center;"><strong>+1.76</strong></td>
-<td style="text-align: center;">+0.33</td>
+<td style="text-align: center;"><strong>+1.74</strong></td>
+<td style="text-align: center;">+0.50</td>
 </tr>
 <tr class="odd">
-<td style="text-align: left;"><strong>Low Funding (<span class="math inline">\(Z = 0\)</span>, <span class="math inline">\(+10\text{y}\)</span>)</strong></td>
-<td style="text-align: center;">148 (73)</td>
-<td style="text-align: center;">+0.65</td>
-<td style="text-align: center;">+0.45</td>
-<td style="text-align: center;">+1.53</td>
-<td style="text-align: center;">+1.31</td>
+<td style="text-align: left;"><strong>Low Regime (<span class="math inline">\(Z=0\)</span>)</strong></td>
+<td style="text-align: center;"><span class="math inline">\(+10\text{y}\)</span></td>
+<td style="text-align: center;">142 (70)</td>
+<td style="text-align: center;">+0.59</td>
+<td style="text-align: center;">+0.44</td>
+<td style="text-align: center;">+1.56</td>
+<td style="text-align: center;">+0.99</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;"><strong>High Funding (<span class="math inline">\(Z = 1\)</span>, <span class="math inline">\(+10\text{y}\)</span>)</strong></td>
-<td style="text-align: center;">135 (65)</td>
-<td style="text-align: center;"><strong>+0.74</strong></td>
-<td style="text-align: center;"><strong>+0.65</strong></td>
-<td style="text-align: center;"><strong>+2.64</strong></td>
-<td style="text-align: center;">+0.62</td>
+<td style="text-align: left;"><strong>High Regime (<span class="math inline">\(Z=1\)</span>)</strong></td>
+<td style="text-align: center;"><span class="math inline">\(+10\text{y}\)</span></td>
+<td style="text-align: center;">141 (69)</td>
+<td style="text-align: center;"><strong>+0.80</strong></td>
+<td style="text-align: center;"><strong>+0.66</strong></td>
+<td style="text-align: center;"><strong>+2.57</strong></td>
+<td style="text-align: center;">+0.97</td>
 </tr>
 </tbody>
 </table>
 </div>
 </figure>
 </div>
-<p>Even before causal forest adjustment, three patterns stand out in Table 2:</p>
+<div id="fig-eda1" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-eda1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="figures/eda_fig1_raw_distributions_and_bivariate.png" class="img-fluid figure-img" style="width:100.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-eda1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Kernel density distributions of observed 10-year fiscal changes (percentage points) across all four tax outcomes by per-student tertiary funding regime (N = 283 country-waves across 112 countries).
+</figcaption>
+</figure>
+</div>
+<p>Even in the raw data (<a href="#tbl-eda2" class="quarto-xref">Table&nbsp;3</a> and <a href="#fig-eda1" class="quarto-xref">Figure&nbsp;1</a>), three patterns stand out:</p>
 <ol type="1">
-<li><strong>Long-Horizon Tax-Take Acceleration:</strong> While unadjusted <span class="math inline">\(+5\)</span>-year changes in overall non-resource tax-to-GDP are similar across groups (<code>+0.33</code> vs <code>+0.39</code> percentage points), by <span class="math inline">\(+10\)</span> years high university investors (<span class="math inline">\(Z = 1\)</span>) expand their non-resource tax-to-GDP ratio by <strong><code>+0.74</code> percentage points</strong> compared with <code>+0.65</code> percentage points among low investors (<span class="math inline">\(Z = 0\)</span>).</li>
-<li><strong>Direct Income and Profit Taxes Drive the Gain:</strong> Direct income, profit, and capital gains taxes as a share of GDP rise by <strong><code>+0.40</code> pp</strong> at <span class="math inline">\(+5\)</span> years and <strong><code>+0.65</code> pp</strong> at <span class="math inline">\(+10\)</span> years in high-investment regimes (versus <code>+0.27</code> and <code>+0.45</code> pp in low-investment regimes), shifting the composition of government revenue toward direct income taxation by <strong><code>+1.76</code> pp</strong> at <span class="math inline">\(+5\)</span> years and <strong><code>+2.64</code> pp</strong> at <span class="math inline">\(+10\)</span> years (nearly double the <code>+0.90</code> and <code>+1.53</code> pp shifts in low-investment regimes).</li>
-<li><strong>Specificity Against Indirect Consumption Taxes:</strong> On the negative-control channel (<span class="math inline">\(\Delta \text{Goods &amp; Services Tax Share}\)</span>), high university investors show less than half the increase in indirect consumption tax reliance (<code>+0.33</code> pp vs <code>+0.70</code> pp at <span class="math inline">\(+5\)</span> years; <code>+0.62</code> pp vs <code>+1.31</code> pp at <span class="math inline">\(+10\)</span> years), confirming that the fiscal shift is specific to the direct income and corporate tax base rather than an across-the-board tax hike.</li>
+<li><strong>Immediate and Growing Divergence in Direct Income Tax Share:</strong> Over <span class="math inline">\(+5\)</span> years, countries in the high per-student tertiary funding regime experience a <code>+1.74</code> percentage point increase in the direct income and profit share of revenue compared with <code>+0.89</code> percentage points in the low regime (raw difference <code>+0.85</code> pp). Over <span class="math inline">\(+10\)</span> years, this gap widens to <code>+2.57</code> pp vs <code>+1.56</code> pp (raw difference <strong><code>+1.01</code> pp</strong>).</li>
+<li><strong>Delayed Maturation in Overall Non-Resource Tax / GDP:</strong> At <span class="math inline">\(+5\)</span> years, raw overall non-resource tax-to-GDP changes are nearly identical across regimes (<code>+0.37</code> vs <code>+0.35</code> pp), whereas by <span class="math inline">\(+10\)</span> years the high-funding regime pulls ahead (<code>+0.80</code> vs <code>+0.59</code> pp, raw difference <strong><code>+0.21</code> pp of GDP</strong>), driven by direct income and profit taxes as a share of GDP (<code>+0.66</code> vs <code>+0.44</code> pp).</li>
+<li><strong>Zero Divergence on the Negative-Control Channel:</strong> On indirect goods and services (consumption/VAT) tax share, raw changes are slightly lower in the high tertiary spending regime at both <span class="math inline">\(+5\)</span> years (<code>+0.50</code> vs <code>+0.57</code> pp) and <span class="math inline">\(+10\)</span> years (<code>+0.97</code> vs <code>+0.99</code> pp).</li>
 </ol>
+<hr>
+</section>
+<section id="common-support-and-positivity-audit" class="level2" data-number="5">
+<h2 data-number="5" class="anchored" data-anchor-id="common-support-and-positivity-audit"><span class="header-section-number">5</span> Common Support and Positivity Audit</h2>
+<p>For causal forest estimates to be well-identified without extrapolating over empty cells, treated (<span class="math inline">\(Z=1\)</span>) and control (<span class="math inline">\(Z=0\)</span>) country-waves must exhibit substantial overlap in their pre-treatment propensity scores <span class="math inline">\(\hat{\pi}(X_{i,t}) = P(Z_{i,t}=1 \mid X_{i,t})\)</span>. <a href="#tbl-positivity" class="quarto-xref">Table&nbsp;4</a> and <a href="#fig-eda2" class="quarto-xref">Figure&nbsp;2</a> report the estimated propensity score distributions across the four World Bank income groups in the <span class="math inline">\(+5\)</span>-year estimation sample (<span class="math inline">\(N = 372\)</span>).</p>
+<div id="tbl-positivity" class="quarto-float quarto-figure quarto-figure-center anchored" data-tbl-colwidths="[24, 13, 13, 12, 12, 13, 13]">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-positivity-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;4: Pre-treatment propensity score positivity and common support diagnostics across World Bank income groups (<span class="math inline">\(N = 372\)</span> country-waves).
+</figcaption>
+<div aria-describedby="tbl-positivity-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 24%">
+<col style="width: 13%">
+<col style="width: 13%">
+<col style="width: 12%">
+<col style="width: 12%">
+<col style="width: 13%">
+<col style="width: 13%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">World Bank Income Group</th>
+<th style="text-align: center;">Country-Waves (<span class="math inline">\(N\)</span>)</th>
+<th style="text-align: center;">Treated Share (%)</th>
+<th style="text-align: center;">Mean <span class="math inline">\(\hat{\pi}\)</span> (<span class="math inline">\(Z=0\)</span>)</th>
+<th style="text-align: center;">Mean <span class="math inline">\(\hat{\pi}\)</span> (<span class="math inline">\(Z=1\)</span>)</th>
+<th style="text-align: center;"><span class="math inline">\([\min \hat{\pi}, \max \hat{\pi}]\)</span></th>
+<th style="text-align: center;">Share in <span class="math inline">\([0.05, 0.95]\)</span> (%)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong>Low income</strong></td>
+<td style="text-align: center;">20</td>
+<td style="text-align: center;">35.0%</td>
+<td style="text-align: center;">0.260</td>
+<td style="text-align: center;">0.595</td>
+<td style="text-align: center;"><span class="math inline">\([0.030, 0.945]\)</span></td>
+<td style="text-align: center;"><strong>90.0%</strong></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Lower middle income</strong></td>
+<td style="text-align: center;">59</td>
+<td style="text-align: center;">50.8%</td>
+<td style="text-align: center;">0.355</td>
+<td style="text-align: center;">0.736</td>
+<td style="text-align: center;"><span class="math inline">\([0.020, 0.980]\)</span></td>
+<td style="text-align: center;"><strong>72.9%</strong></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Upper middle income</strong></td>
+<td style="text-align: center;">105</td>
+<td style="text-align: center;">45.7%</td>
+<td style="text-align: center;">0.221</td>
+<td style="text-align: center;">0.606</td>
+<td style="text-align: center;"><span class="math inline">\([0.020, 0.980]\)</span></td>
+<td style="text-align: center;"><strong>81.0%</strong></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>High income</strong></td>
+<td style="text-align: center;">188</td>
+<td style="text-align: center;">48.4%</td>
+<td style="text-align: center;">0.293</td>
+<td style="text-align: center;">0.726</td>
+<td style="text-align: center;"><span class="math inline">\([0.020, 0.980]\)</span></td>
+<td style="text-align: center;"><strong>85.1%</strong></td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<div id="fig-eda2" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-eda2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="figures/eda_fig2_propensity_overlap.png" class="img-fluid figure-img" style="width:100.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-eda2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: Pre-treatment propensity score distributions for treated (Z = 1) and control (Z = 0) country-waves across World Bank income groups (N = 372 country-waves across 121 countries).
+</figcaption>
+</figure>
+</div>
+<p>Defining the primary regime threshold within each country’s own World Bank income group achieves a balanced treatment split across all development tiers (47.3% treated overall, ranging from 35.0% in Low income to 50.8% in Lower middle income), with over 81% of observations lying strictly inside the interior propensity interval <span class="math inline">\([0.05, 0.95]\)</span> and clear distributional overlap in every panel of <a href="#fig-eda2" class="quarto-xref">Figure&nbsp;2</a>.</p>
+<hr>
+</section>
+<section id="missing-data-analysis-and-mechanisms" class="level2" data-number="6">
+<h2 data-number="6" class="anchored" data-anchor-id="missing-data-analysis-and-mechanisms"><span class="header-section-number">6</span> Missing Data Analysis and Mechanisms</h2>
+<p><a href="#tbl-missing" class="quarto-xref">Table&nbsp;5</a> audits missingness rates across the full 1,736 country-wave grid, within the complete <span class="math inline">\(+5\)</span>-year estimation sample (<span class="math inline">\(N = 372\)</span>), and across Low versus High income economies.</p>
+<div id="tbl-missing" class="quarto-float quarto-figure quarto-figure-center anchored" data-tbl-colwidths="[36, 16, 16, 16, 16]">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-missing-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;5: Missing-data rates across the full 1,736 country-wave panel and within the <span class="math inline">\(N=372\)</span> primary estimation sample.
+</figcaption>
+<div aria-describedby="tbl-missing-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 36%">
+<col style="width: 16%">
+<col style="width: 16%">
+<col style="width: 16%">
+<col style="width: 16%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Variable Name</th>
+<th style="text-align: center;">Full Panel Missing (%)</th>
+<th style="text-align: center;"><span class="math inline">\(+5\text{y}\)</span> Sample Missing (%)</th>
+<th style="text-align: center;">Low Income Missing (%)</th>
+<th style="text-align: center;">High Income Missing (%)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong>Per-Student Tertiary Ratio (% GDP/pc)</strong></td>
+<td style="text-align: center;">70.5%</td>
+<td style="text-align: center;"><strong>0.0%</strong></td>
+<td style="text-align: center;">76.0%</td>
+<td style="text-align: center;">66.6%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Real 2021 PPP $ per Tertiary Student</strong></td>
+<td style="text-align: center;">71.0%</td>
+<td style="text-align: center;"><strong>0.0%</strong></td>
+<td style="text-align: center;">76.5%</td>
+<td style="text-align: center;">67.2%</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Public Tertiary Budget (% of GDP)</strong></td>
+<td style="text-align: center;">54.8%</td>
+<td style="text-align: center;"><strong>5.1%</strong></td>
+<td style="text-align: center;">60.5%</td>
+<td style="text-align: center;">53.2%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Non-Resource Tax Revenue (% of GDP)</strong></td>
+<td style="text-align: center;">47.4%</td>
+<td style="text-align: center;"><strong>0.0%</strong></td>
+<td style="text-align: center;">67.0%</td>
+<td style="text-align: center;">43.8%</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Direct Income &amp; Profit Share (% Rev)</strong></td>
+<td style="text-align: center;">48.4%</td>
+<td style="text-align: center;"><strong>0.0%</strong></td>
+<td style="text-align: center;">68.0%</td>
+<td style="text-align: center;">45.5%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Goods &amp; Services Tax Share (% Rev)</strong></td>
+<td style="text-align: center;">47.9%</td>
+<td style="text-align: center;"><strong>0.0%</strong></td>
+<td style="text-align: center;">68.0%</td>
+<td style="text-align: center;">44.3%</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Log Real GDP per Person (PPP)</strong></td>
+<td style="text-align: center;">21.4%</td>
+<td style="text-align: center;"><strong>0.0%</strong></td>
+<td style="text-align: center;">27.5%</td>
+<td style="text-align: center;">27.2%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Lagged (<span class="math inline">\(t-1\)</span>) GDP per Person Growth (%)</strong></td>
+<td style="text-align: center;">19.0%</td>
+<td style="text-align: center;"><strong>0.0%</strong></td>
+<td style="text-align: center;">21.0%</td>
+<td style="text-align: center;">23.1%</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Gross Tertiary Enrolment (%)</strong></td>
+<td style="text-align: center;">35.3%</td>
+<td style="text-align: center;"><strong>10.5%</strong></td>
+<td style="text-align: center;">31.0%</td>
+<td style="text-align: center;">47.4%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Harmonised Disposable Gini Index</strong></td>
+<td style="text-align: center;">31.0%</td>
+<td style="text-align: center;"><strong>3.0%</strong></td>
+<td style="text-align: center;">32.5%</td>
+<td style="text-align: center;">39.4%</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Trade Openness (% of GDP)</strong></td>
+<td style="text-align: center;">21.9%</td>
+<td style="text-align: center;"><strong>6.5%</strong></td>
+<td style="text-align: center;">28.5%</td>
+<td style="text-align: center;">25.9%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Total Unemployment Rate (%)</strong></td>
+<td style="text-align: center;">24.6%</td>
+<td style="text-align: center;"><strong>0.8%</strong></td>
+<td style="text-align: center;">12.5%</td>
+<td style="text-align: center;">35.9%</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p>Three conclusions follow from <a href="#tbl-missing" class="quarto-xref">Table&nbsp;5</a>:</p>
+<ol type="1">
+<li><strong>Missingness Mechanism (MAR Conditional on Development and State Capacity):</strong> Missingness in raw UNESCO tertiary spending and IMF GFS disaggregated tax breakdowns is <strong>not</strong> Missing Completely at Random (MCAR); it is higher in Low income states (67.0% to 76.0% across all eight waves since 1985) than in High income states (43.8% to 66.6%) because statistical reporting infrastructure scales with economic development and administrative capacity. Conditioning on income group, region, log GDP per person, and baseline tax shares in the BCF prognostic forest <span class="math inline">\(\mu(X_{i,t}, \hat{\pi}_{i,t})\)</span> directly accounts for these observable reporting correlates under Missing at Random (MAR).</li>
+<li><strong>Zero Imputation on Treatments or Outcomes:</strong> We never impute missing treatment exposures or tax outcomes. Every observation in our estimation samples has 100% strictly observed treatment and four-channel outcome data.</li>
+<li><strong>Minimal Baseline Covariate Missingness in the Estimation Sample:</strong> Within the <span class="math inline">\(N=372\)</span> estimation sample, missingness is <code>0.0%</code> for log GDP per person and lagged GDP growth, <code>0.8%</code> for unemployment, <code>3.0%</code> for disposable Gini, <code>6.5%</code> for trade openness, and <code>10.5%</code> for baseline tertiary enrolment. In our primary models, training-sample median imputation is coupled with explicit binary missingness flags in the covariate matrix, and Robustness Check <code>R4</code> verifies that dropping all country-waves with any missing baseline covariate yields even stronger <span class="math inline">\(+10\)</span>-year treatment effects.</li>
+</ol>
+<hr>
+</section>
+<section id="temporal-autocorrelation-stationarity-and-spatial-clustering" class="level2" data-number="7">
+<h2 data-number="7" class="anchored" data-anchor-id="temporal-autocorrelation-stationarity-and-spatial-clustering"><span class="header-section-number">7</span> Temporal Autocorrelation, Stationarity, and Spatial Clustering</h2>
+<p><a href="#tbl-tempspat" class="quarto-xref">Table&nbsp;6</a> compares the temporal autocorrelation (within-country lag-1 and lag-2 wave correlations), spatial/hierarchical clustering (sovereign country Intraclass Correlation Coefficient <span class="math inline">\(\text{ICC}_{\text{country}}\)</span> and World Bank regional <span class="math inline">\(\text{ICC}_{\text{region}}\)</span>), and panel convergence <span class="math inline">\(p\)</span>-values between raw baseline fiscal levels (<span class="math inline">\(Y_{i,t}\)</span>) and 5-year first-differenced changes (<span class="math inline">\(\Delta Y_{i,t+1}\)</span>).</p>
+<div id="tbl-tempspat" class="quarto-float quarto-figure quarto-figure-center anchored" data-tbl-colwidths="[28, 15, 11, 11, 11, 11, 13]">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-tempspat-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;6: Within-country temporal autocorrelation (Lag-1 and Lag-2 five-year wave ACFs), sovereign country and regional Intraclass Correlation Coefficients (ICC), and panel stationarity diagnostics comparing fiscal levels against 5-year percentage-point changes.
+</figcaption>
+<div aria-describedby="tbl-tempspat-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 28%">
+<col style="width: 15%">
+<col style="width: 11%">
+<col style="width: 11%">
+<col style="width: 11%">
+<col style="width: 11%">
+<col style="width: 13%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Fiscal Series</th>
+<th style="text-align: center;">Series Type</th>
+<th style="text-align: center;">Lag-1 ACF (<span class="math inline">\(r_1\)</span>)</th>
+<th style="text-align: center;">Lag-2 ACF (<span class="math inline">\(r_2\)</span>)</th>
+<th style="text-align: center;">Country ICC</th>
+<th style="text-align: center;">Region ICC</th>
+<th style="text-align: center;">Panel ADF <span class="math inline">\(p\)</span>-value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong>1. Non-Resource Tax / GDP (%)</strong></td>
+<td style="text-align: center;">Level (<span class="math inline">\(Y_t\)</span>)</td>
+<td style="text-align: center;"><strong>0.939</strong></td>
+<td style="text-align: center;">0.891</td>
+<td style="text-align: center;"><strong>0.878</strong></td>
+<td style="text-align: center;">0.160</td>
+<td style="text-align: center;"><span class="math inline">\(&lt;0.001\)</span></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>2. Direct Income Tax / GDP (%)</strong></td>
+<td style="text-align: center;">Level (<span class="math inline">\(Y_t\)</span>)</td>
+<td style="text-align: center;"><strong>0.941</strong></td>
+<td style="text-align: center;">0.907</td>
+<td style="text-align: center;"><strong>0.866</strong></td>
+<td style="text-align: center;">0.130</td>
+<td style="text-align: center;"><span class="math inline">\(&lt;0.001\)</span></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>3. Direct Income Tax Share (%)</strong></td>
+<td style="text-align: center;">Level (<span class="math inline">\(Y_t\)</span>)</td>
+<td style="text-align: center;"><strong>0.945</strong></td>
+<td style="text-align: center;">0.895</td>
+<td style="text-align: center;"><strong>0.844</strong></td>
+<td style="text-align: center;">0.221</td>
+<td style="text-align: center;"><span class="math inline">\(&lt;0.001\)</span></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>4. Goods &amp; Services Share (%)</strong></td>
+<td style="text-align: center;">Level (<span class="math inline">\(Y_t\)</span>)</td>
+<td style="text-align: center;"><strong>0.910</strong></td>
+<td style="text-align: center;">0.793</td>
+<td style="text-align: center;"><strong>0.749</strong></td>
+<td style="text-align: center;">0.151</td>
+<td style="text-align: center;"><span class="math inline">\(&lt;0.001\)</span></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>5. <span class="math inline">\(\Delta\)</span> Non-Resource Tax / GDP (pp)</strong></td>
+<td style="text-align: center;">Change (<span class="math inline">\(\Delta Y_{t+1}\)</span>)</td>
+<td style="text-align: center;"><strong>-0.094</strong></td>
+<td style="text-align: center;">-0.083</td>
+<td style="text-align: center;"><strong>0.000</strong></td>
+<td style="text-align: center;">0.000</td>
+<td style="text-align: center;"><span class="math inline">\(&lt;0.001\)</span></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>6. <span class="math inline">\(\Delta\)</span> Direct Income Tax / GDP (pp)</strong></td>
+<td style="text-align: center;">Change (<span class="math inline">\(\Delta Y_{t+1}\)</span>)</td>
+<td style="text-align: center;"><strong>-0.079</strong></td>
+<td style="text-align: center;">-0.139</td>
+<td style="text-align: center;"><strong>0.036</strong></td>
+<td style="text-align: center;">0.000</td>
+<td style="text-align: center;"><span class="math inline">\(&lt;0.001\)</span></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>7. <span class="math inline">\(\Delta\)</span> Direct Income Tax Share (pp)</strong></td>
+<td style="text-align: center;">Change (<span class="math inline">\(\Delta Y_{t+1}\)</span>)</td>
+<td style="text-align: center;"><strong>-0.001</strong></td>
+<td style="text-align: center;">-0.066</td>
+<td style="text-align: center;"><strong>0.000</strong></td>
+<td style="text-align: center;">0.005</td>
+<td style="text-align: center;"><span class="math inline">\(&lt;0.001\)</span></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>8. <span class="math inline">\(\Delta\)</span> Goods &amp; Services Share (pp)</strong></td>
+<td style="text-align: center;">Change (<span class="math inline">\(\Delta Y_{t+1}\)</span>)</td>
+<td style="text-align: center;"><strong>+0.065</strong></td>
+<td style="text-align: center;">-0.099</td>
+<td style="text-align: center;"><strong>0.029</strong></td>
+<td style="text-align: center;">0.019</td>
+<td style="text-align: center;"><span class="math inline">\(&lt;0.001\)</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<p><a href="#tbl-tempspat" class="quarto-xref">Table&nbsp;6</a> provides a clear econometric rationale for our modelling choices:</p>
+<ul>
+<li><strong>Why We Model Percentage-Point Changes (<span class="math inline">\(\Delta Y_{i,t+h}\)</span>) Rather Than Raw Levels:</strong> Raw fiscal levels <span class="math inline">\(Y_{i,t}\)</span> exhibit near-unit-root persistence within countries (<code>lag1_acf</code> between <code>0.910</code> and <code>0.945</code>) and massive between-country variance shares (<code>country_icc</code> between <code>0.749</code> and <code>0.878</code>). Taking 5-year and 10-year first differences (<span class="math inline">\(\Delta Y_{i,t+h} = Y_{i,t+h} - Y_{i,t}\)</span>) completely removes this non-stationary level persistence (reducing <code>lag1_acf</code> to <code>[-0.094, +0.065]</code> and <code>country_icc</code> to <code>[0.000, 0.036]</code>), while including baseline fiscal levels <span class="math inline">\(Y_{i,t}\)</span> in <span class="math inline">\(\mu(X_{i,t}, \hat{\pi}_{i,t})\)</span> accounts for mean-reversion and starting tax capacity.</li>
+<li><strong>Why We Cluster Uncertainty at the Sovereign Country Level:</strong> Because repeated waves come from the same sovereign states (and because 10-year windows <span class="math inline">\(t \to t+2\)</span> span two consecutive 5-year steps), all posterior probabilities and credible intervals are computed using a country-clustered Dirichlet block bootstrap over sovereign <code>iso3</code> clusters, complemented by Robustness Check <code>R2</code> on strictly non-overlapping 10-year decadal waves and our Three-Wave Longitudinal BCF (<code>lbcf</code>) model.</li>
+</ul>
+<hr>
+</section>
+<section id="feature-correlation-structure-and-variance-inflation-factors" class="level2" data-number="8">
+<h2 data-number="8" class="anchored" data-anchor-id="feature-correlation-structure-and-variance-inflation-factors"><span class="header-section-number">8</span> Feature Correlation Structure and Variance Inflation Factors</h2>
+<p>Finally, <a href="#tbl-vif" class="quarto-xref">Table&nbsp;7</a> and <a href="#fig-eda3" class="quarto-xref">Figure&nbsp;3</a> examine collinearity among the 15 continuous pre-treatment baseline covariates <span class="math inline">\(X_{i,t}\)</span> and their bivariate correlations with the <span class="math inline">\(+5\)</span>-year fiscal targets.</p>
+<div id="tbl-vif" class="quarto-float quarto-figure quarto-figure-center anchored" data-tbl-colwidths="[40, 20, 20, 20]">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-vif-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;7: Variance Inflation Factors (VIFs) for the continuous pre-treatment baseline confounders and pairwise correlations with <span class="math inline">\(+5\)</span>-year fiscal outcomes (<span class="math inline">\(N = 372\)</span>).
+</figcaption>
+<div aria-describedby="tbl-vif-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
+<colgroup>
+<col style="width: 40%">
+<col style="width: 20%">
+<col style="width: 20%">
+<col style="width: 20%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Baseline Covariate (<span class="math inline">\(X_{i,t}\)</span>)</th>
+<th style="text-align: center;">Variance Inflation Factor (VIF)</th>
+<th style="text-align: center;">Corr. with <span class="math inline">\(\Delta\text{Tax/GDP}_{+5\text{y}}\)</span></th>
+<th style="text-align: center;">Corr. with <span class="math inline">\(\Delta\text{IncomeTax/Rev}_{+5\text{y}}\)</span></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong>1. Log Real GDP per Person (PPP)</strong></td>
+<td style="text-align: center;"><strong>7.25</strong></td>
+<td style="text-align: center;">-0.130</td>
+<td style="text-align: center;">-0.066</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>2. Baseline Life Expectancy (Years)</strong></td>
+<td style="text-align: center;"><strong>6.03</strong></td>
+<td style="text-align: center;">-0.084</td>
+<td style="text-align: center;">+0.014</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>3. Baseline Gross Secondary Enrolment (%)</strong></td>
+<td style="text-align: center;"><strong>4.23</strong></td>
+<td style="text-align: center;">-0.117</td>
+<td style="text-align: center;">-0.076</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>4. Baseline Gross Tertiary Enrolment (%)</strong></td>
+<td style="text-align: center;"><strong>3.61</strong></td>
+<td style="text-align: center;">-0.152</td>
+<td style="text-align: center;">-0.094</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>5. Baseline Non-Resource Tax / GDP (%)</strong></td>
+<td style="text-align: center;"><strong>3.19</strong></td>
+<td style="text-align: center;">-0.190</td>
+<td style="text-align: center;">-0.046</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>6. Working-Age Population Share (%)</strong></td>
+<td style="text-align: center;"><strong>3.08</strong></td>
+<td style="text-align: center;">-0.062</td>
+<td style="text-align: center;">-0.091</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>7. Baseline Goods &amp; Services Tax Share (%)</strong></td>
+<td style="text-align: center;">2.06</td>
+<td style="text-align: center;">+0.010</td>
+<td style="text-align: center;">+0.142</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>8. Baseline Direct Income Tax Share (%)</strong></td>
+<td style="text-align: center;">2.03</td>
+<td style="text-align: center;">-0.053</td>
+<td style="text-align: center;">-0.167</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>9. Baseline Disposable Gini Index</strong></td>
+<td style="text-align: center;">1.89</td>
+<td style="text-align: center;">+0.112</td>
+<td style="text-align: center;">+0.075</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>10. Baseline Total Education Spend (% GDP)</strong></td>
+<td style="text-align: center;">1.77</td>
+<td style="text-align: center;">-0.044</td>
+<td style="text-align: center;">+0.008</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>11. Log Population Size</strong></td>
+<td style="text-align: center;">1.74</td>
+<td style="text-align: center;">-0.067</td>
+<td style="text-align: center;">-0.012</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>12. Natural Resource Rents (% GDP)</strong></td>
+<td style="text-align: center;">1.66</td>
+<td style="text-align: center;">+0.078</td>
+<td style="text-align: center;">-0.023</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>13. Trade Openness (% GDP)</strong></td>
+<td style="text-align: center;">1.53</td>
+<td style="text-align: center;">-0.011</td>
+<td style="text-align: center;">-0.006</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>14. Unemployment Rate (%)</strong></td>
+<td style="text-align: center;">1.44</td>
+<td style="text-align: center;">+0.078</td>
+<td style="text-align: center;">-0.027</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>15. Lagged (<span class="math inline">\(t-1\)</span>) GDP per Person Growth (%)</strong></td>
+<td style="text-align: center;">1.17</td>
+<td style="text-align: center;">+0.052</td>
+<td style="text-align: center;">+0.032</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+<div id="fig-eda3" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-eda3-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="figures/eda_fig3_feature_correlation_heatmap.png" class="img-fluid figure-img" style="width:92.0%">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-eda3-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: Pairwise Pearson correlation matrix across the 15 continuous pre-treatment baseline covariates (N = 372 country-waves).
+</figcaption>
+</figure>
+</div>
+<p>All 15 baseline covariates have Variance Inflation Factors well below the standard multicollinearity threshold of <code>10.0</code> (peaking at <code>7.25</code> for log GDP per person and <code>6.03</code> for life expectancy, which co-move across development), and no baseline predictor exhibits an anomalously large correlation with forward fiscal changes (<span class="math inline">\(\max |r| = 0.190\)</span>, reflecting mild mean-reversion in baseline tax ratios). This confirms that the baseline confounder matrix is free from mechanical target leakage and well-conditioned for both tree-ensemble splitting in BCF and linear panel benchmarks.</p>
 </section>
 
 </main>

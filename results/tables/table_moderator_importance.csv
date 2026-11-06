@@ -1,0 +1,9 @@
+moderator,mean_share_of_heterogeneity_pct,corr_tau_nonres_tax_gdp,corr_tau_inc_tax_gdp,corr_tau_inc_tax_share,corr_tau_goods_tax_share,mean_surrogate_r2_pct
+Baseline Log Real GDP per Person (PPP),8.1,-0.713,-0.465,0.757,-0.418,58.4
+Working-Age Population Share (%),6.1,-0.653,-0.435,0.747,-0.069,58.4
+Baseline Gross Tertiary Enrolment (%),3.7,-0.533,-0.592,0.669,-0.242,58.4
+OECD Membership Indicator,3.7,-0.495,-0.48,0.429,-0.824,58.4
+Baseline Direct Income Tax Share (%),3.4,-0.146,-0.28,0.209,-0.373,58.4
+Five-Year Wave Time Index,1.6,-0.062,-0.063,0.144,0.304,58.4
+Baseline Gross Secondary Enrolment (%),1.3,-0.545,-0.572,0.68,-0.348,58.4
+World Bank Income Group Tier,1.2,-0.615,-0.533,0.692,-0.466,58.4

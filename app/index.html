@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tertiary Education Spending &amp; Fiscal Returns: Interactive Causal Explorer</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+</head>
+<body>
+
+  <!-- Top Header -->
+  <header class="app-header">
+    <div class="header-inner">
+      <div>
+        <h1 class="app-title">Does Increasing Government Spend on Tertiary Education Improve Fiscal Policy?</h1>
+        <p class="app-subtitle">Interactive Causal &amp; Historical Explorer - Multivariate Bayesian Causal Forest Analysis (121 Countries, 1985-2024)</p>
+      </div>
+      <div class="header-badges">
+        <span class="badge">121 Countries</span>
+        <span class="badge">8 Five-Year Waves</span>
+        <span class="badge">MV-BCF &amp; Longitudinal BCF</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- 3-Tab Navigation Bar -->
+  <nav class="tabs-nav" aria-label="Explorer sections">
+    <div class="tabs-inner">
+      <button class="tab-btn active" data-tab="tab1" id="btn-tab1" type="button">
+        <span class="tab-num">1</span>
+        Future Tax Effect Comparison (Z = 0 &rarr; 1)
+      </button>
+      <button class="tab-btn" data-tab="tab2" id="btn-tab2" type="button">
+        <span class="tab-num">2</span>
+        Historical Spending vs Tax Animation (1985-2024)
+      </button>
+      <button class="tab-btn" data-tab="tab3" id="btn-tab3" type="button">
+        <span class="tab-num">3</span>
+        Policy &amp; Moderator Scenario Simulator (CATE)
+      </button>
+    </div>
+  </nav>
+
+  <!-- Main Workspace -->
+  <main class="app-container">
+
+    <!-- =================================================================== -->
+    <!-- TAB 1: Country Future Tax Effect Comparison (Z = 0 -> 1)            -->
+    <!-- =================================================================== -->
+    <section class="tab-pane active" id="tab1">
+      <div class="question-banner">
+        <div>
+          <h2>Question 1: If Country [X] Increases Tertiary Education Investment (Z = 0 &rarr; 1), What Happens to Tax Revenue in 5 or 10 Years?</h2>
+          <p>Compare posterior treatment effects across countries against the global Average Treatment Effect (ATE), with 80% and 95% Bayesian credible intervals (CI).</p>
+        </div>
+      </div>
+
+      <div class="workspace-grid">
+        <!-- Left Sidebar Controls -->
+        <aside>
+          <div class="panel-card">
+            <h3>1. Horizon &amp; Tax Outcome</h3>
+
+            <div class="control-group">
+              <span class="control-label">Forecast Horizon (Y Years Ahead)</span>
+              <div class="segmented-group" id="t1-horizon-group">
+                <button type="button" class="seg-btn" data-horizon="5">+5 Years</button>
+                <button type="button" class="seg-btn active" data-horizon="10">+10 Years</button>
+                <button type="button" class="seg-btn" data-horizon="both">Compare 5y &amp; 10y</button>
+              </div>
+              <div class="control-hint">Tertiary students take 3 to 4 years to graduate; fiscal effects mature at the 10-year horizon.</div>
+            </div>
+
+            <div class="control-group">
+              <label class="control-label" for="t1-outcome-select">Tax Revenue Indicator</label>
+              <select id="t1-outcome-select">
+                <option value="inc_share">Income &amp; Profit Tax Share (% of Revenue)</option>
+                <option value="inc_gdp">Income &amp; Profit Tax (% of GDP)</option>
+                <option value="tax_gdp">Total Non-Resource Tax (% of GDP)</option>
+                <option value="goods_share">Goods &amp; Services Tax Share (% of Revenue)</option>
+                <option value="all4">All 4 Tax Outcomes Side-by-Side</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="panel-card">
+            <h3>
+              <span>2. Select Countries to Compare</span>
+              <span id="t1-selected-count" class="country-tag">6 selected</span>
+            </h3>
+
+            <div class="preset-pills">
+              <button type="button" class="preset-pill" data-preset="default">Featured 6</button>
+              <button type="button" class="preset-pill" data-preset="nordic">Nordic &amp; Europe</button>
+              <button type="button" class="preset-pill" data-preset="anglo">Anglo-OECD</button>
+              <button type="button" class="preset-pill" data-preset="emerging">Emerging Economies</button>
+              <button type="button" class="preset-pill" data-preset="clear">Clear</button>
+            </div>
+
+            <input type="text" id="t1-country-search" placeholder="Search 121 countries by name or ISO3..." />
+            <div class="country-list-box" id="t1-country-list"></div>
+            <div class="control-hint">Tick multiple countries to compare their estimated effects against the Global ATE benchmark.</div>
+          </div>
+        </aside>
+
+        <!-- Right Visualisation Area -->
+        <div>
+          <div class="kpi-row" id="t1-kpi-row"></div>
+
+          <div class="panel-card">
+            <h3>
+              <span id="t1-main-chart-title">Posterior Treatment Effect by Country (Z = 0 &rarr; 1)</span>
+              <span class="country-tag">80% (thick) &amp; 95% (thin) Credible Intervals</span>
+            </h3>
+            <div id="t1-forest-plot" class="plot-box"></div>
+          </div>
+
+          <div class="panel-card">
+            <h3>
+              <span>10-Year Longitudinal Trajectory: Baseline (Wave 0) &rarr; +5 Years (Wave 1) &rarr; +10 Years (Wave 2)</span>
+              <span class="country-tag">Longitudinal BCF &amp; Horizon Trajectory</span>
+            </h3>
+            <div id="t1-trajectory-plot" class="plot-box-sm"></div>
+          </div>
+
+          <div class="panel-card">
+            <h3>Selected Countries Summary Table</h3>
+            <div class="data-table-wrap">
+              <table class="app-table" id="t1-summary-table">
+                <thead>
+                  <tr>
+                    <th>Country</th>
+                    <th>Region / Group</th>
+                    <th>+5y Effect (80% CI)</th>
+                    <th>+10y Effect (80% CI)</th>
+                    <th>10y Cumulative LBCF</th>
+                    <th>Baseline Tax Level</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TAB 2: Historical Gapminder-Style Animated Trajectory Explorer      -->
+    <!-- =================================================================== -->
+    <section class="tab-pane" id="tab2">
+      <div class="question-banner">
+        <div>
+          <h2>Question 2: What Has Previously Happened to Country [X]'s Tax Take as Tertiary Spending Went Up or Down?</h2>
+          <p>Play the animated trajectory across the 8 five-year waves (1985-1989 to 2020-2024), or select specific countries to trace their historical paths over time.</p>
+        </div>
+      </div>
+
+      <div class="workspace-grid">
+        <!-- Left Sidebar Controls -->
+        <aside>
+          <div class="panel-card">
+            <h3>1. View Mode &amp; Axes</h3>
+
+            <div class="control-group">
+              <span class="control-label">Plot Representation</span>
+              <div class="segmented-group" id="t2-mode-group">
+                <button type="button" class="seg-btn active" data-mode="changes">5-Year Changes (&Delta;)</button>
+                <button type="button" class="seg-btn" data-mode="levels">Historical Levels</button>
+              </div>
+              <div class="control-hint">Switch between wave-over-wave changes in spending vs tax take, or overall historical levels.</div>
+            </div>
+
+            <div class="control-group">
+              <label class="control-label" for="t2-x-select">Horizontal Axis (Tertiary Spending)</label>
+              <select id="t2-x-select">
+                <option value="tert_spend_abs_change">&Delta; Spend per Student (% GDP/cap change)</option>
+                <option value="d_log_real_spend_stu_pct">&Delta; Real PPP Spend per Student (% growth)</option>
+                <option value="d_tert_spend_gdp_pp">&Delta; Tertiary Budget Share (pp of GDP)</option>
+                <option value="tert_spend_per_student_winsor">Level: Spend per Student (% GDP/cap)</option>
+                <option value="real_tert_spend_per_student_ppp">Level: Real Spend per Student (2021 PPP $)</option>
+                <option value="tert_spend_gdp_pct">Level: Tertiary Spending (% of GDP)</option>
+              </select>
+            </div>
+
+            <div class="control-group">
+              <label class="control-label" for="t2-y-select">Vertical Axis (Tax Revenue)</label>
+              <select id="t2-y-select">
+                <option value="d_prev_inc_tax_share_pp">&Delta; Income Tax Share (pp of revenue)</option>
+                <option value="d_prev_inc_tax_gdp_pp">&Delta; Income Tax Revenue (pp of GDP)</option>
+                <option value="d_prev_nonres_tax_gdp_pp">&Delta; Total Non-Resource Tax (pp of GDP)</option>
+                <option value="d_t2_inc_tax_share_pp">10-Year Forward &Delta; Income Tax Share (pp)</option>
+                <option value="income_profit_tax_share_rev_pct">Level: Income Tax Share (% of revenue)</option>
+                <option value="inc_tax_gdp_pct">Level: Income Tax Revenue (% of GDP)</option>
+                <option value="non_resource_tax_gdp_pct">Level: Non-Resource Tax (% of GDP)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="panel-card">
+            <h3>
+              <span>2. Highlight Country Trails</span>
+              <span id="t2-selected-count" class="country-tag">4 traced</span>
+            </h3>
+
+            <div class="preset-pills">
+              <button type="button" class="preset-pill" data-t2preset="default">IRL, GBR, SWE, KOR</button>
+              <button type="button" class="preset-pill" data-t2preset="oecd">OECD Reformers</button>
+              <button type="button" class="preset-pill" data-t2preset="latam">Latin America &amp; Asia</button>
+              <button type="button" class="preset-pill" data-t2preset="clear">Hide Trails</button>
+            </div>
+
+            <input type="text" id="t2-country-search" placeholder="Search country to trace path..." />
+            <div class="country-list-box" id="t2-country-list"></div>
+            <div class="control-hint">Selected countries display connected historical arrows from 1985-1989 up to the active wave.</div>
+          </div>
+        </aside>
+
+        <!-- Right Visualisation Area -->
+        <div>
+          <!-- Animation Player Bar -->
+          <div class="player-bar">
+            <button type="button" class="play-btn" id="t2-play-btn">&#9654; Play Waves</button>
+            <div class="wave-slider-wrap">
+              <input type="range" id="t2-wave-slider" min="1" max="8" step="1" value="8" />
+              <div style="display:flex; justify-content:space-between; font-size:0.72rem; color:#475569; margin-top:0.15rem;">
+                <span>W1: 1985-89</span>
+                <span>W2: 1990-94</span>
+                <span>W3: 1995-99</span>
+                <span>W4: 2000-04</span>
+                <span>W5: 2005-09</span>
+                <span>W6: 2010-14</span>
+                <span>W7: 2015-19</span>
+                <span>W8: 2020-24</span>
+              </div>
+            </div>
+            <span class="wave-badge" id="t2-wave-badge">2020-2024</span>
+          </div>
+
+          <div class="panel-card">
+            <h3>
+              <span id="t2-scatter-title">Gapminder-Style Trajectory: Tertiary Spending vs Tax Revenue Across Waves</span>
+              <span class="country-tag">Bubble Size = Population | Colour = Region</span>
+            </h3>
+            <div id="t2-gapminder-plot" class="plot-box"></div>
+          </div>
+
+          <div class="panel-card">
+            <h3>
+              <span>Synchronised Historical Time-Series for Highlighted Countries (1985-2024)</span>
+              <span class="country-tag">Left: Spending Indicator | Right: Tax Indicator</span>
+            </h3>
+            <div id="t2-timeseries-plot" class="plot-box-sm"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TAB 3: Counterfactual Policy & Moderator Scenario Simulator (CATE)  -->
+    <!-- =================================================================== -->
+    <section class="tab-pane" id="tab3">
+      <div class="question-banner">
+        <div>
+          <h2>Question 3: If Country [X] Changed Tertiary Spending AND Other Structural Moderators Shifted, What Would Be the Effect on Tax Take?</h2>
+          <p>Explore how a country's Conditional Average Treatment Effect (CATE) responds to policy direction and structural covariates. Extra variables default automatically to the selected country's baseline averages.</p>
+        </div>
+      </div>
+
+      <div class="workspace-grid">
+        <!-- Left Sidebar Controls -->
+        <aside>
+          <div class="panel-card">
+            <h3>1. Primary Policy Scenario</h3>
+
+            <div class="control-group">
+              <label class="control-label" for="t3-country-select">Select Country [X]</label>
+              <select id="t3-country-select"></select>
+              <div class="control-hint">Selecting a country automatically sets all structural moderators to its observed historical average.</div>
+            </div>
+
+            <div class="control-group">
+              <span class="control-label">Tertiary Spending Policy Direction</span>
+              <div class="segmented-group" id="t3-direction-group">
+                <button type="button" class="seg-btn active" data-dir="1">Increase Spend (Z: 0 &rarr; 1)</button>
+                <button type="button" class="seg-btn" data-dir="-1">Reduce Spend (Z: 1 &rarr; 0)</button>
+              </div>
+            </div>
+
+            <div class="control-group">
+              <span class="control-label">Evaluation Horizon</span>
+              <div class="segmented-group" id="t3-horizon-group">
+                <button type="button" class="seg-btn" data-h="5">+5 Years Ahead</button>
+                <button type="button" class="seg-btn active" data-h="10">+10 Years Ahead</button>
+              </div>
+            </div>
+
+            <!-- Progressive Disclosure Drawer for Extra Moderator Variables -->
+            <div class="advanced-drawer">
+              <button type="button" class="drawer-toggle" id="t3-drawer-toggle" aria-expanded="false">
+                <span>&#9881; Customise Structural Moderators (Optional)</span>
+                <span id="t3-drawer-arrow">&#9662; Show</span>
+              </button>
+              <div class="drawer-body" id="t3-drawer-body">
+                <p class="control-hint" style="margin-top:0; margin-bottom:0.75rem;">
+                  By default, these 7 moderators remain fixed at the selected country's baseline averages. Adjust any slider below to simulate how changing structural conditions alter the predicted CATE.
+                </p>
+
+                <div class="slider-item">
+                  <div class="slider-header">
+                    <span>Gross Tertiary Enrolment (%)</span>
+                    <span class="slider-val" id="val-gross_tert_enrolment_pct">--</span>
+                  </div>
+                  <input type="range" id="mod-gross_tert_enrolment_pct" min="2" max="115" step="1" />
+                </div>
+
+                <div class="slider-item">
+                  <div class="slider-header">
+                    <span>Real GDP per Capita (2021 PPP $)</span>
+                    <span class="slider-val" id="val-gdp_pc_ppp">--</span>
+                  </div>
+                  <input type="range" id="mod-gdp_pc_ppp" min="1500" max="110000" step="500" />
+                </div>
+
+                <div class="slider-item">
+                  <div class="slider-header">
+                    <span>Gross Secondary Enrolment (%)</span>
+                    <span class="slider-val" id="val-gross_seco_enrolment_pct">--</span>
+                  </div>
+                  <input type="range" id="mod-gross_seco_enrolment_pct" min="15" max="140" step="1" />
+                </div>
+
+                <div class="slider-item">
+                  <div class="slider-header">
+                    <span>Baseline Income Tax Share (% rev)</span>
+                    <span class="slider-val" id="val-income_profit_tax_share_rev_pct">--</span>
+                  </div>
+                  <input type="range" id="mod-income_profit_tax_share_rev_pct" min="5" max="65" step="0.5" />
+                </div>
+
+                <div class="slider-item">
+                  <div class="slider-header">
+                    <span>Working-Age Population 15-64 (%)</span>
+                    <span class="slider-val" id="val-working_age_pop_15_64_pct">--</span>
+                  </div>
+                  <input type="range" id="mod-working_age_pop_15_64_pct" min="48" max="78" step="0.5" />
+                </div>
+
+                <div class="slider-item">
+                  <div class="slider-header">
+                    <span>Disposable Income Gini Index</span>
+                    <span class="slider-val" id="val-gini_disp_harmonised">--</span>
+                  </div>
+                  <input type="range" id="mod-gini_disp_harmonised" min="22" max="62" step="0.5" />
+                </div>
+
+                <div class="slider-item">
+                  <div class="slider-header">
+                    <span>Life Expectancy at Birth (Years)</span>
+                    <span class="slider-val" id="val-life_expectancy_birth_yrs">--</span>
+                  </div>
+                  <input type="range" id="mod-life_expectancy_birth_yrs" min="45" max="85" step="0.5" />
+                </div>
+
+                <button type="button" class="reset-btn" id="t3-reset-btn">
+                  &#8634; Reset All Moderators to Country Averages
+                </button>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        <!-- Right Visualisation Area -->
+        <div>
+          <div class="kpi-row" id="t3-kpi-row"></div>
+
+          <div class="panel-card">
+            <h3>
+              <span id="t3-chart-title">Baseline Country CATE vs Custom Counterfactual Scenario Across All 4 Tax Channels</span>
+              <span class="country-tag">80% Credible Intervals Shown</span>
+            </h3>
+            <div id="t3-scenario-plot" class="plot-box"></div>
+          </div>
+
+          <div class="panel-card">
+            <h3>
+              <span>Moderator Contribution &amp; Sensitivity Breakdown (How Each Covariate Shifts the CATE)</span>
+              <span class="country-tag">Surrogate Response Surface Decomposition</span>
+            </h3>
+            <div id="t3-sensitivity-plot" class="plot-box-sm"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="footer-note">
+      Companion interactive explorer for <em>Does Increasing Government Spend on Tertiary Education Improve Fiscal Policy? A Causal Inference Analysis</em> by Andrew C. Parnell (School of Mathematics and Statistics, University College Dublin). All credible intervals (CI) and posterior probabilities (P) are derived from the Multivariate Bayesian Causal Forest (MV-BCF) and Longitudinal BCF models.
+    </footer>
+
+  </main>
+
+  <script src="data/app_data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

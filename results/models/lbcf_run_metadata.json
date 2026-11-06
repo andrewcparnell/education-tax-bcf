@@ -1,0 +1,7 @@
+{
+  "script": "src/r/05_run_longitudinal_bcf_tax.R",
+  "seed": 20261104,
+  "r_version": "R version 4.6.1 (2026-06-24)",
+  "wall_clock_seconds": 204.54,
+  "timestamp_utc": "2026-11-06 00:45:48 UTC"
+}

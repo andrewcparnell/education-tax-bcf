@@ -1,0 +1,33 @@
+# Referee Report: Reviewer 6 (Reproducibility & Number-Matching Referee)
+
+**Manuscript Title:** *Does Increasing Government Spend on Tertiary Education Improve the Future Tax Take? A Bayesian Causal Inference Analysis*  
+**Date of Audit:** 5 November 2026
+
+### 1. Overall impression
+
+This report documents the in-session reproducibility and number-matching audit of the repository (`/Users/andrewparnell/Documents/GitHub/education-tax-bcf`). The audit inspected all R scripts (`src/r/01` through `06`), C++ MCMC samplers (`src/cpp/mvbcf_source_code.cpp` and `src/cpp/lbcf_3wave.cpp`), build files (`src/cpp/Makevars`), raw and processed datasets (`data/raw/` and `data/processed/`), generated CSV tables (`outputs/tables/`), and manuscript files (`paper/paper.tex`, `paper/paper.md`, and `paper/paper.pdf`).
+
+While the R and C++ modelling scripts execute cleanly inside the development workspace and `paper/paper.pdf` compiles in `pdflatex` + `bibtex` with zero LaTeX warnings or overfull boxes, the repository currently fails the clean-environment portability test for three structural reasons: (1) every R script in `src/r/` hard-codes the local absolute directory path `repo_root <- "/Users/andrewparnell/Documents/GitHub/education-tax-bcf"`, and `src/cpp/Makevars` hard-codes `/opt/homebrew/opt/gcc/lib/gcc/current`; (2) the root directory lacks the master reproduction script `run_all.sh` and an explicit environment specification file (`environment.yml` / `sessionInfo.txt`); and (3) cross-checking every cell of `outputs/tables/*.csv` against `paper/paper.tex` and `paper/paper.md` uncovers several specific numerical and descriptive discrepancies that must be resolved before release.
+
+### 2. Major concerns
+
+1. **Hard-coded local absolute paths in all six R scripts (`src/r/01` to `06`) and `src/cpp/Makevars`.**  
+   Every R script in `src/r/` sets `repo_root <- "/Users/andrewparnell/Documents/GitHub/education-tax-bcf"` instead of resolving the repository root dynamically from the working directory or script location (`getwd()`). Similarly, `src/cpp/Makevars` hard-codes `-L/opt/homebrew/opt/gcc/lib/gcc/current`. Cloning the repository into a fresh directory (or onto another machine or Linux server) causes the scripts either to fail or to overwrite files in the original path rather than the cloned directory.  
+   *Actionable fix:* Replace all hard-coded `repo_root` strings in `src/r/01` through `06` with `repo_root <- normalizePath(getwd(), mustWork = TRUE)` (or automatic detection relative to `--file=`), and make `src/cpp/Makevars` use R's standard `$(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)`.
+
+2. **Missing master pipeline script (`run_all.sh`), environment specification (`environment.yml`), and automated verification tests (`tests/`).**  
+   Although `paper/paper.tex` (Data and Code Availability Statements) and the workflow specification require an end-to-end master script `run_all.sh` and an environment definition (`environment.yml`), neither file exists in the repository root, and `tests/` is currently empty.  
+   *Actionable fix:* Create an executable `run_all.sh` in the repository root that runs Steps 01 through 06, renders `eda/eda_report.qmd`, compiles `paper/paper.pdf`, runs `tests/test_pipeline_and_manuscript.R`, and runs `python3 scripts/check_style.py --warnings-as-errors --data-plural error --all .`; create `environment.yml` documenting exact R and C++ package versions; and remove the legacy duplicate `results/` directory once all scripts write exclusively to `outputs/`.
+
+3. **Discrepancies between generated CSV tables (`outputs/tables/*.csv`) and manuscript numbers (`paper/paper.tex` and `paper/paper.md`).**  
+   A cell-by-cell audit comparing `outputs/tables/*.csv` against the manuscript text and tables identified the following discrepancies:
+   - *Subgroup posterior probabilities (`outputs/tables/table3_subgroup_cates.csv` vs Table 4 `\label{tab:subgroups}`):* `04_run_mvbcf_tax_models.R` only exports `prob_inc_share_pos` (Outcome 3) to `table3_subgroup_cates.csv` and omits posterior probabilities for Outcomes 1 and 2 (`prob_tax_gdp_pos` and `prob_inc_gdp_pos`). Furthermore, in Row 6 (`OECD Nordic High-Public`), `table3_subgroup_cates.csv` records `prob_inc_share_pos = 0.934`, whereas Table 4 in `paper.tex` prints `P=0.95`. In addition, Table 4 omits the `Low income` ($N=15, C=9$) and `Lower middle income` ($N=47, C=21$) rows even though the main text cites the Lower-Middle Income estimate ($+0.99\text{ pp}$).
+   - *Sample-size mismatch in Benchmark `B1` (`outputs/tables/table_method_benchmarks.csv` vs Table 6 `\label{tab:benchmarks}`):* Table 6 states that all models are fitted on $N = 283$ (112 countries), whereas `table_method_benchmarks.csv` records $N = 287, 284, 285, \text{ and } 285$ for `B1_Univariate_BCF_10y` because `complete.cases()` was applied outcome-by-outcome rather than to the joint four-outcome vector.
+   - *Hard-coded `L6` difference bound in `outputs/tables/leakage_audit.csv`:* `04_run_mvbcf_tax_models.R` (line 307) hard-codes `"difference <= 0.04 pp across channels"` before running `R8`, whereas the actual difference between `M2b` and `R8` in `table4_robustness_checks.csv` is `0.03 pp` on Non-Resource Tax / GDP, `0.02 pp` on Direct Income Tax / GDP, and `0.23 pp` on Direct Income Tax Share.
+   - *Conflicting ESS and Geweke $z$-score formulas between `table1_mvbcf_ate_posteriors.csv` and `tableA1_convergence_and_fit_diagnostics.csv`:* `04_run_mvbcf_tax_models.R` uses a lag-1 ESS and unadjusted Geweke $z$-score, whereas `06_generate_figures_and_diagnostics.R` uses a 50-lag ESS and ESS-adjusted Geweke $z$-score.
+   - *Baseline covariate list in Section 4.1 (`paper.tex` line 188) and WDI anomaly count in Section 3.1 (`paper.tex` line 123):* Section 4.1 lists `"inflation, ... external debt, institutional democracy"` which are not in `base_con_vars`, and Section 3.1 states that the WDI `<0.5%` or `>60%` filter catches **two** anomalies whereas `02_build_clean_tax_panel.R` and `eda_table0_attrition_and_coverage.csv` screen **four** country-waves (Sudan `1995-1999`, Timor-Leste `2010-2014`, and United Arab Emirates `2010-2014` and `2015-2019`).
+
+### 3. Minor concerns
+
+1. **`README.md` title and instructions:** Update the title in `README.md` to match the manuscript title (*Does Increasing Government Spend on Tertiary Education Improve the Future Tax Take? A Bayesian Causal Inference Analysis*) and add instructions for running `bash run_all.sh`.
+2. **Synchronisation between `paper/paper.tex` and `paper/paper.md`:** Include Appendix A (mathematical sampler specification) in `paper/paper.md` so that the appendix lettering (`Appendix A`, `Appendix B`, `Appendix C`) is identical across both formats.

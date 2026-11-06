@@ -1,21 +1,21 @@
 model,horizon,pair,param_type,post_mean,cri95_low,cri95_high
-M2_Direct_Effect,+5 years (t+1),Residual SD: Non-Resource Tax / GDP (pp),Residual_SD,1.949,1.797,2.114
-M2_Direct_Effect,+5 years (t+1),Non-Resource Tax / GDP (pp) <-> Direct Income & Profit Tax / GDP (pp),Residual_Correlation,0.574,0.495,0.648
-M2_Direct_Effect,+5 years (t+1),Non-Resource Tax / GDP (pp) <-> Direct Income & Profit Share of Revenue (pp),Residual_Correlation,-0.037,-0.149,0.081
-M2_Direct_Effect,+5 years (t+1),Non-Resource Tax / GDP (pp) <-> Goods & Services Tax Share of Revenue (pp),Residual_Correlation,0.149,0.036,0.255
-M2_Direct_Effect,+5 years (t+1),Residual SD: Direct Income & Profit Tax / GDP (pp),Residual_SD,1.008,0.929,1.088
-M2_Direct_Effect,+5 years (t+1),Direct Income & Profit Tax / GDP (pp) <-> Direct Income & Profit Share of Revenue (pp),Residual_Correlation,0.721,0.659,0.776
-M2_Direct_Effect,+5 years (t+1),Direct Income & Profit Tax / GDP (pp) <-> Goods & Services Tax Share of Revenue (pp),Residual_Correlation,-0.232,-0.337,-0.112
-M2_Direct_Effect,+5 years (t+1),Residual SD: Direct Income & Profit Share of Revenue (pp),Residual_SD,4.155,3.828,4.507
-M2_Direct_Effect,+5 years (t+1),Direct Income & Profit Share of Revenue (pp) <-> Goods & Services Tax Share of Revenue (pp),Residual_Correlation,-0.424,-0.523,-0.315
-M2_Direct_Effect,+5 years (t+1),Residual SD: Goods & Services Tax Share of Revenue (pp),Residual_SD,4.337,3.985,4.71
-M2_Direct_Effect,+10 years (t+2),Residual SD: Non-Resource Tax / GDP (pp),Residual_SD,2.651,2.402,2.954
-M2_Direct_Effect,+10 years (t+2),Non-Resource Tax / GDP (pp) <-> Direct Income & Profit Tax / GDP (pp),Residual_Correlation,0.632,0.536,0.71
-M2_Direct_Effect,+10 years (t+2),Non-Resource Tax / GDP (pp) <-> Direct Income & Profit Share of Revenue (pp),Residual_Correlation,0.033,-0.098,0.171
-M2_Direct_Effect,+10 years (t+2),Non-Resource Tax / GDP (pp) <-> Goods & Services Tax Share of Revenue (pp),Residual_Correlation,0.316,0.186,0.444
-M2_Direct_Effect,+10 years (t+2),Residual SD: Direct Income & Profit Tax / GDP (pp),Residual_SD,1.392,1.266,1.533
-M2_Direct_Effect,+10 years (t+2),Direct Income & Profit Tax / GDP (pp) <-> Direct Income & Profit Share of Revenue (pp),Residual_Correlation,0.731,0.662,0.793
-M2_Direct_Effect,+10 years (t+2),Direct Income & Profit Tax / GDP (pp) <-> Goods & Services Tax Share of Revenue (pp),Residual_Correlation,-0.259,-0.383,-0.126
-M2_Direct_Effect,+10 years (t+2),Residual SD: Direct Income & Profit Share of Revenue (pp),Residual_SD,5.156,4.658,5.676
-M2_Direct_Effect,+10 years (t+2),Direct Income & Profit Share of Revenue (pp) <-> Goods & Services Tax Share of Revenue (pp),Residual_Correlation,-0.572,-0.672,-0.463
-M2_Direct_Effect,+10 years (t+2),Residual SD: Goods & Services Tax Share of Revenue (pp),Residual_SD,4.945,4.432,5.49
+M2_Direct_Effect,+5 years (t+1),Residual SD: Non-Resource Tax / GDP (pp),Residual_SD,1.863,1.699,2.039
+M2_Direct_Effect,+5 years (t+1),Non-Resource Tax / GDP (pp) <-> Direct Income & Profit Tax / GDP (pp),Residual_Correlation,0.596,0.513,0.671
+M2_Direct_Effect,+5 years (t+1),Non-Resource Tax / GDP (pp) <-> Direct Income & Profit Share of Revenue (pp),Residual_Correlation,-0.038,-0.152,0.076
+M2_Direct_Effect,+5 years (t+1),Non-Resource Tax / GDP (pp) <-> Goods & Services Tax Share of Revenue (pp),Residual_Correlation,0.142,0.021,0.258
+M2_Direct_Effect,+5 years (t+1),Residual SD: Direct Income & Profit Tax / GDP (pp),Residual_SD,1.014,0.934,1.1
+M2_Direct_Effect,+5 years (t+1),Direct Income & Profit Tax / GDP (pp) <-> Direct Income & Profit Share of Revenue (pp),Residual_Correlation,0.714,0.649,0.767
+M2_Direct_Effect,+5 years (t+1),Direct Income & Profit Tax / GDP (pp) <-> Goods & Services Tax Share of Revenue (pp),Residual_Correlation,-0.245,-0.349,-0.13
+M2_Direct_Effect,+5 years (t+1),Residual SD: Direct Income & Profit Share of Revenue (pp),Residual_SD,4.084,3.741,4.429
+M2_Direct_Effect,+5 years (t+1),Direct Income & Profit Share of Revenue (pp) <-> Goods & Services Tax Share of Revenue (pp),Residual_Correlation,-0.422,-0.517,-0.318
+M2_Direct_Effect,+5 years (t+1),Residual SD: Goods & Services Tax Share of Revenue (pp),Residual_SD,4.229,3.887,4.628
+M2_Direct_Effect,+10 years (t+2),Residual SD: Non-Resource Tax / GDP (pp),Residual_SD,2.589,2.344,2.856
+M2_Direct_Effect,+10 years (t+2),Non-Resource Tax / GDP (pp) <-> Direct Income & Profit Tax / GDP (pp),Residual_Correlation,0.62,0.526,0.705
+M2_Direct_Effect,+10 years (t+2),Non-Resource Tax / GDP (pp) <-> Direct Income & Profit Share of Revenue (pp),Residual_Correlation,0.051,-0.101,0.211
+M2_Direct_Effect,+10 years (t+2),Non-Resource Tax / GDP (pp) <-> Goods & Services Tax Share of Revenue (pp),Residual_Correlation,0.349,0.202,0.484
+M2_Direct_Effect,+10 years (t+2),Residual SD: Direct Income & Profit Tax / GDP (pp),Residual_SD,1.383,1.257,1.528
+M2_Direct_Effect,+10 years (t+2),Direct Income & Profit Tax / GDP (pp) <-> Direct Income & Profit Share of Revenue (pp),Residual_Correlation,0.752,0.675,0.818
+M2_Direct_Effect,+10 years (t+2),Direct Income & Profit Tax / GDP (pp) <-> Goods & Services Tax Share of Revenue (pp),Residual_Correlation,-0.248,-0.376,-0.105
+M2_Direct_Effect,+10 years (t+2),Residual SD: Direct Income & Profit Share of Revenue (pp),Residual_SD,5.003,4.519,5.547
+M2_Direct_Effect,+10 years (t+2),Direct Income & Profit Share of Revenue (pp) <-> Goods & Services Tax Share of Revenue (pp),Residual_Correlation,-0.584,-0.685,-0.469
+M2_Direct_Effect,+10 years (t+2),Residual SD: Goods & Services Tax Share of Revenue (pp),Residual_SD,4.981,4.398,5.572

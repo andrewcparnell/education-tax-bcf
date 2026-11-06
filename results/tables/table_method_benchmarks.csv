@@ -1,0 +1,29 @@
+model_id,model_label,horizon,n_obs,n_countries,outcome_index,outcome,ate_mean,ate_sd,ate_cri95_low,ate_cri95_high,prob_positive
+M2b_Direct_10y,"Primary: Joint Multivariate BCF (mvbcf, D=4 + Propensity Score)",+10 years (t+2),283,112,1,Non-Resource Tax / GDP (pp),0.446,0.409,-0.349,1.241,0.862
+M2b_Direct_10y,"Primary: Joint Multivariate BCF (mvbcf, D=4 + Propensity Score)",+10 years (t+2),283,112,2,Direct Income & Profit Tax / GDP (pp),0.344,0.216,-0.062,0.758,0.952
+M2b_Direct_10y,"Primary: Joint Multivariate BCF (mvbcf, D=4 + Propensity Score)",+10 years (t+2),283,112,3,Direct Income & Profit Share of Revenue (pp),1.479,0.793,-0.107,3.03,0.966
+M2b_Direct_10y,"Primary: Joint Multivariate BCF (mvbcf, D=4 + Propensity Score)",+10 years (t+2),283,112,4,Goods & Services Tax Share of Revenue (pp),-0.559,0.805,-2.021,1.053,0.24
+B1_Univariate_BCF_10y,Ablation 1: Separate Univariate BCFs (No Cross-Outcome Sigma),+10 years (t+2),283,112,1,Non-Resource Tax / GDP (pp),0.572,0.433,-0.311,1.369,0.905
+B1_Univariate_BCF_10y,Ablation 1: Separate Univariate BCFs (No Cross-Outcome Sigma),+10 years (t+2),283,112,2,Direct Income & Profit Tax / GDP (pp),0.39,0.206,-0.011,0.775,0.969
+B1_Univariate_BCF_10y,Ablation 1: Separate Univariate BCFs (No Cross-Outcome Sigma),+10 years (t+2),283,112,3,Direct Income & Profit Share of Revenue (pp),1.598,0.853,-0.015,3.275,0.97
+B1_Univariate_BCF_10y,Ablation 1: Separate Univariate BCFs (No Cross-Outcome Sigma),+10 years (t+2),283,112,4,Goods & Services Tax Share of Revenue (pp),-0.32,0.922,-2.142,1.492,0.372
+B2_mvbcf_NoPS_10y,Ablation 2: Multivariate BCF without Propensity Score pi_hat(X),+10 years (t+2),283,112,1,Non-Resource Tax / GDP (pp),0.45,0.393,-0.308,1.228,0.868
+B2_mvbcf_NoPS_10y,Ablation 2: Multivariate BCF without Propensity Score pi_hat(X),+10 years (t+2),283,112,2,Direct Income & Profit Tax / GDP (pp),0.279,0.191,-0.088,0.643,0.93
+B2_mvbcf_NoPS_10y,Ablation 2: Multivariate BCF without Propensity Score pi_hat(X),+10 years (t+2),283,112,3,Direct Income & Profit Share of Revenue (pp),1.543,0.749,0.09,3.035,0.979
+B2_mvbcf_NoPS_10y,Ablation 2: Multivariate BCF without Propensity Score pi_hat(X),+10 years (t+2),283,112,4,Goods & Services Tax Share of Revenue (pp),-0.541,0.763,-1.957,0.973,0.247
+B3_SingleForest_BART_10y,Benchmark 1: Single-Forest BART (No Separate mu/tau Regularisation),+10 years (t+2),283,112,1,Non-Resource Tax / GDP (pp),0.276,0.327,-0.337,0.906,0.795
+B3_SingleForest_BART_10y,Benchmark 1: Single-Forest BART (No Separate mu/tau Regularisation),+10 years (t+2),283,112,2,Direct Income & Profit Tax / GDP (pp),0.167,0.18,-0.154,0.531,0.81
+B3_SingleForest_BART_10y,Benchmark 1: Single-Forest BART (No Separate mu/tau Regularisation),+10 years (t+2),283,112,3,Direct Income & Profit Share of Revenue (pp),1.054,0.692,-0.139,2.463,0.939
+B3_SingleForest_BART_10y,Benchmark 1: Single-Forest BART (No Separate mu/tau Regularisation),+10 years (t+2),283,112,4,Goods & Services Tax Share of Revenue (pp),-0.381,0.745,-1.915,1.016,0.3
+B4_Linear_LP_WaveFE_10y,Benchmark 2: Linear Local Projections (Wave FE + Clustered SE),+10 years (t+2),283,112,1,Non-Resource Tax / GDP (pp),0.804,0.5,-0.177,1.785,0.946
+B4_Linear_LP_WaveFE_10y,Benchmark 2: Linear Local Projections (Wave FE + Clustered SE),+10 years (t+2),283,112,2,Direct Income & Profit Tax / GDP (pp),0.29,0.255,-0.211,0.791,0.872
+B4_Linear_LP_WaveFE_10y,Benchmark 2: Linear Local Projections (Wave FE + Clustered SE),+10 years (t+2),283,112,3,Direct Income & Profit Share of Revenue (pp),1.191,0.894,-0.562,2.944,0.909
+B4_Linear_LP_WaveFE_10y,Benchmark 2: Linear Local Projections (Wave FE + Clustered SE),+10 years (t+2),283,112,4,Goods & Services Tax Share of Revenue (pp),0.717,0.861,-0.97,2.405,0.798
+B5_TWFE_CountryWave_10y,"Benchmark 3: Two-Way Fixed Effects (Country + Wave FE, Clustered SE)",+10 years (t+2),283,112,1,Non-Resource Tax / GDP (pp),-0.261,0.583,-1.403,0.881,0.327
+B5_TWFE_CountryWave_10y,"Benchmark 3: Two-Way Fixed Effects (Country + Wave FE, Clustered SE)",+10 years (t+2),283,112,2,Direct Income & Profit Tax / GDP (pp),0.339,0.345,-0.337,1.014,0.837
+B5_TWFE_CountryWave_10y,"Benchmark 3: Two-Way Fixed Effects (Country + Wave FE, Clustered SE)",+10 years (t+2),283,112,3,Direct Income & Profit Share of Revenue (pp),1.547,1.093,-0.595,3.688,0.922
+B5_TWFE_CountryWave_10y,"Benchmark 3: Two-Way Fixed Effects (Country + Wave FE, Clustered SE)",+10 years (t+2),283,112,4,Goods & Services Tax Share of Revenue (pp),-0.125,1.357,-2.786,2.535,0.463
+B6_DoubleML_CrossFit_10y,Benchmark 4: Cross-Fitted Double/Debiased ML (5 Country Folds),+10 years (t+2),283,112,1,Non-Resource Tax / GDP (pp),1.126,0.47,0.206,2.047,0.992
+B6_DoubleML_CrossFit_10y,Benchmark 4: Cross-Fitted Double/Debiased ML (5 Country Folds),+10 years (t+2),283,112,2,Direct Income & Profit Tax / GDP (pp),0.395,0.229,-0.055,0.845,0.957
+B6_DoubleML_CrossFit_10y,Benchmark 4: Cross-Fitted Double/Debiased ML (5 Country Folds),+10 years (t+2),283,112,3,Direct Income & Profit Share of Revenue (pp),1.338,0.836,-0.3,2.976,0.945
+B6_DoubleML_CrossFit_10y,Benchmark 4: Cross-Fitted Double/Debiased ML (5 Country Folds),+10 years (t+2),283,112,4,Goods & Services Tax Share of Revenue (pp),0.5,0.938,-1.338,2.338,0.703

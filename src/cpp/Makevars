@@ -1,1 +1,6 @@
-FLIBS = -L/opt/homebrew/opt/gcc/lib/gcc/current -lgfortran -lquadmath -lm
+# Portable FLIBS configuration: uses Homebrew gfortran path on Apple Silicon macOS if present,
+# and falls back to R's default system FLIBS on Linux / other platforms.
+BREW_GFORTRAN_DIR := $(wildcard /opt/homebrew/opt/gcc/lib/gcc/current)
+ifneq ($(BREW_GFORTRAN_DIR),)
+  FLIBS = -L$(BREW_GFORTRAN_DIR) -lgfortran -lquadmath -lm
+endif
