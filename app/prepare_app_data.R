@@ -55,6 +55,8 @@ country_rows <- lapply(all_isos, function(iso) {
     gross_tert_enrolment_pct = mean_na(subf$gross_tert_enrolment_pct),
     gross_seco_enrolment_pct = mean_na(subf$gross_seco_enrolment_pct),
     gdp_per_capita_ppp = mean_na(subf$gdp_per_capita_ppp_const2021),
+    gdp_per_capita_latest = mean_na(tail(na.omit(subf$gdp_per_capita_ppp_const2021), 1)),
+    population_latest = mean_na(tail(na.omit(subf$population_total), 1)),
     log_gdp_pc_ppp = mean_na(subf$log_gdp_pc_ppp),
     working_age_pop_pct = mean_na(subf$working_age_pop_15_64_pct),
     non_resource_tax_gdp_pct = mean_na(subf$non_resource_tax_gdp_pct),
