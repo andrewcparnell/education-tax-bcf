@@ -162,7 +162,7 @@ Because both GDP per person and student headcount appear in the denominator, cou
 
 Figure~\ref{fig:data_overview} and Table~\ref{tab:eda1} show clearly how the UNESCO denominator trap works in practice. In low-income countries (such as Uganda, Malawi, or Ethiopia), only 2.3\% of young adults attend university; dividing a small university budget (0.47\% of GDP) by a tiny student headcount and a low GDP per person produces a raw median UNESCO ratio of 205\% (which we cap at 150\% in Figure~\ref{fig:data_overview}A and when fitting our regression trees so that extreme outliers do not distort the tree splits). That tiny elite student body also explains why median real PPP spending per student in low-income countries (\$3,957, concentrated in one or two national universities) is slightly higher than in lower-middle-income countries (\$3,258), where enrolment is over three times higher (7.4\% median) and public budgets are stretched across many more students. Once we unbundle the denominators in Table~\ref{tab:eda1}, high-income countries (such as Denmark, Norway, or South Korea) spend nearly three times as much per student in real purchasing power (\$11,148 vs \$3,957) and twice as much of their national income (0.94\% vs 0.47\% of GDP), whilst collecting a larger share of their tax revenue from direct income and profit taxes (38.4\% vs 29.2\%).
 
-Because comparing raw UNESCO ratios across income groups would classify almost every low-income country as high-spending and almost every high-income country as low-spending, we define our primary binary funding indicator ($Z_{i,t} = 1$) by comparing each country's per-student spending ratio against the median of its own World Bank income group (205\% for low income, 76.5\% for lower-middle income, 26.8\% for upper-middle income, and 26.9\% for high income). This within-group threshold places roughly half of all country-waves in the above-median funding group ($47.3\%$ at $+5$ years and $49.8\%$ at $+10$ years). Among high-income countries, Nordic and continental European countries with strong public university investment (such as Norway at 38.6\% to 45.8\%, Sweden at 43.2\% to 54.2\%, Denmark at 41.5\%, and Austria at 35.0\% to 36.2\%) sit consistently above the 26.9\% threshold ($Z_{i,t} = 1$), whereas countries that rely more heavily on private tuition or have lower public per-student allocations (such as Chile at 19.6\%, the United States at 20.9\%, and Spain at 22.4\%) sit below it ($Z_{i,t} = 0$). Ireland provides a particularly clear example of a country that moved across the threshold over time: Ireland sat just above the high-income median ($Z_{i,t} = 1$) in \texttt{1995--1999} (28.2\%), \texttt{2005--2009} (28.4\%), and \texttt{2010--2014} (27.6\%), but fell below the median ($Z_{i,t} = 0$) in \texttt{2000--2004} (25.6\%) and dropped sharply to 17.3\% in \texttt{2015--2019} as student numbers expanded much faster than state university funding after the 2008 financial crisis.
+Because comparing raw UNESCO ratios across income groups would classify almost every low-income country as high-spending and almost every high-income country as low-spending, we define our primary binary funding indicator ($Z_{i,t} = 1$) by comparing each country's per-student spending ratio against the median of its own World Bank income group (205\% for low income, 76.5\% for lower-middle income, 26.8\% for upper-middle income, and 26.9\% for high income). This within-group threshold places roughly half of all country-waves in the above-median funding group ($47.3\%$ at $+5$ years and $49.8\%$ at $+10$ years). Among high-income countries, Nordic and continental European countries with strong public university investment (such as Norway at 38.6\% to 45.8\%, Sweden at 43.2\% to 54.2\%, Denmark at 41.5\%, and Austria at 35.0\% to 36.2\%) sit consistently above the 26.9\% threshold ($Z_{i,t} = 1$), whereas countries that rely more heavily on private tuition or have lower public per-student allocations (such as Chile at 19.6\%, the United States at 20.9\%, and Spain at 22.4\%) sit below it ($Z_{i,t} = 0$). Ireland provides a particularly clear example of a country that moved across the threshold over time: Ireland sat just above the high-income median ($Z_{i,t} = 1$) in \texttt{1995--1999} (28.2\%), \texttt{2005--2009} (28.4\%), and \texttt{2010--2014} (27.6\%), but fell below the median ($Z_{i,t} = 0$) in \texttt{2000--2004} (25.6\%) and dropped sharply to 17.3\% in \texttt{2015--2019} as student numbers expanded much faster than state university funding after the 2008 financial crisis. In Appendix Table~\ref{tab:z0_countries}, we list all 48 countries from our 10-year modelling sample that sit in the below-median group ($Z_{i,t} = 0$) in the most recent treatment wave (\texttt{2015--2019}) and therefore stand to benefit from moving to $Z_{i,t} = 1$, ranging from countries sitting right on the boundary (such as Portugal at 26.9\% and Poland at 26.8\%) to countries substantially below their income-group median (such as Ireland at 17.3\%, South Korea at 14.9\%, Colombia at 20.6\%, Argentina at 16.7\%, and Bangladesh at 29.9\%).
 
 \section{Methodology}
 \label{sec:methods}
@@ -319,12 +319,13 @@ For finance and education ministries, our comparison of the four funding definit
 
 \subsection{Limitations and Future Research}
 
-Several caveats apply when interpreting observational cross-country macro panels, and we highlight four main limitations of our study:
+Several caveats apply when interpreting observational cross-country macro panels, and we highlight five main limitations of our study:
 \begin{enumerate}
   \item \emph{Reverse causality and fiscal-capacity feedback:} A central concern in macro-fiscal studies is that growing tax capacity enables governments to spend more on higher education rather than the other way round \citep{baumol1967macroeconomics, worldbank2024taxing, unesco2024efw}. Whilst we adjust for starting tax-to-GDP, starting income and goods tax shares, lagged GDP growth, and explicit pre-treatment fiscal trends (Appendix Table~\ref{tab:robust}), observational conditioning cannot completely rule out multi-decade fiscal feedback loops.
   \item \emph{Unobserved concurrent policy reforms:} Our causal estimates rely on conditional ignorability given the 19 baseline characteristics and four follow-up growth controls \citep{imai2010general, acharya2016explaining}. If a reformist government simultaneously modernises its electronic tax administration \citep{pomeranz2019taking, okunogbe2022technology} and increases university funding within the same five-year wave, part of the estimated effect could reflect that concurrent tax reform.
   \item \emph{Skilled emigration (brain drain):} In low- and lower-middle-income countries, a substantial share of university graduates emigrate to higher-income economies \citep{beine2008brain}. Because emigrants pay direct income taxes in their destination country whilst sending untaxed remittances home (which are spent on domestic goods subject to VAT), high skilled emigration can dampen domestic direct income tax returns in smaller developing nations.
   \item \emph{Central government reporting and five-year wave coarseness:} World Bank fiscal series primarily record central government revenue, which can understate state or provincial income taxes in federal countries, and averaging annual data into five-year waves smooths out year-to-year timing.
+  \item \emph{Binary treatment threshold and boundary effects:} Because our primary treatment indicator dichotomises per-student funding at each income group's median ($Z_{i,t} \in \{0, 1\}$), it estimates the average effect of shifting from a typical below-median funding level (a median ratio of 22.2\% in high-income $Z=0$ countries) to a typical above-median funding level (36.2\% in high-income $Z=1$ countries). In the most recent data wave (\texttt{2015--2019}), several $Z=0$ countries sit almost exactly on their income-group boundary, such as Portugal (26.91\% vs the 26.95\% high-income cutoff, a gap of just 0.04 pp costing \texteuro$0.004$ billion per year) and Poland (26.77\%, a gap of 0.18 pp costing \texteuro$0.12$ billion per year). Interpreting a binary threshold model literally as a step function would imply that a token spending nudge across the median line triggers the full 10-year tax return (\texteuro$0.98$ billion per year in Portugal or \texteuro$2.84$ billion per year in Poland), which would clearly be unrealistic. As we detail in Appendix Table~\ref{tab:z0_countries}, policy makers in near-boundary countries should evaluate the cost of a substantive per-student funding expansion (such as the $+2.5$ pp within-country expansion in Row 2 of Table~\ref{tab:horserace}) rather than the minimal cost of stepping over the median cutoff.
 \end{enumerate}
 
 These limitations point to several promising avenues for future research. First, whilst this paper has focussed exclusively on tertiary education because university cohorts enter the labour market within a 5-to-10-year window, extending multivariate Bayesian causal forests to 15-to-25-year horizons would allow researchers to compare government spending on early childhood, primary, and secondary schooling \citep{hanushek2012better, angrist2021measuring, hendren2020unified} directly against university funding as younger school cohorts reach adulthood. Second, incorporating bilateral skilled migration data \citep{beine2008brain} directly into the treatment-effect moderators would quantify how brain drain alters the fiscal return to public university subsidies in developing countries. Third, linking university funding cohorts to administrative employer-employee tax registers within individual countries would make it possible to trace graduate earnings and corporate tax payments year by year. To help policy makers and researchers explore our dataset and country-level estimates interactively, we provide a companion web application in the \texttt{app/} directory of the project repository.
@@ -586,6 +587,124 @@ Table~\ref{tab:robust} reports 14 sensitivity and falsification checks (\texttt{
   \end{tabular}%
   }
 \end{table}
+
+Finally, Table~\ref{tab:z0_countries} lists all 48 countries from our 10-year modelling sample that sit in the below-median group ($Z_{i,t} = 0$) in the most recent treatment wave (\texttt{2015--2019}), ordered within each World Bank income group from closest to the cutoff to furthest below it (full data in \path{outputs/tables/tableA4_latest_z0_countries_costs_and_returns.csv}). Table~\ref{tab:z0_countries} highlights two practical insights for policy makers. First, eight countries (marked with $^*$: Portugal, Poland, New Zealand, Iceland, Uruguay, Romania, Italy, and Malaysia) sit within $2.5$ pp of their income-group median cutoff ($26.9\%$ for high income and $26.8\%$ for upper-middle income); for these near-boundary countries, the literal cost of stepping across the median line is very small (\texteuro$0.004$ billion per year in Portugal and \texteuro$0.12$ billion per year in Poland), so Column 3 also reports the annual cost of a substantive $+2.5$ pp per-student funding expansion (\texteuro$0.32$ billion in Portugal and \texteuro$1.49$ billion in Poland, corresponding to the within-country expansion benchmark in Row 2 of Table~\ref{tab:horserace}). Second, for countries sitting further below their income-group median (such as Ireland at $17.3\%$ needing \texteuro$2.30$ billion per year to reach $26.9\%$, Spain at $22.4\%$ needing \texteuro$3.83$ billion, Chile at $19.6\%$ needing \texteuro$2.68$ billion, Colombia at $20.6\%$ needing \texteuro$2.56$ billion, and Bangladesh at $29.9\%$ needing \texteuro$10.75$ billion to reach $76.5\%$), moving to $Z_{i,t} = 1$ represents a major fiscal commitment whose annual cost is of the same order of magnitude as the estimated 10-year gain in annual direct income tax receipts (Column 5), whilst every country exhibits a positive expected shift in the direct income tax share (Column 6) alongside wide 95\% credible intervals that reflect honest country-level macroeconomic uncertainty.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Countries in the below-median funding group ($Z_{i,t} = 0$) in the most recent treatment wave (\texttt{2015--2019}, $N = 48$ countries with $+10$-year MV-BCF estimates), showing their current per-student spending ratio (\% of GDP per person) and gap to the income-group median threshold ($26.9\%$ High, $26.8\%$ Upper Mid., $76.5\%$ Lower Mid., $205\%$ Low), annual public cost to reach $Z=1$ in \% of GDP and constant 2021 euros (for near-boundary countries marked $^*$ with a gap under $2.5$ pp, the second figure shows the cost of a substantive $+2.5$ pp per-student increase), and estimated $+10$-year posterior mean returns (with 95\% CIs) on direct income tax/GDP (pp), annual direct income tax revenue (\texteuro{} billions/yr, holding latest population and PPP GDP constant), and the direct income tax share (pp).}
+  \label{tab:z0_countries}
+  \resizebox{\textwidth}{!}{%
+  \renewcommand{\arraystretch}{0.94}
+  \footnotesize
+  \setlength{\tabcolsep}{3.5pt}
+  \begin{tabular}{l|c|c|c|c|c}
+    \toprule
+    \rowcolor{tabhead}
+    \textbf{Country (Income Group)} & \textbf{Current Ratio} & \textbf{Annual Cost to Reach $Z=1$} & \textbf{$+10\text{y}$ Inc. Tax} & \textbf{$+10\text{y}$ Annual Inc. Tax} & \textbf{$+10\text{y}$ Inc. Tax} \\
+    \rowcolor{tabhead}
+    & \textbf{(Gap to $Z=1$)} & \textbf{\% GDP (\texteuro{}B/yr / $+2.5\text{pp}^*$)} & \textbf{/ GDP (pp) [95\% CI]} & \textbf{Return (\texteuro{}B/yr) [95\% CI]} & \textbf{Share (pp) [95\% CI]} \\
+    \midrule
+    \rowcolor{rowodd}
+    \textbf{Portugal}$^*$ (High) & \co 26.9\% ($+0.04$ pp) & 0.001\% (\texteuro0.004B / \texteuro0.32B$^*$) & \co $+0.25$ $[-0.31, +0.85]$ & \texteuro$+0.98$ $[-1.19, +3.27]$ & \co $+1.56$ $[-0.55, +3.77]$ \\
+    \rowcolor{roweven}
+    \textbf{Poland}$^*$ (High) & \ce 26.8\% ($+0.18$ pp) & 0.008\% (\texteuro0.12B / \texteuro1.49B$^*$) & \ce $+0.20$ $[-0.45, +0.83]$ & \texteuro$+2.84$ $[-6.51, +11.94]$ & \ce $+1.95$ $[-0.33, +4.62]$ \\
+    \rowcolor{rowodd}
+    \textbf{New Zealand}$^*$ (High) & \co 26.1\% ($+0.8$ pp) & 0.04\% (\texteuro0.10B / \texteuro0.29B$^*$) & \co $+0.26$ $[-0.42, +0.86]$ & \texteuro$+0.60$ $[-0.97, +1.97]$ & \co $+1.66$ $[-0.68, +4.40]$ \\
+    \rowcolor{roweven}
+    \textbf{Iceland}$^*$ (High) & \ce 26.1\% ($+0.9$ pp) & 0.05\% (\texteuro0.01B / \texteuro0.03B$^*$) & \ce $+0.20$ $[-0.50, +0.85]$ & \texteuro$+0.05$ $[-0.11, +0.19]$ & \ce $+2.00$ $[-0.44, +4.72]$ \\
+    \rowcolor{rowodd}
+    \textbf{Uruguay}$^*$ (High) & \co 25.3\% ($+1.7$ pp) & 0.07\% (\texteuro0.07B / \texteuro0.10B$^*$) & \co $+0.41$ $[-0.13, +0.97]$ & \texteuro$+0.39$ $[-0.12, +0.91]$ & \co $+1.24$ $[-0.86, +3.38]$ \\
+    \rowcolor{roweven}
+    \textbf{Romania}$^*$ (High) & \ce 25.1\% ($+1.9$ pp) & 0.05\% (\texteuro0.37B / \texteuro0.49B$^*$) & \ce $+0.25$ $[-0.35, +0.83]$ & \texteuro$+1.73$ $[-2.34, +5.59]$ & \ce $+1.62$ $[-0.54, +3.87]$ \\
+    \rowcolor{rowodd}
+    \textbf{Italy}$^*$ (High) & \co 24.8\% ($+2.1$ pp) & 0.07\% (\texteuro1.82B / \texteuro2.12B$^*$) & \co $+0.26$ $[-0.34, +0.87]$ & \texteuro$+7.26$ $[-9.44, +24.02]$ & \co $+1.66$ $[-0.54, +4.27]$ \\
+    \rowcolor{roweven}
+    \textbf{Slovenia} (High) & \ce 24.1\% ($+2.9$ pp) & 0.12\% (\texteuro0.10B) & \ce $+0.16$ $[-0.50, +0.77]$ & \texteuro$+0.15$ $[-0.45, +0.69]$ & \ce $+2.04$ $[-0.29, +4.87]$ \\
+    \rowcolor{rowodd}
+    \textbf{Singapore} (High) & \co 23.5\% ($+3.4$ pp) & 0.16\% (\texteuro1.10B) & \co $+0.80$ $[-0.22, +1.91]$ & \texteuro$+5.49$ $[-1.53, +13.15]$ & \co $+1.48$ $[-2.90, +5.67]$ \\
+    \rowcolor{roweven}
+    \textbf{Hungary} (High) & \ce 23.3\% ($+3.6$ pp) & 0.11\% (\texteuro0.37B) & \ce $+0.22$ $[-0.38, +0.81]$ & \texteuro$+0.76$ $[-1.31, +2.83]$ & \ce $+1.80$ $[-0.31, +4.17]$ \\
+    \rowcolor{rowodd}
+    \textbf{Latvia} (High) & \co 22.6\% ($+4.4$ pp) & 0.18\% (\texteuro0.11B) & \co $+0.22$ $[-0.41, +0.81]$ & \texteuro$+0.14$ $[-0.26, +0.52]$ & \co $+1.59$ $[-0.59, +3.92]$ \\
+    \rowcolor{roweven}
+    \textbf{Spain} (High) & \ce 22.4\% ($+4.6$ pp) & 0.19\% (\texteuro3.83B) & \ce $+0.18$ $[-0.44, +0.78]$ & \texteuro$+3.66$ $[-8.83, +15.73]$ & \ce $+1.98$ $[-0.26, +4.76]$ \\
+    \rowcolor{rowodd}
+    \textbf{Macao SAR, China} (High) & \co 22.3\% ($+4.7$ pp) & 0.24\% (\texteuro0.12B) & \co $+0.73$ $[-0.22, +1.60]$ & \texteuro$+0.37$ $[-0.11, +0.82]$ & \co $+1.65$ $[-1.69, +5.24]$ \\
+    \rowcolor{roweven}
+    \textbf{Lithuania} (High) & \ce 21.4\% ($+5.5$ pp) & 0.25\% (\texteuro0.30B) & \ce $+0.23$ $[-0.39, +0.80]$ & \texteuro$+0.27$ $[-0.46, +0.96]$ & \ce $+1.55$ $[-0.59, +3.76]$ \\
+    \rowcolor{rowodd}
+    \textbf{Czechia} (High) & \co 20.7\% ($+6.3$ pp) & 0.19\% (\texteuro0.87B) & \co $+0.21$ $[-0.40, +0.82]$ & \texteuro$+0.99$ $[-1.89, +3.85]$ & \co $+2.02$ $[-0.22, +4.79]$ \\
+    \rowcolor{roweven}
+    \textbf{United States} (High) & \ce 20.5\% ($+6.5$ pp) & 0.45\% (\texteuro101.19B) & \ce $+0.01$ $[-0.88, +0.69]$ & \texteuro$+1.40$ $[-196.23, +153.47]$ & \ce $+2.67$ $[-0.02, +6.12]$ \\
+    \rowcolor{rowodd}
+    \textbf{Australia} (High) & \co 19.6\% ($+7.3$ pp) & 0.59\% (\texteuro8.42B) & \co $+0.22$ $[-0.37, +0.82]$ & \texteuro$+3.10$ $[-5.29, +11.75]$ & \co $+1.70$ $[-0.51, +4.28]$ \\
+    \rowcolor{roweven}
+    \textbf{Chile} (High) & \ce 19.6\% ($+7.4$ pp) & 0.52\% (\texteuro2.68B) & \ce $+0.28$ $[-0.29, +0.85]$ & \texteuro$+1.47$ $[-1.52, +4.45]$ & \ce $+1.52$ $[-0.57, +3.75]$ \\
+    \rowcolor{rowodd}
+    \textbf{Russian Federation} (High) & \co 19.3\% ($+7.7$ pp) & 0.35\% (\texteuro18.13B) & \co $+0.25$ $[-0.45, +0.92]$ & \texteuro$+12.75$ $[-23.40, +47.46]$ & \co $+2.03$ $[-0.50, +4.73]$ \\
+    \rowcolor{roweven}
+    \textbf{Israel} (High) & \ce 18.7\% ($+8.2$ pp) & 0.41\% (\texteuro1.69B) & \ce $+0.36$ $[-0.19, +0.92]$ & \texteuro$+1.49$ $[-0.79, +3.79]$ & \ce $+1.38$ $[-0.77, +3.71]$ \\
+    \rowcolor{rowodd}
+    \textbf{Ireland} (High) & \co 17.3\% ($+9.7$ pp) & 0.41\% (\texteuro2.30B) & \co $+0.22$ $[-0.45, +0.87]$ & \texteuro$+1.23$ $[-2.47, +4.84]$ & \co $+2.23$ $[-0.20, +4.98]$ \\
+    \rowcolor{roweven}
+    \textbf{Korea, Rep.} (High) & \ce 14.9\% ($+12.1$ pp) & 0.70\% (\texteuro17.51B) & \ce $+0.24$ $[-0.44, +0.92]$ & \texteuro$+6.06$ $[-10.93, +23.00]$ & \ce $+1.96$ $[-0.54, +4.65]$ \\
+    \rowcolor{rowodd}
+    \textbf{Greece} (High) & \co 11.2\% ($+15.8$ pp) & 1.24\% (\texteuro4.17B) & \co $+0.21$ $[-0.43, +0.80]$ & \texteuro$+0.69$ $[-1.44, +2.70]$ & \co $+1.52$ $[-0.65, +3.79]$ \\
+    \rowcolor{roweven}
+    \textbf{Malaysia}$^*$ (Upper Mid.) & \ce 24.8\% ($+2.0$ pp) & 0.08\% (\texteuro0.83B / \texteuro1.02B$^*$) & \ce $+0.34$ $[-0.24, +0.91]$ & \texteuro$+3.47$ $[-2.44, +9.24]$ & \ce $+1.45$ $[-0.66, +3.78]$ \\
+    \rowcolor{rowodd}
+    \textbf{Jordan} (Upper Mid.) & \co 23.7\% ($+3.1$ pp) & 0.09\% (\texteuro0.09B) & \co $+0.48$ $[-0.06, +1.03]$ & \texteuro$+0.50$ $[-0.06, +1.08]$ & \co $+1.11$ $[-1.18, +3.24]$ \\
+    \rowcolor{roweven}
+    \textbf{Indonesia} (Upper Mid.) & \ce 20.8\% ($+6.1$ pp) & 0.07\% (\texteuro2.47B) & \ce $+0.45$ $[-0.13, +1.03]$ & \texteuro$+15.52$ $[-4.48, +35.46]$ & \ce $+1.21$ $[-1.15, +3.60]$ \\
+    \rowcolor{rowodd}
+    \textbf{Colombia} (Upper Mid.) & \co 20.6\% ($+6.2$ pp) & 0.30\% (\texteuro2.56B) & \co $+0.35$ $[-0.19, +0.92]$ & \texteuro$+2.95$ $[-1.63, +7.73]$ & \co $+1.35$ $[-0.76, +3.47]$ \\
+    \rowcolor{roweven}
+    \textbf{Azerbaijan} (Upper Mid.) & \ce 20.2\% ($+6.6$ pp) & 0.14\% (\texteuro0.28B) & \ce $+0.25$ $[-0.39, +0.87]$ & \texteuro$+0.49$ $[-0.75, +1.68]$ & \ce $+1.99$ $[-0.31, +4.57]$ \\
+    \rowcolor{rowodd}
+    \textbf{Guatemala} (Upper Mid.) & \co 18.1\% ($+8.8$ pp) & 0.21\% (\texteuro0.41B) & \co $+0.43$ $[-0.10, +0.96]$ & \texteuro$+0.85$ $[-0.20, +1.91]$ & \co $+1.20$ $[-0.92, +3.30]$ \\
+    \rowcolor{roweven}
+    \textbf{Belarus} (Upper Mid.) & \ce 17.0\% ($+9.9$ pp) & 0.47\% (\texteuro1.09B) & \ce $+0.25$ $[-0.43, +0.87]$ & \texteuro$+0.60$ $[-1.00, +2.05]$ & \ce $+2.00$ $[-0.51, +4.70]$ \\
+    \rowcolor{rowodd}
+    \textbf{Argentina} (Upper Mid.) & \co 16.7\% ($+10.1$ pp) & 0.67\% (\texteuro7.37B) & \co $+0.40$ $[-0.19, +0.96]$ & \texteuro$+4.43$ $[-2.12, +10.61]$ & \co $+1.27$ $[-0.95, +3.50]$ \\
+    \rowcolor{roweven}
+    \textbf{Albania} (Upper Mid.) & \ce 13.8\% ($+13.1$ pp) & 0.67\% (\texteuro0.29B) & \ce $+0.26$ $[-0.36, +0.83]$ & \texteuro$+0.11$ $[-0.16, +0.36]$ & \ce $+1.66$ $[-0.50, +3.86]$ \\
+    \rowcolor{rowodd}
+    \textbf{El Salvador} (Upper Mid.) & \co 11.2\% ($+15.6$ pp) & 0.44\% (\texteuro0.28B) & \co $+0.45$ $[-0.08, +0.99]$ & \texteuro$+0.28$ $[-0.05, +0.62]$ & \co $+1.13$ $[-1.04, +3.24]$ \\
+    \rowcolor{roweven}
+    \textbf{Georgia} (Upper Mid.) & \ce 10.7\% ($+16.1$ pp) & 0.55\% (\texteuro0.40B) & \ce $+0.25$ $[-0.35, +0.80]$ & \texteuro$+0.18$ $[-0.25, +0.57]$ & \ce $+1.60$ $[-0.55, +3.72]$ \\
+    \rowcolor{rowodd}
+    \textbf{Peru} (Upper Mid.) & \co 10.6\% ($+16.2$ pp) & 0.96\% (\texteuro4.47B) & \co $+0.43$ $[-0.09, +0.97]$ & \texteuro$+2.02$ $[-0.41, +4.53]$ & \co $+1.14$ $[-0.94, +3.20]$ \\
+    \rowcolor{roweven}
+    \textbf{Mauritius} (Upper Mid.) & \ce 10.4\% ($+16.4$ pp) & 0.48\% (\texteuro0.14B) & \ce $+0.28$ $[-0.33, +0.89]$ & \texteuro$+0.08$ $[-0.10, +0.26]$ & \ce $+1.95$ $[-0.33, +4.52]$ \\
+    \rowcolor{rowodd}
+    \textbf{Armenia} (Upper Mid.) & \co 9.8\% ($+17.0$ pp) & 0.56\% (\texteuro0.27B) & \co $+0.27$ $[-0.35, +0.85]$ & \texteuro$+0.13$ $[-0.17, +0.41]$ & \co $+1.91$ $[-0.35, +4.41]$ \\
+    \rowcolor{roweven}
+    \textbf{Kazakhstan} (Upper Mid.) & \ce 9.3\% ($+17.5$ pp) & 0.62\% (\texteuro3.84B) & \ce $+0.25$ $[-0.37, +0.79]$ & \texteuro$+1.55$ $[-2.28, +4.95]$ & \ce $+1.62$ $[-0.54, +3.68]$ \\
+    \rowcolor{rowodd}
+    \textbf{Mongolia} (Upper Mid.) & \co 7.9\% ($+18.9$ pp) & 1.02\% (\texteuro0.50B) & \co $+0.40$ $[-0.17, +0.98]$ & \texteuro$+0.20$ $[-0.08, +0.48]$ & \co $+1.26$ $[-0.86, +3.36]$ \\
+    \rowcolor{roweven}
+    \textbf{Tunisia} (Lower Mid.) & \ce 54.7\% ($+21.8$ pp) & 0.59\% (\texteuro0.82B) & \ce $+0.47$ $[-0.08, +1.04]$ & \texteuro$+0.66$ $[-0.11, +1.46]$ & \ce $+1.11$ $[-1.08, +3.13]$ \\
+    \rowcolor{rowodd}
+    \textbf{Lesotho} (Lower Mid.) & \co 44.7\% ($+31.8$ pp) & 0.40\% (\texteuro0.02B) & \co $+0.55$ $[-0.04, +1.25]$ & \texteuro$+0.03$ $[-0.00, +0.07]$ & \co $+0.18$ $[-3.29, +3.08]$ \\
+    \rowcolor{roweven}
+    \textbf{Honduras} (Lower Mid.) & \ce 40.9\% ($+35.5$ pp) & 0.72\% (\texteuro0.43B) & \ce $+0.45$ $[-0.08, +0.99]$ & \texteuro$+0.27$ $[-0.05, +0.59]$ & \ce $+1.18$ $[-0.93, +3.32]$ \\
+    \rowcolor{rowodd}
+    \textbf{Bangladesh} (Lower Mid.) & \co 29.9\% ($+46.6$ pp) & 0.88\% (\texteuro10.75B) & \co $+0.48$ $[-0.07, +1.06]$ & \texteuro$+5.81$ $[-0.90, +12.95]$ & \co $+1.15$ $[-1.09, +3.39]$ \\
+    \rowcolor{roweven}
+    \textbf{Nepal} (Lower Mid.) & \ce 24.2\% ($+52.3$ pp) & 0.95\% (\texteuro1.22B) & \ce $+0.48$ $[-0.08, +1.07]$ & \texteuro$+0.62$ $[-0.10, +1.37]$ & \ce $+1.15$ $[-1.18, +3.40]$ \\
+    \rowcolor{rowodd}
+    \textbf{Kyrgyz Republic} (Lower Mid.) & \co 4.9\% ($+71.6$ pp) & 2.60\% (\texteuro1.04B) & \co $+0.44$ $[-0.13, +1.00]$ & \texteuro$+0.18$ $[-0.05, +0.40]$ & \co $+1.29$ $[-0.83, +3.52]$ \\
+    \rowcolor{roweven}
+    \textbf{Mali} (Low) & \ce 173.8\% ($+31.0$ pp) & 0.11\% (\texteuro0.06B) & \ce $+0.51$ $[-0.08, +1.16]$ & \texteuro$+0.31$ $[-0.05, +0.70]$ & \ce $+0.56$ $[-3.11, +3.17]$ \\
+    \rowcolor{rowodd}
+    \textbf{Rwanda} (Low) & \co 102.8\% ($+102.0$ pp) & 0.67\% (\texteuro0.25B) & \co $+0.52$ $[-0.07, +1.19]$ & \texteuro$+0.19$ $[-0.03, +0.45]$ & \co $+0.38$ $[-3.32, +3.08]$ \\
+    \rowcolor{roweven}
+    \textbf{Madagascar} (Low) & \ce 99.1\% ($+105.7$ pp) & 0.34\% (\texteuro0.15B) & \ce $+0.59$ $[-0.06, +1.34]$ & \texteuro$+0.26$ $[-0.03, +0.60]$ & \ce $-0.24$ $[-3.97, +2.85]$ \\
+    \bottomrule
+  \end{tabular}%
+  }
+\end{table}
 \FloatBarrier
 
 \section{Propensity Overlap, Residual Covariance, and MCMC Diagnostics}
@@ -700,26 +819,42 @@ Table~\ref{tab:mcmc} and Figure~\ref{fig:traces} present the post-burn-in MCMC c
 \section{Computational Environment and Energy Report}
 \label{app:compute}
 
-All data processing, C++ (\texttt{RcppArmadillo}) Gibbs sampling, and figure generation were executed on a single Apple Silicon workstation (\texttt{macOS}, R version 4.6.1, Apple Clang C++17 compiler). Table~\ref{tab:compute} reports the exact wall-clock runtime, estimated electrical energy use (assuming an average 25~W CPU package power draw during single-core C++ tree sampling), and estimated carbon emissions (using the Irish grid average carbon intensity of $250\text{ g CO}_2\text{e/kWh}$). Because our reversible-jump tree search and conjugate $4 \times 4$ Inverse-Wishart covariance updates are written directly in C++, fitting a single 2,000-iteration four-outcome MV-BCF model takes under 20 seconds on a laptop CPU, and running all 31 main, benchmark, and sensitivity models completes in just over 10 minutes (611.4 seconds). The total electrical energy consumed across the entire modelling pipeline is only $4.25\text{ Wh}$ (equivalent to $1.06\text{ g CO}_2\text{e}$, or less than boiling a kettle for ten seconds), showing that full multivariate Bayesian causal forest inference on cross-country panels is computationally lightweight and reproducible without specialist high-performance computing clusters.
+All data processing, C++ (\texttt{RcppArmadillo}) Gibbs sampling, and figure generation were executed on a single Apple Silicon workstation (\texttt{macOS}, R version 4.6.1, Apple Clang C++17 compiler). Table~\ref{tab:compute} reports both the local computational footprint of our statistical modelling pipeline (assuming an average 25~W CPU package power draw during single-core C++ tree sampling) and the cloud inference footprint of the large language model (LLM) queries used to assist with building the data pipeline, writing the C++ sampler, conducting multi-agent and external referee reviews, developing the companion web application, and editing the manuscript (evaluated at the Irish grid and European cloud average carbon intensity of $250\text{ g CO}_2\text{e/kWh}$). Because our reversible-jump tree search and conjugate $4 \times 4$ Inverse-Wishart covariance updates are written directly in C++, fitting all 31 main, benchmark, and sensitivity models completes in just over 10 minutes (611.4 seconds) and consumes only $4.25\text{ Wh}$ of electricity ($1.06\text{ g CO}_2\text{e}$). By contrast, auditing our complete interaction logs across all five project stages reveals 753 LLM queries (comprising $1.61\text{ million}$ input and context tokens and $0.94\text{ million}$ generated output, reasoning, and tool-call tokens across the primary session, eight specialist reviewer and user-persona subagents, and two external LLM referee rounds). Applying published frontier LLM inference energy benchmarks (\citealt{luccioni2024power}; $0.30\text{ Wh}$ base overhead per agentic query plus $0.40\text{ Wh}$ per $1,000$ generated output tokens and $0.05\text{ Wh}$ per $1,000$ prefill input tokens), the cloud LLM queries consumed an estimated $682.20\text{ Wh}$ ($170.55\text{ g CO}_2\text{e}$), which is roughly 160 times the electrical energy required to run all 31 Bayesian MCMC models locally, bringing the combined project footprint to $686.45\text{ Wh}$ ($171.61\text{ g CO}_2\text{e}$, equivalent to driving a typical petrol passenger car approximately one kilometre).
 
 \begin{table}[htbp]
   \centering
-  \caption{Computational wall-clock time, energy use, and estimated carbon footprint across the modelling pipeline.}
+  \caption{Computational wall-clock time, token volume, electrical energy use, and estimated carbon footprint across both the local C++ MCMC modelling pipeline and the cloud LLM queries used to help build, review, and write the paper.}
   \label{tab:compute}
+  \resizebox{\textwidth}{!}{%
   \small
-  \setlength{\tabcolsep}{4.0pt}
+  \setlength{\tabcolsep}{4.5pt}
   \begin{tabular}{l|l|c|c|c}
     \toprule
     \rowcolor{tabhead}
-    \textbf{Pipeline Stage} & \textbf{Models Fitted} & \textbf{Time (s)} & \textbf{Energy (Wh)} & \textbf{$\text{CO}_2\text{e}$ (g)} \\
+    \textbf{Project Stage} & \textbf{Models Fitted / LLM Query \& Token Volume} & \textbf{Time (s)} & \textbf{Energy (Wh)} & \textbf{$\text{CO}_2\text{e}$ (g)} \\
     \midrule
     \rowcolor{rowodd}
-    Step 04: MV-BCF \& Benchmarks & \co 31 four-outcome fits (2,000 iter) & 611.4 & \co 4.25 & 1.06 \\
+    \textbf{A. Local C++ MCMC Pipeline} & \co 31 four-outcome MV-BCF \& benchmark fits (2,000 iter) & 611.4 & \co 4.25 & 1.06 \\
+    \hline
+    \rowcolor{roweven}
+    \textbf{B1. LLM: Scoping \& Data Pipeline} & \ce 45 queries (75k input / 53k output tokens) & -- & \ce 38.60 & 9.65 \\
+    \rowcolor{rowodd}
+    \textbf{B2. LLM: C++ Sampler \& Diagnostics} & \co 26 queries (37k input / 29k output tokens) & -- & \co 21.40 & 5.35 \\
+    \rowcolor{roweven}
+    \textbf{B3. LLM: Manuscript \& Revisions} & \ce 287 queries (477k input / 292k output tokens) & -- & \ce 226.80 & 56.70 \\
+    \rowcolor{rowodd}
+    \textbf{B4. LLM: Multi-Agent \& Peer Review} & \co 261 queries (682k input / 361k output tokens) & -- & \co 256.80 & 64.20 \\
+    \rowcolor{roweven}
+    \textbf{B5. LLM: Policy Web App \& Testing} & \ce 134 queries (338k input / 204k output tokens) & -- & \ce 138.60 & 34.65 \\
+    \hline
+    \rowcolor{rowodd}
+    \textbf{Subtotal: Cloud LLM Assistance} & \co \textbf{753 queries (1.61M input / 0.94M output tokens)} & \textbf{--} & \co \textbf{682.20} & \textbf{170.55} \\
     \midrule
     \rowcolor{tabhead}
-    \textbf{Total Pipeline} & \textbf{All 31 model fits} & \textbf{611.4} & \textbf{4.25} & \textbf{1.06} \\
+    \textbf{Total Project Footprint (A + B)} & \textbf{31 C++ MCMC fits + 753 LLM queries (2.55M tokens)} & \textbf{611.4} & \textbf{686.45} & \textbf{171.61} \\
     \bottomrule
-  \end{tabular}
+  \end{tabular}%
+  }
 \end{table}
 
 \clearpage

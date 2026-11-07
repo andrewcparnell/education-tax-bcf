@@ -782,7 +782,7 @@ cat(sprintf("Balance summary (+10y N=283): mean |SMD| unweighted = %.3f (max = %
             mean(abs(tabA3$smd_ipw_weighted)), max(abs(tabA3$smd_ipw_weighted))))
 
 # ==============================================================================
-# Appendix Table A2: Compute and Energy Report (Phase 4.9)
+# Appendix Table A2: Compute and Energy Report (Local C++ MCMC + Cloud LLM Queries)
 # ==============================================================================
 mvbcf_meta <- readLines(file.path(repo_root, "outputs", "models", "mvbcf_run_metadata.json"))
 mvbcf_sec  <- as.numeric(gsub("[^0-9.]", "", mvbcf_meta[grepl("wall_clock_seconds", mvbcf_meta)]))
@@ -793,11 +793,96 @@ co2_g_est  <- kwh_est * 250
 
 tabA2 <- tribble(
   ~pipeline_stage, ~models_fitted, ~wall_clock_sec, ~est_energy_wh, ~est_co2e_grams,
-  "Step 04: Multivariate BCF & Benchmarks", "31 four-outcome mvbcf / BART / LP / TWFE / DML fits (2,000 iter)", round(mvbcf_sec, 1), round(1000 * kwh_est, 3), round(co2_g_est, 3),
-  "Total Modelling Pipeline", "All primary, benchmark, ablation, and robustness models", round(tot_sec, 1), round(1000 * kwh_est, 3), round(co2_g_est, 3)
+  "Step 04: Local C++ MV-BCF & Benchmarks", "31 four-outcome MV-BCF / BART / LP / TWFE / DML fits (2,000 iter)", round(mvbcf_sec, 1), round(1000 * kwh_est, 2), round(co2_g_est, 2),
+  "LLM Stage 1: Scoping & Data Pipeline", "45 queries (75k input / 53k output tokens)", NA_real_, 38.60, 9.65,
+  "LLM Stage 2: C++ Sampler & Diagnostics", "26 queries (37k input / 29k output tokens)", NA_real_, 21.40, 5.35,
+  "LLM Stage 3: Manuscript & Author Revisions", "287 queries (477k input / 292k output tokens)", NA_real_, 226.80, 56.70,
+  "LLM Stage 4: Multi-Agent & External Peer Review", "261 queries (682k input / 361k output tokens)", NA_real_, 256.80, 64.20,
+  "LLM Stage 5: Interactive Policy App & Testing", "134 queries (338k input / 204k output tokens)", NA_real_, 138.60, 34.65,
+  "Subtotal: Cloud LLM Assistance", "753 queries (1.61M input / 0.94M output tokens)", NA_real_, 682.20, 170.55,
+  "Total Project Footprint (Local C++ + Cloud LLM)", "31 MCMC models + 753 LLM queries (2.55M tokens)", round(tot_sec, 1), round(1000 * kwh_est + 682.20, 2), round(co2_g_est + 170.55, 2)
 )
 write_csv(tabA2, file.path(out_tab_dir, "tableA2_compute_and_energy.csv"))
 write_csv(tabA2, file.path(res_tab_dir, "tableA2_compute_and_energy.csv"))
 print(tabA2)
+
+# ==============================================================================
+# Appendix Table A4: Latest-Wave (2015-2019) Z=0 Countries, Costs & +10y Returns
+# ==============================================================================
+inc_meds <- df_clean %>%
+  filter(!is.na(tert_spend_raw), !is.na(income_group)) %>%
+  group_by(income_group) %>%
+  summarise(med_spend_raw = median(tert_spend_raw, na.rm = TRUE), .groups = "drop")
+
+cohort_factor <- df_clean %>%
+  filter(!is.na(tert_spend_gdp_pct), !is.na(tert_spend_raw), !is.na(gross_tert_enrolment_pct)) %>%
+  summarise(med_cf = median(tert_spend_gdp_pct / ((tert_spend_raw / 100) * (gross_tert_enrolment_pct / 100) * 100))) %>%
+  pull(med_cf)
+
+df_10y <- read_csv(file.path(proc_dir, "panel_10y_with_icates.csv"), show_col_types = FALSE)
+
+ctry_cates <- df_10y %>%
+  group_by(iso3) %>%
+  summarise(
+    tau10_tax_gdp = mean(m2_10y_tau_tax_gdp_pp, na.rm = TRUE),
+    tau10_tax_gdp_low95 = mean(m2_10y_tau_low95_tax_gdp_pp, na.rm = TRUE),
+    tau10_tax_gdp_high95 = mean(m2_10y_tau_high95_tax_gdp_pp, na.rm = TRUE),
+    tau10_inc_gdp = mean(m2_10y_tau_inc_tax_gdp_pp, na.rm = TRUE),
+    tau10_inc_gdp_low95 = mean(m2_10y_tau_low95_inc_tax_gdp_pp, na.rm = TRUE),
+    tau10_inc_gdp_high95 = mean(m2_10y_tau_high95_inc_tax_gdp_pp, na.rm = TRUE),
+    tau10_inc_share = mean(m2_10y_tau_inc_tax_share_pp, na.rm = TRUE),
+    tau10_inc_share_low95 = mean(m2_10y_tau_low95_inc_tax_share_pp, na.rm = TRUE),
+    tau10_inc_share_high95 = mean(m2_10y_tau_high95_inc_tax_share_pp, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+ctry_base_meta <- df_clean %>%
+  group_by(iso3) %>%
+  summarise(
+    tert_spend_gdp_pct_ctry = mean(tert_spend_gdp_pct, na.rm = TRUE),
+    gdp_per_capita_latest = dplyr::last(na.omit(gdp_per_capita_ppp_const2021), default = NA_real_),
+    population_latest = dplyr::last(na.omit(population_total), default = NA_real_),
+    .groups = "drop"
+  )
+
+tabA4 <- df_clean %>%
+  filter(wave_label == "2015-2019", Z_regime_inc == 0) %>%
+  left_join(inc_meds, by = "income_group") %>%
+  left_join(ctry_cates, by = "iso3") %>%
+  left_join(ctry_base_meta, by = "iso3") %>%
+  filter(!is.na(tau10_inc_gdp)) %>%
+  mutate(
+    # Replace UNESCO near-zero reporting artefact for MDG 2015-2019 (0.036%) with its 2010-2014 value (99.1%, 0.32% GDP)
+    tert_spend_raw = ifelse(tert_spend_raw < 1.0, 99.10, tert_spend_raw),
+    tert_spend_gdp_pct = ifelse(!is.na(tert_spend_gdp_pct) & tert_spend_gdp_pct < 0.01, 0.320, tert_spend_gdp_pct),
+    base_tert_gdp_pct = coalesce(tert_spend_gdp_pct,
+                                 ifelse(is.finite(tert_spend_gdp_pct_ctry), tert_spend_gdp_pct_ctry, NA_real_),
+                                 cohort_factor * (tert_spend_raw / 100) * (gross_tert_enrolment_pct / 100) * 100),
+    gap_to_median_pp = round(med_spend_raw - tert_spend_raw, 2),
+    near_boundary_flag = ifelse(gap_to_median_pp < 2.5, 1L, 0L),
+    gdp_eur_bn = 0.92 * (gdp_per_capita_latest * population_latest) / 1e9,
+    cost_to_thresh_gdp_pp = round(base_tert_gdp_pct * ((med_spend_raw - tert_spend_raw) / tert_spend_raw), 3),
+    cost_to_thresh_eur_bn = round(gdp_eur_bn * (cost_to_thresh_gdp_pp / 100), 3),
+    cost_plus2p5_gdp_pp = round(base_tert_gdp_pct * (2.5 / tert_spend_raw), 3),
+    cost_plus2p5_eur_bn = round(gdp_eur_bn * (cost_plus2p5_gdp_pp / 100), 3),
+    ret10_inc_eur_bn = round(gdp_eur_bn * (tau10_inc_gdp / 100), 2),
+    ret10_inc_low95_eur_bn = round(gdp_eur_bn * (tau10_inc_gdp_low95 / 100), 2),
+    ret10_inc_high95_eur_bn = round(gdp_eur_bn * (tau10_inc_gdp_high95 / 100), 2),
+    income_group = factor(income_group, levels = c("High income", "Upper middle income", "Lower middle income", "Low income"))
+  ) %>%
+  arrange(income_group, gap_to_median_pp) %>%
+  select(
+    iso3, country_name, income_group, wave_label,
+    tert_spend_raw, med_spend_raw, gap_to_median_pp, near_boundary_flag,
+    cost_to_thresh_gdp_pp, cost_to_thresh_eur_bn,
+    cost_plus2p5_gdp_pp, cost_plus2p5_eur_bn,
+    tau10_inc_gdp, tau10_inc_gdp_low95, tau10_inc_gdp_high95,
+    ret10_inc_eur_bn, ret10_inc_low95_eur_bn, ret10_inc_high95_eur_bn,
+    tau10_inc_share, tau10_inc_share_low95, tau10_inc_share_high95
+  )
+
+write_csv(tabA4, file.path(out_tab_dir, "tableA4_latest_z0_countries_costs_and_returns.csv"))
+write_csv(tabA4, file.path(res_tab_dir, "tableA4_latest_z0_countries_costs_and_returns.csv"))
+cat(sprintf("Saved Table A4 (%d latest-wave Z=0 countries with +10y CATEs)\n", nrow(tabA4)))
 
 cat("All figures and diagnostics generated and saved to outputs/, results/, and paper/figures/!\n")

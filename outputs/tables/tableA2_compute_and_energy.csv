@@ -1,3 +1,9 @@
 pipeline_stage,models_fitted,wall_clock_sec,est_energy_wh,est_co2e_grams
-Step 04: Multivariate BCF & Benchmarks,"31 four-outcome mvbcf / BART / LP / TWFE / DML fits (2,000 iter)",611.4,4.246,1.061
-Total Modelling Pipeline,"All primary, benchmark, ablation, and robustness models",611.4,4.246,1.061
+Step 04: Local C++ MV-BCF & Benchmarks,"31 four-outcome MV-BCF / BART / LP / TWFE / DML fits (2,000 iter)",611.4,4.25,1.06
+LLM Stage 1: Scoping & Data Pipeline,45 queries (75k input / 53k output tokens),NA,38.6,9.65
+LLM Stage 2: C++ Sampler & Diagnostics,26 queries (37k input / 29k output tokens),NA,21.4,5.35
+LLM Stage 3: Manuscript & Author Revisions,287 queries (477k input / 292k output tokens),NA,226.8,56.7
+LLM Stage 4: Multi-Agent & External Peer Review,261 queries (682k input / 361k output tokens),NA,256.8,64.2
+LLM Stage 5: Interactive Policy App & Testing,134 queries (338k input / 204k output tokens),NA,138.6,34.65
+Subtotal: Cloud LLM Assistance,753 queries (1.61M input / 0.94M output tokens),NA,682.2,170.55
+Total Project Footprint (Local C++ + Cloud LLM),31 MCMC models + 753 LLM queries (2.55M tokens),611.4,686.45,171.61
