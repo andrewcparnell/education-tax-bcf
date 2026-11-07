@@ -6,9 +6,9 @@ This folder contains the three-tab interactive web application for policy makers
 
 ## Key Features
 
-* **Units Switcher (`EUR`, `USD`, `GBP`, or `Percentage points`):**
-  * Defaults to **EUR (€ per person / year)** and lets users switch seamlessly between **EUR (€)**, **USD ($)**, **GBP (£)**, and **Percentage points (pp)** at any time.
-  * Hovering over any bar or point displays **both** the currency per person and the underlying percentage-point change (alongside the total national annual impact in billions or millions of EUR, USD, or GBP, the country's current university funding level relative to its World Bank income-group median threshold, and its baseline tax structure).
+* **Units Switcher (`Country Total Currency`, `Per-Person Currency`, or `Percentage points`):**
+  * Defaults to **EUR (€ billion / yr, country total)** (showing the estimated annual tax change across the whole country holding population and baseline GDP constant) and lets users switch seamlessly between **Country Total (`EUR`, `USD`, `GBP` billion / yr)**, **Per-Person (`EUR`, `USD`, `GBP` per person / yr)**, and **Percentage points (pp)** at any time.
+  * Hovering over any bar or point displays the country total in billions or millions, the per-person equivalent, and the underlying percentage-point change (alongside the country's historical average university funding level relative to its World Bank income-group median threshold and its baseline tax structure).
 * **Built-In Help Page (`?` Button):**
   * Clicking the `?` button in the top-right header opens a plain-language guide explaining how the app works and how to use each tab.
 * **Three Policy-Focused Tabs:**

@@ -25,10 +25,13 @@
 
   // Currency & Unit Configuration
   const UNIT_CONFIG = {
-    EUR: { code: "EUR", symbol: "\u20ac", rate: 0.92, label: "EUR (\u20ac per person / year)" },
-    USD: { code: "USD", symbol: "$", rate: 1.0, label: "USD ($ per person / year)" },
-    GBP: { code: "GBP", symbol: "\u00a3", rate: 0.79, label: "GBP (\u00a3 per person / year)" },
-    PP:  { code: "PP",  symbol: "pp", rate: 1.0, label: "Percentage points (pp)" }
+    EUR_TOT: { code: "EUR_TOT", baseCode: "EUR", symbol: "\u20ac", rate: 0.92, isTotal: true,  label: "EUR (\u20ac billion / year, country total)" },
+    USD_TOT: { code: "USD_TOT", baseCode: "USD", symbol: "$",      rate: 1.0,  isTotal: true,  label: "USD ($ billion / year, country total)" },
+    GBP_TOT: { code: "GBP_TOT", baseCode: "GBP", symbol: "\u00a3", rate: 0.79, isTotal: true,  label: "GBP (\u00a3 billion / year, country total)" },
+    EUR:     { code: "EUR",     baseCode: "EUR", symbol: "\u20ac", rate: 0.92, isTotal: false, label: "EUR (\u20ac per person / year)" },
+    USD:     { code: "USD",     baseCode: "USD", symbol: "$",      rate: 1.0,  isTotal: false, label: "USD ($ per person / year)" },
+    GBP:     { code: "GBP",     baseCode: "GBP", symbol: "\u00a3", rate: 0.79, isTotal: false, label: "GBP (\u00a3 per person / year)" },
+    PP:      { code: "PP",      baseCode: "EUR", symbol: "pp",     rate: 1.0,  isTotal: false, label: "Percentage points (pp)" }
   };
 
   // World Bank Income-Group Median Thresholds (% of GDP per person per student)
@@ -39,7 +42,7 @@
     "Low income": 205.2
   };
 
-  let currentUnit = "EUR";
+  let currentUnit = "EUR_TOT";
   let lastActiveTab = "tab1";
 
   const OUTCOME_META = {
@@ -107,25 +110,27 @@
     if (currentUnit === "PP") {
       return pp;
     }
-    const u = UNIT_CONFIG[currentUnit];
+    const u = UNIT_CONFIG[currentUnit] || UNIT_CONFIG.EUR_TOT;
     const mult = Number.isFinite(customGdpMultiplier) && customGdpMultiplier > 0 ? customGdpMultiplier : 1.0;
     const gdpPc = Number(c.gdp_per_capita_latest || c.gdp_per_capita_ppp || 25000) * mult;
     const meta = OUTCOME_META[outKey];
-    if (meta && meta.isShareOfTax) {
-      const taxShareGdp = Number(c.non_resource_tax_gdp_pct || 20) / 100;
-      return (pp / 100) * taxShareGdp * gdpPc * u.rate;
+    const shareFactor = meta && meta.isShareOfTax ? Number(c.non_resource_tax_gdp_pct || 20) / 100 : 1.0;
+    const perPersonCurr = (pp / 100) * shareFactor * gdpPc * u.rate;
+    if (u.isTotal) {
+      const pop = Number(c.population_latest || 5e6);
+      return (perPersonCurr * pop) / 1e9;
     }
-    return (pp / 100) * gdpPc * u.rate;
+    return perPersonCurr;
   }
 
-  // Always convert pp to currency per person (even if currentUnit === "PP", defaults to EUR if PP)
+  // Always convert pp to currency per person (using the active currency family, or EUR if PP)
   function convertToCurrencyPerPerson(ppVal, c, outKey, customGdpMultiplier) {
     if (ppVal === null || ppVal === undefined || !Number.isFinite(Number(ppVal))) {
       return null;
     }
     const pp = Number(ppVal);
-    const uKey = currentUnit === "PP" ? "EUR" : currentUnit;
-    const u = UNIT_CONFIG[uKey];
+    const activeCfg = UNIT_CONFIG[currentUnit] || UNIT_CONFIG.EUR_TOT;
+    const u = UNIT_CONFIG[activeCfg.baseCode] || UNIT_CONFIG.EUR;
     const mult = Number.isFinite(customGdpMultiplier) && customGdpMultiplier > 0 ? customGdpMultiplier : 1.0;
     const gdpPc = Number(c.gdp_per_capita_latest || c.gdp_per_capita_ppp || 25000) * mult;
     const meta = OUTCOME_META[outKey];
@@ -148,8 +153,8 @@
     if (currVal === null || currVal === undefined || !Number.isFinite(Number(currVal))) return "N/A";
     const n = Number(currVal);
     const sign = n >= 0 ? "+" : "-";
-    const uKey = forceUnitKey || (currentUnit === "PP" ? "EUR" : currentUnit);
-    const sym = UNIT_CONFIG[uKey].symbol;
+    const activeCfg = UNIT_CONFIG[forceUnitKey || currentUnit] || UNIT_CONFIG.EUR_TOT;
+    const sym = UNIT_CONFIG[activeCfg.baseCode].symbol;
     return `${sign}${sym}${Math.round(Math.abs(n)).toLocaleString("en-GB")} / person`;
   }
 
@@ -161,15 +166,30 @@
     if (forcePP || currentUnit === "PP") {
       return `${sign}${absVal.toFixed(2)} pp`;
     }
-    const sym = UNIT_CONFIG[currentUnit].symbol;
+    const u = UNIT_CONFIG[currentUnit] || UNIT_CONFIG.EUR_TOT;
+    const sym = u.symbol;
+    if (u.isTotal) {
+      if (absVal >= 1.0) {
+        return `${sign}${sym}${absVal.toFixed(2)} bn`;
+      }
+      if (absVal >= 0.01) {
+        return `${sign}${sym}${Math.round(absVal * 1000).toLocaleString("en-GB")} m`;
+      }
+      return `${sign}${sym}${(absVal * 1000).toFixed(1)} m`;
+    }
     return `${sign}${sym}${Math.round(absVal).toLocaleString("en-GB")}`;
   }
 
   function formatDualEstimate(ppVal, c, outKey, customGdpMultiplier) {
     if (ppVal === null || ppVal === undefined || !Number.isFinite(Number(ppVal))) return "N/A";
     const meta = OUTCOME_META[outKey] || {};
-    const currVal = convertToCurrencyPerPerson(ppVal, c, outKey, customGdpMultiplier);
+    const u = UNIT_CONFIG[currentUnit] || UNIT_CONFIG.EUR_TOT;
     const ppStr = formatPP(ppVal, meta.scaleNote);
+    if (u.isTotal) {
+      const totVal = convertValue(ppVal, c, outKey, customGdpMultiplier);
+      return `${formatEffectValue(totVal)} / yr (${ppStr})`;
+    }
+    const currVal = convertToCurrencyPerPerson(ppVal, c, outKey, customGdpMultiplier);
     const currStr = formatCurrencyPerPerson(currVal);
     if (currentUnit === "PP") {
       return `${ppStr} (approx. ${currStr})`;
@@ -185,17 +205,20 @@
     ) {
       return "";
     }
+    const u = UNIT_CONFIG[forceUnitKey || currentUnit] || UNIT_CONFIG.EUR_TOT;
+    if (u.isTotal) {
+      return `Per-person equivalent: ${formatCurrencyPerPerson(perPersonCurrVal)} / yr (at constant population)`;
+    }
     const pop = Number(c.population_latest || 0);
     if (!pop || pop <= 0) return "";
     const total = Number(perPersonCurrVal) * pop;
     const sign = total >= 0 ? "+" : "-";
     const absTot = Math.abs(total);
-    const uKey = forceUnitKey || (currentUnit === "PP" ? "EUR" : currentUnit);
-    const sym = UNIT_CONFIG[uKey].symbol;
+    const sym = UNIT_CONFIG[u.baseCode].symbol;
     if (absTot >= 1e9) {
-      return `National total: ${sign}${sym}${(absTot / 1e9).toFixed(2)} billion / yr`;
+      return `Country total: ${sign}${sym}${(absTot / 1e9).toFixed(2)} billion / yr (at constant population)`;
     }
-    return `National total: ${sign}${sym}${Math.round(absTot / 1e6).toLocaleString("en-GB")} million / yr`;
+    return `Country total: ${sign}${sym}${Math.round(absTot / 1e6).toLocaleString("en-GB")} million / yr (at constant population)`;
   }
 
   function formatCountryContextLines(c) {
