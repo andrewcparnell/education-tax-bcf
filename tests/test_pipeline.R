@@ -111,10 +111,11 @@ for (m_id in c("M1b_Total_10y", "M2a_Direct_5y", "M2b_Direct_10y", "M3b_ObsExp_1
   }
 }
 
-tab5 <- read_csv(file.path(repo_root, "outputs", "tables", "table5_longitudinal_bcf_trajectories.csv"), show_col_types = FALSE)
-for (val in sprintf("%+.2f", tab5$ate_cum_10y_mean)) {
-  stopifnot("Missing lbcf cumulative ATE in paper.tex" = grepl(val, tex_str, fixed = TRUE))
-  stopifnot("Missing lbcf cumulative ATE in paper.md"  = grepl(val, md_str, fixed = TRUE))
+tab4 <- read_csv(file.path(repo_root, "outputs", "tables", "table4_robustness_checks.csv"), show_col_types = FALSE)
+sub_r13 <- tab4 %>% filter(model_id == "R13_Top33_Threshold_10y", outcome_index %in% c(1, 2, 3))
+for (val in sprintf("%+.2f", sub_r13$ate_mean)) {
+  stopifnot("Missing R13 top-tercile ATE in paper.tex" = grepl(val, tex_str, fixed = TRUE))
+  stopifnot("Missing R13 top-tercile ATE in paper.md"  = grepl(val, md_str, fixed = TRUE))
 }
 
 cat("ALL AUTOMATED PIPELINE TESTS PASSED (0 errors)!\n")

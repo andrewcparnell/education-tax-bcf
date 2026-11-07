@@ -451,57 +451,50 @@ p_fig4 <- ggplot(
 save_pub_fig(p_fig4, "fig4_enrolment_and_oecd_moderation", 9.8, 5.6)
 
 # ==============================================================================
-# Figure 5: Longitudinal Trajectories with Posterior Credible Fan & Country CrIs
+# Figure 5: Country Trajectories from MV-BCF (+5y and +10y) with Credible Fan
 # ==============================================================================
-cat("Generating Figure 5: Longitudinal Tax-Share Trajectories with Uncertainty & ISO-2 Labels...\n")
+cat("Generating Figure 5: MV-BCF Country Tax-Share Trajectories (+5y & +10y) with Uncertainty...\n")
 
-df_long_pred <- read_csv(file.path(proc_dir, "panel_longitudinal_3wave_predictions.csv"), show_col_types = FALSE)
-tab5_lbcf    <- read_csv(file.path(out_tab_dir, "table5_longitudinal_bcf_trajectories.csv"), show_col_types = FALSE)
-lbcf_draws   <- readRDS(file.path(repo_root, "outputs", "models", "lbcf_posterior_draws.rds"))
+df_5y_ic <- read_csv(file.path(proc_dir, "panel_5y_with_icates.csv"), show_col_types = FALSE)
 
-# Extract global ATE posterior mean and exact 80% / 95% credible intervals for Direct Income Tax Share (pp)
-inc_share_row <- tab5_lbcf %>% filter(outcome_code == "inc_tax_share_pp")
+inc_5y_row  <- tab1 %>% filter(model_id == "M2a_Direct_5y",  outcome_index == 3)
+inc_10y_row <- tab1 %>% filter(model_id == "M2b_Direct_10y", outcome_index == 3)
 
 global_ribbon_df <- tibble(
   years_after = c(0, 5, 10),
-  ate_mean    = c(0.0, inc_share_row$ate_5y_mean,   inc_share_row$ate_cum_10y_mean),
-  cri95_low   = c(0.0, inc_share_row$ate_5y_low,    inc_share_row$ate_cum_10y_low),
-  cri95_high  = c(0.0, inc_share_row$ate_5y_high,   inc_share_row$ate_cum_10y_high),
-  cri80_low   = c(0.0, inc_share_row$ate_5y_low80,  inc_share_row$ate_cum_10y_low80),
-  cri80_high  = c(0.0, inc_share_row$ate_5y_high80, inc_share_row$ate_cum_10y_high80)
+  ate_mean    = c(0.0, inc_5y_row$ate_mean,       inc_10y_row$ate_mean),
+  cri95_low   = c(0.0, inc_5y_row$ate_cri95_low,  inc_10y_row$ate_cri95_low),
+  cri95_high  = c(0.0, inc_5y_row$ate_cri95_high, inc_10y_row$ate_cri95_high),
+  cri80_low   = c(0.0, inc_5y_row$ate_cri80_low,  inc_10y_row$ate_cri80_low),
+  cri80_high  = c(0.0, inc_5y_row$ate_cri80_high, inc_10y_row$ate_cri80_high)
 )
 
 rep_countries <- tibble(
-  iso3 = c("CHL", "DNK", "KOR", "USA", "DEU", "ZAF", "BRA"),
-  iso2 = c("CL",  "DK",  "KR",  "US",  "DE",  "ZA",  "BR"),
+  iso3 = c("USA", "NOR", "AUT", "IRL", "CHL", "GBR", "ZAF"),
+  iso2 = c("US",  "NO",  "AT",  "IE",  "CL",  "GB",  "ZA"),
   legend_label = c(
-    "Chile (CL)", "Denmark (DK)", "South Korea (KR)",
-    "United States (US)", "Germany (DE)", "South Africa (ZA)", "Brazil (BR)"
+    "United States (US)", "Norway (NO)", "Austria (AT)",
+    "Ireland (IE)", "Chile (CL)", "United Kingdom (GB)", "South Africa (ZA)"
   ),
   x_dodge = seq(-0.54, 0.54, length.out = 7)
 )
 
-# Compute exact country-level posterior trajectory quantiles across MCMC draws s
-tau1_inc_mat    <- lbcf_draws[["inc_tax_share_pp"]]$tau1_mat
-tau_cum_inc_mat <- lbcf_draws[["inc_tax_share_pp"]]$tau_cum_mat
-
 country_summary_list <- list()
 for (r_idx in seq_len(nrow(rep_countries))) {
   c_iso3 <- rep_countries$iso3[r_idx]
-  obs_idx <- which(df_long_pred$iso3 == c_iso3)
-  c_tau1_draws <- colMeans(tau1_inc_mat[obs_idx, , drop = FALSE])
-  c_cum_draws  <- colMeans(tau_cum_inc_mat[obs_idx, , drop = FALSE])
+  s5  <- df_5y_ic %>% filter(iso3 == c_iso3)
+  s10 <- df_10y_ic %>% filter(iso3 == c_iso3)
   country_summary_list[[r_idx]] <- tibble(
     iso3         = c_iso3,
     iso2         = rep_countries$iso2[r_idx],
     legend_label = rep_countries$legend_label[r_idx],
     x_dodge      = rep_countries$x_dodge[r_idx],
-    m_5y         = mean(c_tau1_draws),
-    l80_5y       = unname(quantile(c_tau1_draws, 0.10)),
-    h80_5y       = unname(quantile(c_tau1_draws, 0.90)),
-    m_10y        = mean(c_cum_draws),
-    l80_10y      = unname(quantile(c_cum_draws, 0.10)),
-    h80_10y      = unname(quantile(c_cum_draws, 0.90))
+    m_5y         = mean(s5$m2_5y_tau_inc_tax_share_pp, na.rm = TRUE),
+    l80_5y       = mean(s5$m2_5y_tau_low80_inc_tax_share_pp, na.rm = TRUE),
+    h80_5y       = mean(s5$m2_5y_tau_high80_inc_tax_share_pp, na.rm = TRUE),
+    m_10y        = mean(s10$m2_10y_tau_inc_tax_share_pp, na.rm = TRUE),
+    l80_10y      = mean(s10$m2_10y_tau_low80_inc_tax_share_pp, na.rm = TRUE),
+    h80_10y      = mean(s10$m2_10y_tau_high80_inc_tax_share_pp, na.rm = TRUE)
   )
 }
 country_summary <- bind_rows(country_summary_list)
@@ -530,7 +523,7 @@ label_points_10y <- country_traj %>%
   filter(years_after > 8) %>%
   mutate(
     x_label = 10.78,
-    y_label = space_labels(effect_pp, min_gap = 0.28)
+    y_label = space_labels(effect_pp, min_gap = 0.30)
   )
 
 label_points_5y <- country_traj %>%
@@ -578,9 +571,9 @@ p_fig5 <- ggplot() +
     data = label_points_10y,
     aes(
       x = x_label, y = y_label, colour = legend_label,
-      label = sprintf("%s: %+.1f pp [%+.1f, %+.1f]", iso2, effect_pp, low80, high80)
+      label = sprintf("%s: %+.2f pp [%+.2f, %+.2f]", iso2, effect_pp, low80, high80)
     ),
-    hjust = 0, fontface = "bold", size = 3.05, show.legend = FALSE
+    hjust = 0, fontface = "bold", size = 3.0, show.legend = FALSE
   ) +
   geom_label(
     data = label_points_5y,
@@ -596,88 +589,61 @@ p_fig5 <- ggplot() +
   scale_x_continuous(
     breaks = c(0, 5, 10),
     labels = c("Baseline (0y)", "+5 Years", "+10 Years"),
-    limits = c(0, 13.45)
+    limits = c(0, 13.75)
   ) +
   scale_colour_manual(
     name = "Country (ISO-2):",
     values = c(
-      "Denmark (DK)" = "#1b6ca8",
-      "Germany (DE)" = "#2b8a3e",
       "United States (US)" = "#d9480f",
-      "South Korea (KR)" = "#5f3dc4",
+      "Norway (NO)" = "#1b6ca8",
+      "Austria (AT)" = "#2b8a3e",
+      "Ireland (IE)" = "#0b7285",
       "Chile (CL)" = "#e67700",
-      "Brazil (BR)" = "#0b7285",
+      "United Kingdom (GB)" = "#5f3dc4",
       "South Africa (ZA)" = "#c92a2a"
     )
   ) +
   labs(
-    title = "Ten-Year Compounding Trajectory of Direct Income & Profit Tax Share Across Countries",
-    subtitle = "Three-wave Longitudinal BCF trajectories with 80% country credible intervals and global 80% / 95% posterior fan",
-    x = "Years Following Tertiary Funding Wave",
-    y = "Cumulative Effect on Direct Income Tax Share (pp)",
-    caption = "Note: Vertical bars and brackets show exact 80% country-level posterior credible intervals (horizontally dodged at +5y and +10y for visibility).\nGrey ribbons show the global average 80% (dark) and 95% (light) posterior credible fan across all N = 282 trajectories."
+    title = "Five-Year and Ten-Year Trajectory of Direct Income & Profit Tax Share Across Countries",
+    subtitle = "Multivariate BCF country trajectories with 80% credible intervals and global 80% / 95% posterior fan",
+    x = "Years Following University Funding Wave",
+    y = "Effect on Direct Income Tax Share (pp)",
+    caption = "Note: Vertical bars and brackets show 80% country-level posterior credible intervals (CIs, horizontally dodged at +5y and +10y for visibility).\nGrey ribbons show the global average 80% (dark) and 95% (light) MV-BCF posterior credible fan (+1.24 pp at +5y; +1.48 pp at +10y)."
   ) +
   theme_pub(11.5)
 
-save_pub_fig(p_fig5, "fig5_longitudinal_country_trajectories", 10.2, 5.8)
+save_pub_fig(p_fig5, "fig5_longitudinal_country_trajectories", 10.4, 5.8)
 
 # ==============================================================================
-# Appendix Figure A1: MCMC Trace Plots across the 4 Fiscal Outcomes (mvbcf & lbcf)
+# Appendix Figure A1: MCMC Trace Plots across the 4 Fiscal Outcomes (MV-BCF)
 # ==============================================================================
-cat("Generating Appendix Figure A1: MCMC Posterior Trace Plots...\n")
-
-lbcf_trace_rows <- list()
-lbcf_label_map <- c(
-  "tax_gdp_pp"         = "1. Non-Resource Tax / GDP (pp)",
-  "inc_tax_gdp_pp"     = "2. Direct Income & Profit Tax / GDP (pp)",
-  "inc_tax_share_pp"   = "3. Direct Income & Profit Share of Revenue (pp)",
-  "goods_tax_share_pp" = "4. Goods & Services Tax Share (pp, Negative Control)"
-)
-for (code_nm in names(lbcf_label_map)) {
-  cdraws <- lbcf_draws[[code_nm]]$ate_cum_draws
-  lbcf_trace_rows[[code_nm]] <- tibble(
-    draw = seq_along(cdraws),
-    series = "Longitudinal BCF (+10y Cumulative)",
-    outcome_label = factor(lbcf_label_map[[code_nm]], levels = unname(lbcf_label_map)),
-    ate_pp = cdraws
-  )
-}
+cat("Generating Appendix Figure A1: MCMC Posterior Trace Plots (MV-BCF)...\n")
 
 mvbcf_trace_df <- draws_long %>%
   filter(model == "Mediator-Removed Direct Effect (M2)") %>%
   mutate(
-    series = ifelse(horizon == "+5 years", "Multivariate BCF (+5y Direct)", "Multivariate BCF (+10y Direct)")
+    series = factor(
+      ifelse(horizon == "+5 years", "Multivariate BCF (+5 Years)", "Multivariate BCF (+10 Years)"),
+      levels = c("Multivariate BCF (+5 Years)", "Multivariate BCF (+10 Years)")
+    )
   ) %>%
   select(draw, series, outcome_label, ate_pp)
 
-trace_combined_df <- bind_rows(
-  mvbcf_trace_df,
-  bind_rows(lbcf_trace_rows) %>% filter(draw <= 1250)
-) %>%
-  mutate(
-    series = factor(series, levels = c(
-      "Multivariate BCF (+5y Direct)",
-      "Multivariate BCF (+10y Direct)",
-      "Longitudinal BCF (+10y Cumulative)"
-    ))
-  )
-
-p_figA1 <- ggplot(trace_combined_df, aes(x = draw, y = ate_pp, colour = series)) +
-  geom_line(alpha = 0.72, linewidth = 0.42) +
+p_figA1 <- ggplot(mvbcf_trace_df, aes(x = draw, y = ate_pp, colour = series)) +
+  geom_line(alpha = 0.78, linewidth = 0.45) +
   facet_wrap(~ outcome_label, ncol = 2, scales = "free_y") +
   scale_colour_manual(
-    name = "Model & Horizon:",
+    name = "Horizon:",
     values = c(
-      "Multivariate BCF (+5y Direct)" = "#1b6ca8",
-      "Multivariate BCF (+10y Direct)" = "#d9480f",
-      "Longitudinal BCF (+10y Cumulative)" = "#2b8a3e"
+      "Multivariate BCF (+5 Years)" = "#1b6ca8",
+      "Multivariate BCF (+10 Years)" = "#2b8a3e"
     )
   ) +
   labs(
-    title = "Post-Burn-In MCMC Trace Plots for Multivariate BCF and Longitudinal BCF Models",
-    subtitle = "Stationary post-burn-in MCMC draws across all four fiscal outcomes for mvbcf (+5y, +10y) and lbcf (+10y cumulative)",
+    title = "Post-Burn-In MCMC Trace Plots for the Multivariate BCF Models (+5 and +10 Years)",
+    subtitle = "1,250 retained post-burn-in MCMC draws across all four tax revenue outcomes",
     x = "Post-Burn-In MCMC Iteration",
-    y = "Average Treatment Effect Draw (Percentage Points)"
+    y = "Average Treatment Effect Draw (Percentage Points, pp)"
   ) +
   theme_pub(11)
 
@@ -722,7 +688,7 @@ compute_geweke_z <- function(x) {
 
 ppc_tbl <- read_csv(file.path(out_tab_dir, "table_ppc_fit_metrics.csv"), show_col_types = FALSE)
 
-tabA1_mvbcf <- draws_long %>%
+tabA1 <- draws_long %>%
   group_by(model, horizon, outcome_code, outcome_label) %>%
   summarise(
     n_post_draws = n(),
@@ -752,29 +718,6 @@ tabA1_mvbcf <- draws_long %>%
   ) %>%
   left_join(ppc_tbl, by = c("model", "horizon", "outcome_code"))
 
-tabA1_lbcf <- tab5_lbcf %>%
-  transmute(
-    model = "Longitudinal BCF (lbcf)",
-    horizon = "+10 years (cum.)",
-    outcome_code = outcome_code,
-    outcome_label = factor(lbcf_label_map[outcome_code], levels = levels(draws_long$outcome_label)),
-    n_post_draws = 1500L,
-    ate_mean = ate_cum_10y_mean,
-    ate_sd = ate_cum_10y_sd,
-    split_rhat = split_rhat,
-    ess_ate = ess_cum,
-    mcse_ate = mcse_cum,
-    geweke_z = geweke_z_cum,
-    n_obs = n_trajectories,
-    n_countries = n_countries,
-    prob_positive = prob_cum_10y_pos,
-    clu_prob_pos = clu_prob_cum_pos,
-    ppc_rmse = ppc_rmse,
-    ppc_r2 = ppc_r2,
-    ppc_cov95_pct = ppc_cov95_pct
-  )
-
-tabA1 <- bind_rows(tabA1_mvbcf, tabA1_lbcf)
 write_csv(tabA1, file.path(out_tab_dir, "tableA1_convergence_and_fit_diagnostics.csv"))
 write_csv(tabA1, file.path(res_tab_dir, "tableA1_convergence_and_fit_diagnostics.csv"))
 print(tabA1, n = 25)
@@ -842,18 +785,15 @@ cat(sprintf("Balance summary (+10y N=283): mean |SMD| unweighted = %.3f (max = %
 # Appendix Table A2: Compute and Energy Report (Phase 4.9)
 # ==============================================================================
 mvbcf_meta <- readLines(file.path(repo_root, "outputs", "models", "mvbcf_run_metadata.json"))
-lbcf_meta  <- readLines(file.path(repo_root, "outputs", "models", "lbcf_run_metadata.json"))
 mvbcf_sec  <- as.numeric(gsub("[^0-9.]", "", mvbcf_meta[grepl("wall_clock_seconds", mvbcf_meta)]))
-lbcf_sec   <- as.numeric(gsub("[^0-9.]", "", lbcf_meta[grepl("wall_clock_seconds", lbcf_meta)]))
-tot_sec    <- mvbcf_sec + lbcf_sec
+tot_sec    <- mvbcf_sec
 # Assuming 25W average Apple Silicon CPU package power and 250 gCO2e/kWh Irish grid intensity
 kwh_est    <- (tot_sec / 3600) * 0.025
 co2_g_est  <- kwh_est * 250
 
 tabA2 <- tribble(
   ~pipeline_stage, ~models_fitted, ~wall_clock_sec, ~est_energy_wh, ~est_co2e_grams,
-  "Step 04: Multivariate BCF & Benchmarks", "30 four-outcome mvbcf / BART / LP / TWFE / DML fits", round(mvbcf_sec, 1), round(1000 * (mvbcf_sec / 3600) * 0.025, 3), round(250 * (mvbcf_sec / 3600) * 0.025, 3),
-  "Step 05: Three-Wave Longitudinal BCF", "4 three-wave lbcf_3wave trajectory fits (2,500 iter each)", round(lbcf_sec, 1), round(1000 * (lbcf_sec / 3600) * 0.025, 3), round(250 * (lbcf_sec / 3600) * 0.025, 3),
+  "Step 04: Multivariate BCF & Benchmarks", "31 four-outcome mvbcf / BART / LP / TWFE / DML fits (2,000 iter)", round(mvbcf_sec, 1), round(1000 * kwh_est, 3), round(co2_g_est, 3),
   "Total Modelling Pipeline", "All primary, benchmark, ablation, and robustness models", round(tot_sec, 1), round(1000 * kwh_est, 3), round(co2_g_est, 3)
 )
 write_csv(tabA2, file.path(out_tab_dir, "tableA2_compute_and_energy.csv"))

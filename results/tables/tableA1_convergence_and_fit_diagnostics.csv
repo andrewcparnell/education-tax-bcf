@@ -7,7 +7,3 @@ Mediator-Removed Direct Effect (M2),+10 years,goods_tax_share_pp,4. Goods & Serv
 Mediator-Removed Direct Effect (M2),+10 years,inc_tax_gdp_pp,"2. Direct Income & Profit Tax (% of GDP, pp)",1250,0.344,0.216,1.015,198,0.015,1.86,283,112,0.952,0.95,1.33,0.27,96.5
 Mediator-Removed Direct Effect (M2),+10 years,inc_tax_share_pp,3. Direct Income & Profit Share of Tax (pp),1250,1.479,0.793,1.003,198,0.056,0.99,283,112,0.966,0.963,4.76,0.453,97.2
 Mediator-Removed Direct Effect (M2),+10 years,tax_gdp_pp,"1. Total Tax Revenue (% of GDP, pp)",1250,0.446,0.409,1.002,202,0.029,-1.29,283,112,0.862,0.861,2.5,0.327,95.8
-Longitudinal BCF (lbcf),+10 years (cum.),tax_gdp_pp,NA,1500,0.46,0.324,1.001,387,0.016,0.98,282,112,0.917,0.921,1.97,0.58,95.7
-Longitudinal BCF (lbcf),+10 years (cum.),inc_tax_gdp_pp,NA,1500,0.406,0.158,1.002,389,0.008,0.25,282,112,0.995,0.995,1.01,0.579,95.4
-Longitudinal BCF (lbcf),+10 years (cum.),inc_tax_share_pp,NA,1500,1.937,0.639,1.002,377,0.033,1.38,282,112,0.999,0.999,4.02,0.605,96.5
-Longitudinal BCF (lbcf),+10 years (cum.),goods_tax_share_pp,NA,1500,-0.871,0.687,1.004,348,0.037,0.23,282,112,0.1,0.099,4.01,0.684,97.5

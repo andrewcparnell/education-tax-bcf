@@ -92,12 +92,11 @@
     2: "1990-1994",
     3: "1995-1999",
     4: "2000-2004",
-    5: "1995-1999",
+    5: "2005-2009",
     6: "2010-2014",
     7: "2015-2019",
     8: "2020-2024"
   };
-  WAVE_LABELS[5] = "2005-2009";
 
   // Convert percentage-point (pp) effect for country c and outcome outKey into active unit
   function convertValue(ppVal, c, outKey, customGdpMultiplier) {
@@ -228,7 +227,7 @@
       ` | Goods/VAT: ${Number.isFinite(goodsShare) ? goodsShare.toFixed(1) + "%" : "N/A"})`;
 
     return (
-      `Current uni spend: ${pppStr} (${ratioStr} - ${statusStr}) | Budget: ${budgetStr}<br>` +
+      `Historical avg uni spend: ${pppStr} (${ratioStr} - ${statusStr}) | Budget: ${budgetStr}<br>` +
       taxLine
     );
   }
@@ -1475,7 +1474,7 @@
       const ratioTxt = Number.isFinite(spendRatio)
         ? `${spendRatio.toFixed(1)}% GDP/pc (${spendRatio >= thresh ? "Above" : "Below"} peer median ${thresh.toFixed(1)}%)`
         : "80% uncertainty range";
-      tagEl.textContent = `Current spend/student: ${ratioTxt} | Baseline tax: ${Number(c.non_resource_tax_gdp_pct || 0).toFixed(1)}% GDP`;
+      tagEl.textContent = `Avg spend/student: ${ratioTxt} | Baseline tax: ${Number(c.non_resource_tax_gdp_pct || 0).toFixed(1)}% GDP`;
     }
 
     const revOutcomes = [

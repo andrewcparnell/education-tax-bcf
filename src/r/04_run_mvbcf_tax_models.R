@@ -874,6 +874,13 @@ rob_noncomp_10y <- fit_mvbcf_spec(df_noncomp, y10_noncomp, "Z_regime_inc", extra
 df_precovid <- df %>% filter(wave_index <= 5)
 rob_precovid_10y <- fit_mvbcf_spec(df_precovid, y10_cols, "Z_regime_inc", extra_con = mediators_10y)
 
+# R13: Higher Investment Threshold (Top-Tercile / Top 33% of Income-Group Per-Student Spending)
+df_top33 <- df %>%
+  group_by(income_group) %>%
+  mutate(Z_top33_inc = as.integer(tert_spend_per_student_winsor >= quantile(tert_spend_per_student_winsor, 2/3, na.rm = TRUE))) %>%
+  ungroup()
+rob_top33_10y <- fit_mvbcf_spec(df_top33, y10_cols, "Z_top33_inc", extra_con = mediators_10y)
+
 table4_robustness <- bind_rows(
   summarise_fit(rob_pure_wdi,       "R1_Pure_WDI_Tax_10y",      "Pure Unadjusted WDI Tax/GDP (+10y)",                  "+10 years (t+2)"),
   summarise_fit(rob_nonoverlap,     "R2_NonOverlap_10y",        "Non-Overlapping Decadal Waves (+10y)",                "+10 years (t+2)"),
@@ -887,7 +894,8 @@ table4_robustness <- bind_rows(
   summarise_fit(rob_seqg_10y,       "R9_TwoStage_SeqG_10y",     "Two-Stage Sequential G-Estimation (+10y)",            "+10 years (t+2)"),
   summarise_fit(rob_pretrend_10y,   "R10_PreTrend_Ctrl_10y",    "Controlling for Pre-Treatment Fiscal Trends (+10y)",  "+10 years (t+2)"),
   summarise_fit(rob_noncomp_10y,    "R11_NonComp_GoodsGDP_10y", "Non-Compositional Negative Control: Goods Tax/GDP (+10y)", "+10 years (t+2)"),
-  summarise_fit(rob_precovid_10y,   "R12_PreCOVID_Sample_10y",  "Pre-COVID Sample Excluding 2020-2024 Outcome Wave (+10y)", "+10 years (t+2)")
+  summarise_fit(rob_precovid_10y,   "R12_PreCOVID_Sample_10y",  "Pre-COVID Sample Excluding 2020-2024 Outcome Wave (+10y)", "+10 years (t+2)"),
+  summarise_fit(rob_top33_10y,      "R13_Top33_Threshold_10y",  "Top-Tercile Per-Student Funding Threshold (Top 33%, +10y)", "+10 years (t+2)")
 )
 
 save_both_tabs(table4_robustness, "table4_robustness_checks.csv")

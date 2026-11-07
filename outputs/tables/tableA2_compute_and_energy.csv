@@ -1,4 +1,3 @@
 pipeline_stage,models_fitted,wall_clock_sec,est_energy_wh,est_co2e_grams
-Step 04: Multivariate BCF & Benchmarks,30 four-outcome mvbcf / BART / LP / TWFE / DML fits,611.4,4.246,1.061
-Step 05: Three-Wave Longitudinal BCF,"4 three-wave lbcf_3wave trajectory fits (2,500 iter each)",204.5,1.42,0.355
-Total Modelling Pipeline,"All primary, benchmark, ablation, and robustness models",815.9,5.666,1.417
+Step 04: Multivariate BCF & Benchmarks,"31 four-outcome mvbcf / BART / LP / TWFE / DML fits (2,000 iter)",611.4,4.246,1.061
+Total Modelling Pipeline,"All primary, benchmark, ablation, and robustness models",611.4,4.246,1.061
