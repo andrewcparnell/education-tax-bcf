@@ -1,9 +1,11 @@
 stage_step,description,country_waves,countries,retention_pct
-1. Full Global 5-Year Panel,217 sovereign territories x 8 non-overlapping 5y waves (1985-2024),1736,217,100
-2. Observed Domestic Tax Revenue,Country-waves with valid non-resource tax-to-GDP (after screening 4 WDI errors),914,159,52.6
-3. Observed Four-Channel Tax Vector,Country-waves with all 4 disaggregated tax outcomes at baseline t,883,157,50.9
-4. Observed Per-Student Tertiary Spend,Country-waves with observed UNESCO per-student tertiary spending (Z_regime_inc),512,166,29.5
-5. Observed Public Tertiary Budget (% GDP),Country-waves with observed public tertiary budget share of GDP (Z_tert_gdp_regime),785,183,45.2
-6. Complete +5y Estimation Sample (mvbcf),"Complete 4-channel fiscal changes over [t, t+1] + observed per-student tertiary spend",372,121,21.4
-7. Complete +10y Estimation Sample (mvbcf),"Complete 4-channel fiscal changes over [t, t+2] + observed per-student tertiary spend",283,112,16.3
-8. Complete 3-Wave Longitudinal Sample (lbcf),"Complete 3-wave trajectory (t, t+1, t+2) across all 4 tax channels",282,112,16.2
+1. Full Global 5-Year Panel (All Folds),217 sovereign territories x 8 non-overlapping 5y waves (1985-2024),1736,217,100
+2. Observed Domestic Tax Revenue (All Folds),Country-waves with valid non-resource tax-to-GDP (after screening 4 WDI errors),914,159,52.6
+3. Observed Four-Channel Tax Vector (All Folds),Country-waves with all 4 disaggregated tax outcomes at baseline t,883,157,50.9
+4. Observed Continuous Per-Student Spend (All Folds),Country-waves with valid UNESCO per-student tertiary spending >= 1% GDP/pc,511,166,29.4
+5. Complete +5y Panel (All 121 Countries),"Complete 4-channel fiscal changes over [t, t+1] + continuous Z",371,121,21.4
+"6. Complete +5y Training Set (Folds 1-4, 80%)",Training countries used for Phase 3 EDA and model fitting (+5y),301,98,81.1
+"7. Complete +5y Holdout Test Set (Fold 5, 20% Locked)",Held-out unseen countries locked during EDA for out-of-sample validation (+5y),70,23,18.9
+8. Complete +10y Panel (All 112 Countries),"Complete 4-channel fiscal changes over [t, t+2] + continuous Z",283,112,16.3
+"9. Complete +10y Training Set (Folds 1-4, 80%)",Training countries used for Phase 3 EDA and model fitting (+10y),229,90,80.9
+"10. Complete +10y Holdout Test Set (Fold 5, 20% Locked)",Held-out unseen countries locked during EDA for out-of-sample validation (+10y),54,22,19.1

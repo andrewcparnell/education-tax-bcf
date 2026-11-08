@@ -1,13 +1,13 @@
 #!/usr/bin/env Rscript
 # ==============================================================================
-# Step 06: Generate Publication Figures, MCMC & Posterior Predictive Diagnostics,
-#          and Compute/Energy Report
+# Step 06: Generate Publication Figures, Continuous-Z Residual & Holdout
+#          Validation Diagnostics, and Compute/Energy Report
 # (src/r/06_generate_figures_and_diagnostics.R)
 #
 # Style rules enforced:
-#   - British English throughout (enrolment, colour, modelled, etc.)
+#   - British English throughout (enrolment, colour, modelled, winsorised, etc.)
 #   - Zero em dashes (uses ' - ', colons, or parentheses)
-#   - Exclusively focused on tertiary education spending definitions
+#   - Continuous treatment Z in MV-BCF (Scaling A: +10 pp ratio; Scaling B: +25% log)
 #   - Two-letter ISO-2 country codes in legends and labelled directly on lines
 # ==============================================================================
 
@@ -16,7 +16,10 @@ suppressPackageStartupMessages({
   library(tidyr)
   library(readr)
   library(ggplot2)
+  library(ggrepel)
   library(grid)
+  library(patchwork)
+  library(ranger)
 })
 
 repo_root <- getwd()
@@ -25,17 +28,15 @@ if (!dir.exists(file.path(repo_root, "src")) && dir.exists(file.path(dirname(dir
 }
 proc_dir    <- file.path(repo_root, "data", "processed")
 out_tab_dir <- file.path(repo_root, "outputs", "tables")
-res_tab_dir <- file.path(repo_root, "results", "tables")
 out_fig_dir <- file.path(repo_root, "outputs", "figures")
-res_fig_dir <- file.path(repo_root, "results", "figures")
 pap_fig_dir <- file.path(repo_root, "paper", "figures")
 
-for (d in c(out_tab_dir, res_tab_dir, out_fig_dir, res_fig_dir, pap_fig_dir)) {
+for (d in c(out_tab_dir, out_fig_dir, pap_fig_dir)) {
   dir.create(d, recursive = TRUE, showWarnings = FALSE)
 }
 
 save_pub_fig <- function(p, fname_base, width, height) {
-  for (dir_path in c(out_fig_dir, res_fig_dir, pap_fig_dir)) {
+  for (dir_path in c(out_fig_dir, pap_fig_dir)) {
     ggsave(file.path(dir_path, paste0(fname_base, ".png")), p, width = width, height = height, dpi = 300)
     ggsave(file.path(dir_path, paste0(fname_base, ".pdf")), p, width = width, height = height)
   }
@@ -44,12 +45,12 @@ save_pub_fig <- function(p, fname_base, width, height) {
 theme_pub <- function(base_size = 12) {
   theme_minimal(base_size = base_size) +
     theme(
-      plot.title = element_text(face = "bold", size = base_size + 2, colour = "#0f2537", margin = margin(b = 4)),
+      plot.title = element_text(face = "bold", size = base_size + 1.5, colour = "#0f2537", margin = margin(b = 4)),
       plot.subtitle = element_text(size = base_size - 0.5, colour = "#334e68", margin = margin(b = 10)),
       plot.caption = element_text(size = base_size - 2, colour = "#627d98", hjust = 0, margin = margin(t = 8)),
       axis.title = element_text(face = "bold", size = base_size, colour = "#102a43"),
       axis.text = element_text(size = base_size - 1, colour = "#243b53"),
-      strip.text = element_text(face = "bold", size = base_size, colour = "#0f2537"),
+      strip.text = element_text(face = "bold", size = base_size - 0.5, colour = "#0f2537"),
       strip.background = element_rect(fill = "#f0f4f8", colour = NA),
       panel.grid.minor = element_blank(),
       panel.grid.major = element_line(colour = "#e1e8ed", linewidth = 0.35),
@@ -62,7 +63,7 @@ theme_pub <- function(base_size = 12) {
 }
 
 # ==============================================================================
-# Figure 1: Overall Structural Schematic of the Paper
+# Figure 1: Overall Structural Schematic of the Paper (Continuous-Z Design)
 # ==============================================================================
 cat("Generating Figure 1: Structural Schematic of the Study...\n")
 
@@ -74,24 +75,24 @@ boxes <- tibble(
   fill = c("#e6f2f8", "#edf7ed", "#fff4e6", "#f0f4f8"),
   border = c("#1b6ca8", "#2b8a3e", "#d9480f", "#0f2537"),
   header = c(
-    "1. University Funding\n(Four Ways of Measuring)",
+    "1. Continuous University Dose\n(Four Ways of Measuring)",
     "2A. Starting Country Context\n(Measured Before Funding)",
     "2B. Economic Growth Controls\n(During Follow-Up Period)",
-    "3. Future Tax Revenue\n(+5 Year & +10 Year Changes)"
+    "3. Future Tax Revenue\n(+5 Year & +10 Year Slopes)"
   ),
   body = c(
     paste(
       "* Per-Student Spending Ratio",
-      "  (% of GDP per person)",
+      "  (+10 pp of GDP per person)",
       "",
       "* Within-Country Increases",
-      "  (5-year funding jump)",
+      "  (+10 pp 5-year funding jump)",
       "",
       "* Real PPP Dollars per Student",
-      "  (purchasing-power adjusted)",
+      "  (+25% purchasing-power dose)",
       "",
       "* University Budget % of GDP",
-      "  (share of national income)",
+      "  (+0.25 pp of national income)",
       sep = "\n"
     ),
     paste(
@@ -99,7 +100,7 @@ boxes <- tibble(
       "* Prior 5-Year Economic Growth",
       "* Starting University Enrolment",
       "* Demographics & Inequality",
-      "* Likelihood of High Funding",
+      "* Expected Dose E[Z | X] (RF)",
       sep = "\n"
     ),
     paste(
@@ -142,12 +143,12 @@ p_fig1 <- ggplot() +
   geom_text(
     data = boxes,
     aes(x = (xmin + xmax) / 2, y = ymax - 0.36, label = header),
-    fontface = "bold", size = 4.4, colour = "#0f2537", lineheight = 1.05
+    fontface = "bold", size = 4.3, colour = "#0f2537", lineheight = 1.05
   ) +
   geom_text(
     data = boxes,
     aes(x = xmin + 0.16, y = (ymin + ymax) / 2 - 0.24, label = body),
-    hjust = 0, size = 3.85, colour = "#102a43", lineheight = 1.15
+    hjust = 0, size = 3.75, colour = "#102a43", lineheight = 1.15
   ) +
   geom_segment(
     data = arrows_df,
@@ -157,13 +158,13 @@ p_fig1 <- ggplot() +
   ) +
   annotate(
     "text", x = 5.0, y = 5.82,
-    label = "Study Design: Estimating the Effect of Government University Spending on Future Tax Revenue",
-    fontface = "bold", size = 4.7, colour = "#0f2537"
+    label = "Study Design: Continuous-Treatment Multivariate BCF for University Spending and Future Tax Revenue",
+    fontface = "bold", size = 4.5, colour = "#0f2537"
   ) +
   annotate(
     "text", x = 5.0, y = 0.32,
-    label = "Separating university funding effects from starting conditions (2A) and general economic growth (2B) across 121 countries (1985-2024)",
-    size = 3.7, colour = "#334e68"
+    label = "Separating continuous university funding slopes from starting conditions (2A) and general economic growth (2B) across 121 countries",
+    size = 3.65, colour = "#334e68"
   ) +
   coord_cartesian(xlim = c(0, 10), ylim = c(0.05, 6.1), expand = FALSE) +
   theme_void() +
@@ -173,8 +174,9 @@ save_pub_fig(p_fig1, "fig1_structural_schematic", 10.8, 5.6)
 
 # ==============================================================================
 # Section 3 Data Summary Figure: Raw Data Overview Across Income Groups
+# (Saved to outputs/figures and paper/figures as fig0_panel_data_overview)
 # ==============================================================================
-cat("Generating Section 3 Data Summary Figure (eda_fig1_raw_distributions_and_bivariate)...\n")
+cat("Generating Section 3 Data Summary Figure (fig0_panel_data_overview)...\n")
 
 df_clean <- read_csv(file.path(proc_dir, "clean_tax_panel.csv"), show_col_types = FALSE) %>%
   filter(!is.na(tert_spend_per_student_winsor) | !is.na(non_resource_tax_gdp_pct)) %>%
@@ -217,69 +219,51 @@ p_data_overview <- ggplot(eda_long, aes(x = income_group, y = val, fill = income
   ) +
   theme_pub(11)
 
-save_pub_fig(p_data_overview, "eda_fig1_raw_distributions_and_bivariate", 10.2, 5.8)
-if (dir.exists(file.path(repo_root, "eda", "figures"))) {
-  ggsave(file.path(repo_root, "eda", "figures", "eda_fig1_raw_distributions_and_bivariate.pdf"), p_data_overview, width = 10.2, height = 5.8)
-  ggsave(file.path(repo_root, "eda", "figures", "eda_fig1_raw_distributions_and_bivariate.png"), p_data_overview, width = 10.2, height = 5.8, dpi = 300)
-}
+save_pub_fig(p_data_overview, "fig0_panel_data_overview", 10.2, 5.8)
 
 # ==============================================================================
-# Figure 2: Posterior Treatment Effects at +5 and +10 Years (Primary Model)
+# Figure 2: Posterior Continuous Treatment Slopes at +5 and +10 Years (Primary Model)
 # ==============================================================================
-cat("Generating Figure 2: Posterior Treatment Effects at +5 and +10 Years...\n")
+cat("Generating Figure 2: Posterior Continuous Treatment Slopes (+5y vs +10y)...\n")
 
-draws_df <- read_csv(file.path(proc_dir, "mvbcf_ate_posterior_draws.csv"), show_col_types = FALSE)
+tab1 <- read_csv(file.path(out_tab_dir, "table1_mvbcf_ate_posteriors.csv"), show_col_types = FALSE)
 
-draws_long <- draws_df %>%
-  filter(model == "Mediator-Removed Direct Effect (M2)") %>%
-  pivot_longer(
-    cols = c(tax_gdp_pp, inc_tax_gdp_pp, inc_tax_share_pp, goods_tax_share_pp),
-    names_to = "outcome_code",
-    values_to = "ate_pp"
-  ) %>%
+fig2_df <- tab1 %>%
+  filter(model_id %in% c("M2a_Direct_10pp_5y", "M2b_Direct_10pp_10y")) %>%
   mutate(
+    horizon_short = factor(
+      ifelse(grepl("5y$", model_id), "+5 years", "+10 years"),
+      levels = c("+5 years", "+10 years")
+    ),
     outcome_label = factor(
-      outcome_code,
-      levels = c("tax_gdp_pp", "inc_tax_gdp_pp", "inc_tax_share_pp", "goods_tax_share_pp"),
+      outcome_index,
+      levels = c(1, 2, 3, 4),
       labels = c(
-        "1. Total Tax Revenue (% of GDP, pp)",
+        "1. Total Non-Resource Tax (% of GDP, pp)",
         "2. Direct Income & Profit Tax (% of GDP, pp)",
         "3. Direct Income & Profit Share of Tax (pp)",
         "4. Goods & Services Tax Share (pp)"
       )
-    ),
-    horizon = factor(horizon, levels = c("+5 years", "+10 years"))
+    )
   )
 
-sum_fig2 <- draws_long %>%
-  group_by(outcome_label, horizon) %>%
-  summarise(
-    mean_val = mean(ate_pp),
-    q025 = quantile(ate_pp, 0.025),
-    q10  = quantile(ate_pp, 0.10),
-    q90  = quantile(ate_pp, 0.90),
-    q975 = quantile(ate_pp, 0.975),
-    prob_pos = mean(ate_pp > 0),
-    .groups = "drop"
-  )
-
-p_fig2 <- ggplot(sum_fig2, aes(x = mean_val, y = horizon, colour = horizon)) +
+p_fig2 <- ggplot(fig2_df, aes(x = ate_mean, y = horizon_short, colour = horizon_short)) +
   geom_vline(xintercept = 0, linetype = "dashed", colour = "#829ab1", linewidth = 0.7) +
   geom_errorbar(
-    aes(xmin = q025, xmax = q975),
+    aes(xmin = ate_cri95_low, xmax = ate_cri95_high),
     width = 0.16, linewidth = 0.75, orientation = "y"
   ) +
   geom_errorbar(
-    aes(xmin = q10, xmax = q90),
+    aes(xmin = ate_cri80_low, xmax = ate_cri80_high),
     width = 0.0, linewidth = 2.2, orientation = "y"
   ) +
-  geom_point(size = 3.6) +
+  geom_point(size = 3.5) +
   geom_text(
     aes(
-      label = sprintf("%+.2f pp (P = %.2f)", mean_val, round(prob_pos + 1e-9, 2)),
-      y = as.numeric(horizon) + 0.26
+      label = sprintf("%+.2f pp (P = %.2f)", ate_mean, round(prob_positive + 1e-9, 2)),
+      y = as.numeric(horizon_short) + 0.26
     ),
-    size = 3.25, fontface = "bold", show.legend = FALSE
+    size = 3.2, fontface = "bold", show.legend = FALSE
   ) +
   facet_wrap(~ outcome_label, ncol = 2, scales = "free_x") +
   scale_colour_manual(
@@ -287,45 +271,43 @@ p_fig2 <- ggplot(sum_fig2, aes(x = mean_val, y = horizon, colour = horizon)) +
     values = c("+5 years" = "#1b6ca8", "+10 years" = "#2b8a3e")
   ) +
   labs(
-    title = "Estimated Effect of Above-Median Per-Student University Funding (+5 vs +10 Years)",
-    subtitle = "Posterior mean effects (in percentage points, pp) with 80% (thick) and 95% (thin) credible intervals (CIs)",
-    x = "Estimated Change in Tax Outcome (Percentage Points, pp)",
+    title = "Estimated Effect of a +10 pp Increase in Per-Student University Funding (+5 vs +10 Years)",
+    subtitle = "Posterior mean continuous slopes (in percentage points, pp) with 80% (thick) and 95% (thin) credible intervals (CIs)",
+    x = "Estimated Change in Tax Outcome per +10 pp Funding Increase (Percentage Points, pp)",
     y = "Time Horizon",
-    caption = "Note: P is the posterior probability that the effect is greater than zero given the data, P(tau > 0 | data)."
+    caption = "Note: P is the posterior probability that the continuous treatment slope is greater than zero, P(tau > 0 | data)."
   ) +
   theme_pub(11.5)
 
 save_pub_fig(p_fig2, "fig2_total_vs_direct_tax_posteriors", 10.5, 5.8)
 
 # ==============================================================================
-# Figure 3: Unbundling the Tertiary Denominator Trap (Exclusively Tertiary)
+# Figure 3: Unbundling the Tertiary Denominator Trap (Continuous Exposures, +10y)
 # ==============================================================================
-cat("Generating Figure 3: Unbundled Tertiary Spending Exposure Comparison (+10 Years)...\n")
-
-tab1 <- read_csv(file.path(out_tab_dir, "table1_mvbcf_ate_posteriors.csv"), show_col_types = FALSE)
+cat("Generating Figure 3: Unbundled Continuous Tertiary Spending Exposures (+10 Years)...\n")
 
 fig3_df <- tab1 %>%
   filter(
     horizon == "+10 years (t+2)",
-    model_id %in% c("M2b_Direct_10y", "M3b_ObsExp_10y", "M3d_RealPPP_10y", "M3f_TertGDP_10y"),
+    model_id %in% c("M2b_Direct_10pp_10y", "M3b_Delta10pp_10y", "M3d_RealPPP_10y", "M3f_TertGDP_10y"),
     outcome_index %in% c(1, 2, 3)
   ) %>%
   mutate(
     exposure_label = factor(
       model_id,
-      levels = rev(c("M2b_Direct_10y", "M3b_ObsExp_10y", "M3d_RealPPP_10y", "M3f_TertGDP_10y")),
+      levels = rev(c("M2b_Direct_10pp_10y", "M3b_Delta10pp_10y", "M3d_RealPPP_10y", "M3f_TertGDP_10y")),
       labels = rev(c(
-        "1. Per-Student Spending Ratio\n(% of GDP per person)",
-        "2. Within-Country Per-Student Increase\n(>= +2.5 pp over 5-year wave)",
-        "3. Real PPP Dollars per Student\n(removes GDP from denominator)",
-        "4. University Budget % of GDP\n(removes student headcount)"
+        "1. Per-Student Spending Ratio\n(+10 pp of GDP per person)",
+        "2. Within-Country 5y Change\n(+10 pp per-student expansion)",
+        "3. Real PPP Dollars per Student\n(+25% log, no GDP denominator)",
+        "4. University Budget % of GDP\n(+0.25 pp, no student denominator)"
       ))
     ),
     outcome_clean = factor(
       outcome_index,
       levels = c(1, 2, 3),
       labels = c(
-        "1. Total Tax Revenue (% of GDP, pp)",
+        "1. Total Non-Resource Tax (% of GDP, pp)",
         "2. Direct Income Tax (% of GDP, pp)",
         "3. Direct Income Tax Share (pp)"
       )
@@ -344,27 +326,27 @@ p_fig3 <- ggplot(fig3_df, aes(x = ate_mean, y = exposure_label, colour = outcome
   facet_wrap(~ outcome_clean, ncol = 3, scales = "free_x") +
   scale_colour_manual(
     values = c(
-      "1. Total Tax Revenue (% of GDP, pp)" = "#1b6ca8",
+      "1. Total Non-Resource Tax (% of GDP, pp)" = "#1b6ca8",
       "2. Direct Income Tax (% of GDP, pp)" = "#2b8a3e",
       "3. Direct Income Tax Share (pp)" = "#d9480f"
     ),
     guide = "none"
   ) +
   labs(
-    title = "Comparing the Four Ways of Measuring University Funding (+10-Year Horizon)",
-    subtitle = "Posterior mean effects (in percentage points, pp) with 80% (thick) and 95% (thin) credible intervals (CIs)",
-    x = "+10-Year Effect on Tax Outcome (Percentage Points, pp)",
-    y = "University Funding Measure",
-    caption = "Note: P is the posterior probability that the effect is greater than zero given the data, P(tau > 0 | data)."
+    title = "Comparing the Four Continuous Ways of Measuring University Funding (+10-Year Horizon)",
+    subtitle = "Posterior mean continuous slopes (pp per dose unit) with 80% (thick) and 95% (thin) credible intervals",
+    x = "+10-Year Slope on Tax Outcome (Percentage Points, pp)",
+    y = "Continuous University Funding Measure",
+    caption = "Note: Removing GDP per person (Measure 3) preserves both level and share effects; removing student headcount (Measure 4) dilutes level gains."
   ) +
   theme_pub(11)
 
 save_pub_fig(p_fig3, "fig3_denominator_unbundling_horserace", 11.4, 5.2)
 
 # ==============================================================================
-# Figure 4: Heterogeneity by Tertiary Enrolment Access & Income Group
+# Figure 4: Subgroup Heterogeneity by Enrolment Tier & World Bank Income Group
 # ==============================================================================
-cat("Generating Figure 4: Enrolment Moderation & Income Group Heterogeneity...\n")
+cat("Generating Figure 4: Subgroup Moderation by Enrolment Tier & Income Group...\n")
 
 df_10y_ic <- read_csv(file.path(proc_dir, "panel_10y_with_icates.csv"), show_col_types = FALSE) %>%
   mutate(
@@ -373,139 +355,175 @@ df_10y_ic <- read_csv(file.path(proc_dir, "panel_10y_with_icates.csv"), show_col
     ))
   )
 
-fig4_plot_df <- df_10y_ic %>%
-  filter(!is.na(gross_tert_enrolment_pct), !is.na(m2_10y_tau_inc_tax_share_pp))
+tab3 <- read_csv(file.path(out_tab_dir, "table3_subgroup_cates.csv"), show_col_types = FALSE)
 
-# Select notable extremes and running-example country-waves to label clearly
-highlight_waves <- fig4_plot_df %>%
+fig4_sub_df <- tab3 %>%
   filter(
-    (iso3 == "IRL" & wave_label == "2005-2009") |
-    (iso3 == "ETH" & wave_label == "1995-1999") |
-    (iso3 == "MWI" & wave_label == "2010-2014") |
-    (iso3 == "KHM" & wave_label == "2010-2014") |
-    (iso3 == "ARM" & wave_label == "2010-2014") |
-    (iso3 == "USA" & wave_label == "2010-2014") |
-    (iso3 == "AUT" & wave_label == "2010-2014") |
-    (iso3 == "CHL" & wave_label == "2010-2014") |
-    (iso3 == "BRA" & wave_label == "2010-2014")
+    horizon == "+10 years (t+2)",
+    dimension %in% c("Tertiary Enrolment Regime (Scaling A)", "World Bank Income Group (Scaling A)")
   ) %>%
   mutate(
-    point_label = case_when(
-      iso3 == "IRL" ~ "Ireland (2005-09: +3.01 pp)",
-      iso3 == "ETH" ~ "Ethiopia (1995-99: -0.83 pp, >150% ratio)",
-      iso3 == "MWI" ~ "Malawi (2010-14: -0.51 pp, >150% ratio)",
-      iso3 == "KHM" ~ "Cambodia (2010-14: 5.9% ratio)",
-      iso3 == "ARM" ~ "Armenia (2010-14: 7.1% ratio)",
-      iso3 == "USA" ~ "United States (2010-14: +2.67 pp)",
-      iso3 == "AUT" ~ "Austria (2010-14: +2.72 pp)",
-      iso3 == "CHL" ~ "Chile (2010-14)",
-      iso3 == "BRA" ~ "Brazil (2010-14)"
+    subgroup_clean = case_when(
+      subgroup == "1. Elite (<20% enrolment)" ~ "Elite Enrolment (<20%)",
+      subgroup == "2. Massifying (20-50% enrolment)" ~ "Massifying (20-50%)",
+      subgroup == "3. High-Participation (>=50% enrolment)" ~ "High-Participation (>=50%)",
+      subgroup == "Low income" ~ "Low Income",
+      subgroup == "Lower middle income" ~ "Lower Middle Income",
+      subgroup == "Upper middle income" ~ "Upper Middle Income",
+      subgroup == "High income" ~ "High Income",
+      TRUE ~ subgroup
+    ),
+    subgroup_clean = factor(
+      subgroup_clean,
+      levels = rev(c(
+        "Elite Enrolment (<20%)",
+        "Massifying (20-50%)",
+        "High-Participation (>=50%)",
+        "Low Income",
+        "Lower Middle Income",
+        "Upper Middle Income",
+        "High Income"
+      ))
+    ),
+    group_type = ifelse(
+      grepl("Enrolment", dimension),
+      "By Starting Enrolment Tier",
+      "By World Bank Income Group"
     )
   )
 
-p_fig4 <- ggplot(
-  fig4_plot_df,
-  aes(x = gross_tert_enrolment_pct, y = m2_10y_tau_inc_tax_share_pp, colour = income_group)
-) +
-  geom_hline(yintercept = 0, linetype = "dashed", colour = "#829ab1", linewidth = 0.6) +
-  geom_linerange(
-    aes(ymin = m2_10y_tau_low80_inc_tax_share_pp, ymax = m2_10y_tau_high80_inc_tax_share_pp),
-    alpha = 0.25, linewidth = 0.48
+fig4_long <- bind_rows(
+  fig4_sub_df %>% transmute(
+    subgroup_clean, group_type,
+    outcome_clean = "1. Total Non-Resource Tax (% of GDP, pp)",
+    mean_pp = cate_tax_gdp_pp, low95 = cate_tax_gdp_low, high95 = cate_tax_gdp_high, prob_pos = prob_tax_gdp_pos
+  ),
+  fig4_sub_df %>% transmute(
+    subgroup_clean, group_type,
+    outcome_clean = "2. Direct Income Tax (% of GDP, pp)",
+    mean_pp = cate_inc_gdp_pp, low95 = cate_inc_gdp_low, high95 = cate_inc_gdp_high, prob_pos = prob_inc_gdp_pos
+  ),
+  fig4_sub_df %>% transmute(
+    subgroup_clean, group_type,
+    outcome_clean = "3. Direct Income Tax Share (pp)",
+    mean_pp = cate_inc_share_pp, low95 = cate_inc_share_low, high95 = cate_inc_share_high, prob_pos = prob_inc_share_pos
+  )
+) %>%
+  mutate(
+    outcome_clean = factor(
+      outcome_clean,
+      levels = c(
+        "1. Total Non-Resource Tax (% of GDP, pp)",
+        "2. Direct Income Tax (% of GDP, pp)",
+        "3. Direct Income Tax Share (pp)"
+      )
+    )
+  )
+
+p_fig4 <- ggplot(fig4_long, aes(x = mean_pp, y = subgroup_clean, colour = group_type)) +
+  geom_vline(xintercept = 0, linetype = "dashed", colour = "#829ab1", linewidth = 0.7) +
+  geom_hline(yintercept = 4.5, linetype = "dotted", colour = "#94a3b8", linewidth = 0.6) +
+  geom_errorbar(aes(xmin = low95, xmax = high95), width = 0.22, linewidth = 0.75, orientation = "y") +
+  geom_point(size = 3.2) +
+  geom_text(
+    aes(label = sprintf("%+.2f pp (P = %.2f)", mean_pp, round(prob_pos + 1e-9, 2))),
+    vjust = -0.82, size = 2.9, fontface = "bold", show.legend = FALSE
   ) +
-  geom_point(alpha = 0.72, size = 2.1) +
-  geom_point(data = highlight_waves, size = 3.2, shape = 21, fill = "white", stroke = 1.2, show.legend = FALSE) +
-  ggrepel::geom_label_repel(
-    data = highlight_waves,
-    aes(label = point_label),
-    size = 2.85,
-    fontface = "bold",
-    fill = "white",
-    box.padding = 0.45,
-    point.padding = 0.3,
-    max.overlaps = 20,
-    min.segment.length = 0,
-    segment.colour = "#334e68",
-    segment.size = 0.45,
-    show.legend = FALSE,
-    seed = 42
-  ) +
-  geom_smooth(aes(group = 1), method = "loess", formula = y ~ x, se = FALSE, colour = "#0f2537", linewidth = 1.1) +
+  facet_wrap(~ outcome_clean, ncol = 3, scales = "free_x") +
   scale_colour_manual(
-    name = "World Bank Income Group:",
+    name = "Subgroup Dimension:",
     values = c(
-      "Low income" = "#d9480f",
-      "Lower middle income" = "#e67700",
-      "Upper middle income" = "#1b6ca8",
-      "High income" = "#2b8a3e"
+      "By Starting Enrolment Tier" = "#1b6ca8",
+      "By World Bank Income Group" = "#2b8a3e"
     )
   ) +
   labs(
-    title = "Unit-Level +10-Year Effect on Income Tax Share by Starting University Enrolment",
-    subtitle = "Posterior mean unit-level treatment effects (pp, with 80% CI bars and LOESS trend) across World Bank income groups",
-    x = "Starting Gross Tertiary Enrolment Ratio (%)",
-    y = "+10-Year Effect on Income Tax Share (pp)",
-    caption = "Note: Vertical bars show 80% unit-level credible intervals (CIs); solid dark curve shows the LOESS trend.\nHighlighted points show notable extremes in spending ratios (>150% vs <8%) and 10-year effects (+3.01 pp in Ireland vs -0.83 pp in Ethiopia)."
+    title = "Subgroup +10-Year Continuous Slopes by University Enrolment Tier and Income Group",
+    subtitle = "Posterior mean slopes (pp per +10 pp funding increase) with 95% credible intervals (CIs) and posterior probabilities P",
+    x = "+10-Year Slope per +10 pp Per-Student Funding Increase (Percentage Points, pp)",
+    y = "Country Subgroup",
+    caption = "Note: Level tax-to-GDP gains (Panels 1-2) are largest in lower-income and elite-enrolment systems; tax-share shifts (Panel 3) peak in middle- and high-income systems."
   ) +
-  theme_pub(11.5)
+  theme_pub(11)
 
-save_pub_fig(p_fig4, "fig4_enrolment_and_oecd_moderation", 9.8, 5.6)
+save_pub_fig(p_fig4, "fig4_enrolment_and_oecd_moderation", 11.4, 5.8)
 
 # ==============================================================================
-# Figure 5: Country Trajectories from MV-BCF (+5y and +10y) with Credible Fan
+# Figure 5: 5-Year to 10-Year Cohort Maturation Trajectories by Income Group
 # ==============================================================================
-cat("Generating Figure 5: MV-BCF Country Tax-Share Trajectories (+5y & +10y) with Uncertainty...\n")
+cat("Generating Figure 5: MV-BCF 5-Year to 10-Year Trajectories by Income Group...\n")
 
-df_5y_ic <- read_csv(file.path(proc_dir, "panel_5y_with_icates.csv"), show_col_types = FALSE)
-
-inc_5y_row  <- tab1 %>% filter(model_id == "M2a_Direct_5y",  outcome_index == 3)
-inc_10y_row <- tab1 %>% filter(model_id == "M2b_Direct_10y", outcome_index == 3)
-
-global_ribbon_df <- tibble(
-  years_after = c(0, 5, 10),
-  ate_mean    = c(0.0, inc_5y_row$ate_mean,       inc_10y_row$ate_mean),
-  cri95_low   = c(0.0, inc_5y_row$ate_cri95_low,  inc_10y_row$ate_cri95_low),
-  cri95_high  = c(0.0, inc_5y_row$ate_cri95_high, inc_10y_row$ate_cri95_high),
-  cri80_low   = c(0.0, inc_5y_row$ate_cri80_low,  inc_10y_row$ate_cri80_low),
-  cri80_high  = c(0.0, inc_5y_row$ate_cri80_high, inc_10y_row$ate_cri80_high)
-)
-
-rep_countries <- tibble(
-  iso3 = c("USA", "NOR", "AUT", "IRL", "CHL", "GBR", "ZAF"),
-  iso2 = c("US",  "NO",  "AT",  "IE",  "CL",  "GB",  "ZA"),
-  legend_label = c(
-    "United States (US)", "Norway (NO)", "Austria (AT)",
-    "Ireland (IE)", "Chile (CL)", "United Kingdom (GB)", "South Africa (ZA)"
-  ),
-  x_dodge = seq(-0.54, 0.54, length.out = 7)
-)
-
-country_summary_list <- list()
-for (r_idx in seq_len(nrow(rep_countries))) {
-  c_iso3 <- rep_countries$iso3[r_idx]
-  s5  <- df_5y_ic %>% filter(iso3 == c_iso3)
-  s10 <- df_10y_ic %>% filter(iso3 == c_iso3)
-  country_summary_list[[r_idx]] <- tibble(
-    iso3         = c_iso3,
-    iso2         = rep_countries$iso2[r_idx],
-    legend_label = rep_countries$legend_label[r_idx],
-    x_dodge      = rep_countries$x_dodge[r_idx],
-    m_5y         = mean(s5$m2_5y_tau_inc_tax_share_pp, na.rm = TRUE),
-    l80_5y       = mean(s5$m2_5y_tau_low80_inc_tax_share_pp, na.rm = TRUE),
-    h80_5y       = mean(s5$m2_5y_tau_high80_inc_tax_share_pp, na.rm = TRUE),
-    m_10y        = mean(s10$m2_10y_tau_inc_tax_share_pp, na.rm = TRUE),
-    l80_10y      = mean(s10$m2_10y_tau_low80_inc_tax_share_pp, na.rm = TRUE),
-    h80_10y      = mean(s10$m2_10y_tau_high80_inc_tax_share_pp, na.rm = TRUE)
+df_5y_ic <- read_csv(file.path(proc_dir, "panel_5y_with_icates.csv"), show_col_types = FALSE) %>%
+  mutate(
+    income_group = factor(income_group, levels = c(
+      "Low income", "Lower middle income", "Upper middle income", "High income"
+    ))
   )
-}
-country_summary <- bind_rows(country_summary_list)
 
-country_traj <- bind_rows(
-  country_summary %>% transmute(iso3, iso2, legend_label, years_after = 0,               effect_pp = 0.0,   low80 = 0.0,     high80 = 0.0),
-  country_summary %>% transmute(iso3, iso2, legend_label, years_after = 5 + x_dodge,     effect_pp = m_5y,  low80 = l80_5y,  high80 = h80_5y),
-  country_summary %>% transmute(iso3, iso2, legend_label, years_after = 10 + x_dodge,    effect_pp = m_10y, low80 = l80_10y, high80 = h80_10y)
+tax_5y_row  <- tab1 %>% filter(model_id == "M2a_Direct_10pp_5y",  outcome_index == 1)
+tax_10y_row <- tab1 %>% filter(model_id == "M2b_Direct_10pp_10y", outcome_index == 1)
+inc_5y_row  <- tab1 %>% filter(model_id == "M2a_Direct_10pp_5y",  outcome_index == 3)
+inc_10y_row <- tab1 %>% filter(model_id == "M2b_Direct_10pp_10y", outcome_index == 3)
+
+global_ribbon_df <- bind_rows(
+  tibble(
+    panel_label = "A. Total Non-Resource Tax (% of GDP, pp)",
+    years_after = c(0, 5, 10),
+    ate_mean    = c(0.0, tax_5y_row$ate_mean,       tax_10y_row$ate_mean),
+    cri95_low   = c(0.0, tax_5y_row$ate_cri95_low,  tax_10y_row$ate_cri95_low),
+    cri95_high  = c(0.0, tax_5y_row$ate_cri95_high, tax_10y_row$ate_cri95_high),
+    cri80_low   = c(0.0, tax_5y_row$ate_cri80_low,  tax_10y_row$ate_cri80_low),
+    cri80_high  = c(0.0, tax_5y_row$ate_cri80_high, tax_10y_row$ate_cri80_high)
+  ),
+  tibble(
+    panel_label = "B. Direct Income & Profit Tax Share of Revenue (pp)",
+    years_after = c(0, 5, 10),
+    ate_mean    = c(0.0, inc_5y_row$ate_mean,       inc_10y_row$ate_mean),
+    cri95_low   = c(0.0, inc_5y_row$ate_cri95_low,  inc_10y_row$ate_cri95_low),
+    cri95_high  = c(0.0, inc_5y_row$ate_cri95_high, inc_10y_row$ate_cri95_high),
+    cri80_low   = c(0.0, inc_5y_row$ate_cri80_low,  inc_10y_row$ate_cri80_low),
+    cri80_high  = c(0.0, inc_5y_row$ate_cri80_high, inc_10y_row$ate_cri80_high)
+  )
 )
 
-space_labels <- function(y_vals, min_gap = 0.24) {
+inc_groups_5y <- df_5y_ic %>%
+  filter(!is.na(income_group)) %>%
+  group_by(income_group) %>%
+  summarise(
+    tax_5y = mean(m2_5y_tau_tax_gdp_pp, na.rm = TRUE),
+    inc_5y = mean(m2_5y_tau_inc_tax_share_pp, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+inc_groups_10y <- tab3 %>%
+  filter(horizon == "+10 years (t+2)", dimension == "World Bank Income Group (Scaling A)") %>%
+  transmute(
+    income_group = factor(subgroup, levels = c(
+      "Low income", "Lower middle income", "Upper middle income", "High income"
+    )),
+    tax_10y = cate_tax_gdp_pp,
+    inc_10y = cate_inc_share_pp
+  )
+
+traj_joined <- inner_join(inc_groups_5y, inc_groups_10y, by = "income_group") %>%
+  mutate(
+    group_label = factor(
+      income_group,
+      levels = c("Low income", "Lower middle income", "Upper middle income", "High income"),
+      labels = c("Low Income", "Lower Middle Income", "Upper Middle Income", "High Income")
+    )
+  )
+
+traj_long <- bind_rows(
+  traj_joined %>% transmute(group_label, panel_label = "A. Total Non-Resource Tax (% of GDP, pp)", years_after = 0,  slope_pp = 0.0),
+  traj_joined %>% transmute(group_label, panel_label = "A. Total Non-Resource Tax (% of GDP, pp)", years_after = 5,  slope_pp = tax_5y),
+  traj_joined %>% transmute(group_label, panel_label = "A. Total Non-Resource Tax (% of GDP, pp)", years_after = 10, slope_pp = tax_10y),
+  traj_joined %>% transmute(group_label, panel_label = "B. Direct Income & Profit Tax Share of Revenue (pp)", years_after = 0,  slope_pp = 0.0),
+  traj_joined %>% transmute(group_label, panel_label = "B. Direct Income & Profit Tax Share of Revenue (pp)", years_after = 5,  slope_pp = inc_5y),
+  traj_joined %>% transmute(group_label, panel_label = "B. Direct Income & Profit Tax Share of Revenue (pp)", years_after = 10, slope_pp = inc_10y)
+)
+
+space_labels <- function(y_vals, min_gap = 0.10) {
   ord <- order(y_vals)
   y_sorted <- y_vals[ord]
   for (i in 2:length(y_sorted)) {
@@ -519,22 +537,21 @@ space_labels <- function(y_vals, min_gap = 0.24) {
   out
 }
 
-label_points_10y <- country_traj %>%
-  filter(years_after > 8) %>%
+end_labels_df <- traj_long %>%
+  filter(years_after == 10) %>%
+  group_by(panel_label) %>%
   mutate(
-    x_label = 10.78,
-    y_label = space_labels(effect_pp, min_gap = 0.30)
-  )
-
-label_points_5y <- country_traj %>%
-  filter(years_after > 3 & years_after < 7) %>%
-  arrange(years_after) %>%
-  mutate(
-    y_label = ifelse(seq_len(n()) %% 2 == 1, high80 + 0.18, low80 - 0.18)
-  )
+    short_group = case_when(
+      group_label == "Lower Middle Income" ~ "Lower Middle",
+      group_label == "Upper Middle Income" ~ "Upper Middle",
+      TRUE ~ as.character(group_label)
+    ),
+    y_label = space_labels(slope_pp, min_gap = ifelse(grepl("^A\\.", first(panel_label)), 0.075, 0.11)),
+    text_label = sprintf("%s (%+.2f pp)", short_group, slope_pp)
+  ) %>%
+  ungroup()
 
 p_fig5 <- ggplot() +
-  # Shaded 95% and 80% global posterior credible fan in background
   geom_ribbon(
     data = global_ribbon_df,
     aes(x = years_after, ymin = cri95_low, ymax = cri95_high),
@@ -546,108 +563,400 @@ p_fig5 <- ggplot() +
     fill = "#94a3b8", alpha = 0.38
   ) +
   geom_hline(yintercept = 0, linetype = "dashed", colour = "#64748b", linewidth = 0.65) +
-  # Country trajectories and exact 80% posterior credible interval error bars
-  geom_errorbar(
-    data = country_traj %>% filter(years_after > 0),
-    aes(x = years_after, ymin = low80, ymax = high80, colour = legend_label),
-    width = 0.09, linewidth = 0.65, alpha = 0.85
+  geom_line(
+    data = global_ribbon_df,
+    aes(x = years_after, y = ate_mean),
+    colour = "#0f2537", linetype = "dotted", linewidth = 0.95
   ) +
   geom_line(
-    data = country_traj,
-    aes(x = years_after, y = effect_pp, colour = legend_label, group = legend_label),
-    linewidth = 1.05
+    data = traj_long,
+    aes(x = years_after, y = slope_pp, colour = group_label, group = group_label),
+    linewidth = 1.15
   ) +
   geom_point(
-    data = country_traj,
-    aes(x = years_after, y = effect_pp, colour = legend_label),
-    size = 2.6
+    data = traj_long,
+    aes(x = years_after, y = slope_pp, colour = group_label),
+    size = 2.8
   ) +
   geom_segment(
-    data = label_points_10y,
-    aes(x = years_after + 0.06, y = effect_pp, xend = x_label - 0.06, yend = y_label, colour = legend_label),
+    data = end_labels_df,
+    aes(x = 10.12, y = slope_pp, xend = 10.45, yend = y_label, colour = group_label),
     linewidth = 0.45, linetype = "dotted", show.legend = FALSE
   ) +
   geom_text(
-    data = label_points_10y,
-    aes(
-      x = x_label, y = y_label, colour = legend_label,
-      label = sprintf("%s: %+.2f pp [%+.2f, %+.2f]", iso2, effect_pp, low80, high80)
-    ),
+    data = end_labels_df,
+    aes(x = 10.52, y = y_label, colour = group_label, label = text_label),
     hjust = 0, fontface = "bold", size = 3.0, show.legend = FALSE
   ) +
-  geom_label(
-    data = label_points_5y,
-    aes(x = years_after, y = y_label, label = iso2, colour = legend_label),
-    fontface = "bold", size = 2.65, label.padding = unit(0.10, "lines"),
-    fill = "white", alpha = 0.92, show.legend = FALSE
-  ) +
-  annotate(
-    "text", x = 2.4, y = -0.35,
-    label = "Shaded bands: Global 80% & 95% posterior CI",
-    colour = "#475569", size = 3.0, fontface = "italic"
-  ) +
+  facet_wrap(~ panel_label, ncol = 2, scales = "free_y") +
   scale_x_continuous(
     breaks = c(0, 5, 10),
     labels = c("Baseline (0y)", "+5 Years", "+10 Years"),
-    limits = c(0, 13.75)
+    limits = c(0, 15.6)
   ) +
   scale_colour_manual(
-    name = "Country (ISO-2):",
+    name = "World Bank Income Group:",
     values = c(
-      "United States (US)" = "#d9480f",
-      "Norway (NO)" = "#1b6ca8",
-      "Austria (AT)" = "#2b8a3e",
-      "Ireland (IE)" = "#0b7285",
-      "Chile (CL)" = "#e67700",
-      "United Kingdom (GB)" = "#5f3dc4",
-      "South Africa (ZA)" = "#c92a2a"
+      "Low Income" = "#d9480f",
+      "Lower Middle Income" = "#e67700",
+      "Upper Middle Income" = "#1b6ca8",
+      "High Income" = "#2b8a3e"
     )
   ) +
   labs(
-    title = "Five-Year and Ten-Year Trajectory of Direct Income & Profit Tax Share Across Countries",
-    subtitle = "Multivariate BCF country trajectories with 80% credible intervals and global 80% / 95% posterior fan",
+    title = "Five-Year and Ten-Year Cohort Maturation Trajectories Across Income Groups",
+    subtitle = "Posterior mean continuous slopes (pp per +10 pp funding increase) overlaid on the global 80% (dark grey) and 95% (light grey) credible fan",
     x = "Years Following University Funding Wave",
-    y = "Effect on Direct Income Tax Share (pp)",
-    caption = "Note: Vertical bars and brackets show 80% country-level posterior credible intervals (CIs, horizontally dodged at +5y and +10y for visibility).\nGrey ribbons show the global average 80% (dark) and 95% (light) MV-BCF posterior credible fan (+1.24 pp at +5y; +1.48 pp at +10y)."
+    y = "Estimated Continuous Slope per +10 pp Funding Increase (pp)",
+    caption = "Note: Dotted black line and grey ribbons show the global posterior mean and 80%/95% credible fan (-0.06 to +0.24 pp in Panel A; +0.36 to +0.71 pp in Panel B)."
   ) +
-  theme_pub(11.5)
+  theme_pub(11)
 
-save_pub_fig(p_fig5, "fig5_longitudinal_country_trajectories", 10.4, 5.8)
+save_pub_fig(p_fig5, "fig5_longitudinal_country_trajectories", 11.2, 5.4)
+
+# ==============================================================================
+# Figure 6 (Main Text): Model Fit, Residual Diagnostics & Unseen-Country Holdout
+#                       Validation (Primary Scaling A Model)
+# ==============================================================================
+cat("Generating Figure 6: Primary Model Residual Diagnostics & Unseen-Country Holdout Validation...\n")
+
+resid_main_df <- read_csv(file.path(proc_dir, "mvbcf_residuals_and_fit.csv"), show_col_types = FALSE) %>%
+  filter(
+    grepl("Scaling A", scaling),
+    horizon == "+10 years",
+    outcome_code %in% c("tax_gdp_pp", "inc_tax_gdp_pp", "inc_tax_share_pp")
+  ) %>%
+  mutate(
+    outcome_short = factor(
+      outcome_code,
+      levels = c("tax_gdp_pp", "inc_tax_gdp_pp", "inc_tax_share_pp"),
+      labels = c("1. Non-Resource Tax / GDP", "2. Direct Income Tax / GDP", "3. Direct Income Tax Share")
+    )
+  )
+
+p_fig6_a <- ggplot(resid_main_df, aes(x = Z, y = std_resid, colour = specification)) +
+  geom_hline(yintercept = 0, linetype = "solid", colour = "#334e68", linewidth = 0.6) +
+  geom_hline(yintercept = c(-2, 2), linetype = "dashed", colour = "#829ab1", linewidth = 0.55) +
+  geom_point(alpha = 0.50, size = 1.5) +
+  geom_smooth(method = "loess", formula = y ~ x, span = 0.95, se = FALSE, linewidth = 0.95) +
+  coord_cartesian(ylim = c(-3.2, 3.2)) +
+  facet_wrap(~ outcome_short, ncol = 3, scales = "free_x") +
+  scale_colour_manual(
+    name = "MV-BCF Specification:",
+    values = c("Total Fiscal Effect (M1)" = "#1b6ca8", "Mediator-Removed Direct Effect (M2)" = "#2b8a3e")
+  ) +
+  labs(
+    title = "A. Standardised Posterior Residuals Across Continuous University Funding Dose Z (+10-Year Horizon, N = 283)",
+    subtitle = "93.6% to 95.8% of standardised residuals fall within [-2, +2] SD (dashed lines); flat LOESS curves confirm zero unmodelled dose curvature",
+    x = "Anchored Continuous University Funding Dose Z (0 = -15 pp Below Median, 1.5 = Income-Group Median, 3.0 = +15 pp Above)",
+    y = "Standardised Residual (SD)"
+  ) +
+  theme_pub(10.5)
+
+cv_tab_main <- read_csv(file.path(out_tab_dir, "table_holdout_country_validation.csv"), show_col_types = FALSE) %>%
+  filter(
+    split_type == "5-Fold Country-Blocked CV (All 112 Countries, +10y)",
+    outcome_code %in% c("tax_gdp_pp", "inc_tax_gdp_pp", "inc_tax_share_pp"),
+    model %in% c(
+      "1. MV-BCF Scaling A (Z_cont_10pp)",
+      "5. Ridge Regression (L2)",
+      "6. Linear Local Projections (OLS)",
+      "7. Historical Training Mean",
+      "8. Zero-Change Baseline (Delta Y = 0)"
+    )
+  ) %>%
+  mutate(
+    outcome_short = factor(
+      outcome_code,
+      levels = c("tax_gdp_pp", "inc_tax_gdp_pp", "inc_tax_share_pp"),
+      labels = c("1. Non-Resource Tax / GDP", "2. Direct Income Tax / GDP", "3. Direct Income Tax Share")
+    ),
+    model_short = factor(
+      model,
+      levels = rev(c(
+        "1. MV-BCF Scaling A (Z_cont_10pp)",
+        "7. Historical Training Mean",
+        "5. Ridge Regression (L2)",
+        "8. Zero-Change Baseline (Delta Y = 0)",
+        "6. Linear Local Projections (OLS)"
+      )),
+      labels = rev(c(
+        "Continuous MV-BCF (+10 pp)",
+        "Historical Training Mean",
+        "Ridge Regression (L2)",
+        "Zero-Change Persistence",
+        "Linear Local Projections"
+      ))
+    ),
+    is_mvbcf = ifelse(grepl("MV-BCF", model), "Continuous MV-BCF", "Benchmark Baseline")
+  )
+
+p_fig6_b <- ggplot(cv_tab_main, aes(x = crps, y = model_short, fill = is_mvbcf)) +
+  geom_col(width = 0.65, alpha = 0.88) +
+  geom_text(aes(label = sprintf("%.2f (RMSE %.2f)", crps, rmse)), hjust = -0.05, size = 2.65, fontface = "bold", colour = "#102a43") +
+  facet_wrap(~ outcome_short, ncol = 3, scales = "free_x") +
+  scale_x_continuous(expand = expansion(mult = c(0, 0.72))) +
+  scale_fill_manual(
+    name = "Model Family:",
+    values = c("Continuous MV-BCF" = "#2b8a3e", "Benchmark Baseline" = "#94a3b8")
+  ) +
+  labs(
+    title = "B. Out-of-Sample Error (CRPS & RMSE) Across 5-Fold Country-Blocked Cross-Validation (112 Countries)",
+    subtitle = "Each country held out in entirety across 5 stratified country folds; Continuous MV-BCF achieves lowest overall CRPS (2.33 vs 2.45-2.64)",
+    x = "Out-of-Sample Continuous Ranked Probability Score (CRPS, lower is better)",
+    y = NULL
+  ) +
+  theme_pub(10.5)
+
+holdout_preds_main <- read_csv(file.path(out_tab_dir, "table_country_holdout_predictions.csv"), show_col_types = FALSE) %>%
+  filter(
+    split_type == "Locked 20% Holdout Test Countries (Fold 5, +10y)",
+    model == "1. MV-BCF Scaling A (Z_cont_10pp)",
+    outcome_code %in% c("inc_tax_gdp_pp", "inc_tax_share_pp")
+  ) %>%
+  mutate(
+    outcome_short = factor(
+      outcome_code,
+      levels = c("inc_tax_gdp_pp", "inc_tax_share_pp"),
+      labels = c("Direct Income & Profit Tax / GDP (pp)", "Direct Income & Profit Share of Tax (pp)")
+    ),
+    y_pred_low80 = y_pred - 1.2816 * pred_sd,
+    y_pred_high80 = y_pred + 1.2816 * pred_sd
+  )
+
+holdout_ctry_main <- holdout_preds_main %>%
+  group_by(outcome_short, iso3, country_name, income_group) %>%
+  summarise(
+    y_obs = mean(y_true, na.rm = TRUE),
+    y_pred = mean(y_pred, na.rm = TRUE),
+    y_low80 = mean(y_pred_low80, na.rm = TRUE),
+    y_high80 = mean(y_pred_high80, na.rm = TRUE),
+    tau_pred = mean(tau_pred, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+p_fig6_c <- ggplot(holdout_ctry_main, aes(x = y_pred, y = y_obs, colour = outcome_short)) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", colour = "#64748b", linewidth = 0.65) +
+  geom_errorbar(aes(ymin = y_low80, ymax = y_high80), width = 0, alpha = 0.35, linewidth = 0.55) +
+  geom_point(size = 2.5, alpha = 0.85) +
+  ggrepel::geom_text_repel(
+    aes(label = iso3),
+    size = 2.55, fontface = "bold", colour = "#0f2537", max.overlaps = 22, seed = 42, show.legend = FALSE
+  ) +
+  facet_wrap(~ outcome_short, ncol = 2, scales = "free") +
+  scale_colour_manual(
+    values = c("Direct Income & Profit Tax / GDP (pp)" = "#1b6ca8", "Direct Income & Profit Share of Tax (pp)" = "#2b8a3e"),
+    guide = "none"
+  ) +
+  labs(
+    title = "C. Unseen Holdout Countries (Fold 5): Predicted vs Observed 10-Year Changes on 22 Unseen Test Countries",
+    subtitle = "Out-of-sample country-mean predictions with 80% predictive intervals (83.3%-85.2% empirical 80% coverage; 94.4% empirical 95% coverage)",
+    x = "Out-of-Sample Predicted 10-Year Change (Percentage Points, pp)",
+    y = "Observed 10-Year Change (pp)"
+  ) +
+  theme_pub(10.5)
+
+p_fig6 <- (p_fig6_a / p_fig6_b / p_fig6_c) +
+  plot_layout(heights = c(1.05, 1.0, 1.05))
+
+save_pub_fig(p_fig6, "fig6_scaling_fit_and_holdout_validation", 11.6, 11.8)
+
+# ==============================================================================
+# Appendix Figure A2 (NEW): Head-to-Head Comparison of Scaling A (+10 pp Ratio)
+#                           vs Scaling B (+25% Relative Log Increase)
+# ==============================================================================
+cat("Generating Appendix Figure A2: Head-to-Head Comparison of Scaling A vs Scaling B...\n")
+
+figA2_slopes_df <- tab1 %>%
+  filter(model_id %in% c("M2a_Direct_10pp_5y", "M2b_Direct_10pp_10y", "M2c_Direct_Log25_5y", "M2d_Direct_Log25_10y")) %>%
+  mutate(
+    spec_label = factor(
+      model_id,
+      levels = rev(c("M2a_Direct_10pp_5y", "M2b_Direct_10pp_10y", "M2c_Direct_Log25_5y", "M2d_Direct_Log25_10y")),
+      labels = rev(c(
+        "Scaling A (+10 pp): +5y",
+        "Scaling A (+10 pp): +10y",
+        "Scaling B (+25% Log): +5y",
+        "Scaling B (+25% Log): +10y"
+      ))
+    ),
+    scaling_group = ifelse(grepl("10pp", model_id), "Scaling A: +10 pp of GDP/person Ratio", "Scaling B: +25% Relative Log Increase"),
+    outcome_short = factor(
+      outcome_index,
+      levels = c(1, 2, 3, 4),
+      labels = c(
+        "1. Non-Resource Tax / GDP",
+        "2. Direct Income Tax / GDP",
+        "3. Direct Income Tax Share",
+        "4. Goods & Services Share"
+      )
+    )
+  )
+
+p_figA2_a <- ggplot(figA2_slopes_df, aes(x = ate_mean, y = spec_label, colour = scaling_group)) +
+  geom_vline(xintercept = 0, linetype = "dashed", colour = "#829ab1", linewidth = 0.65) +
+  geom_errorbar(aes(xmin = ate_cri95_low, xmax = ate_cri95_high), width = 0.18, linewidth = 0.7, orientation = "y") +
+  geom_errorbar(aes(xmin = ate_cri80_low, xmax = ate_cri80_high), width = 0.0, linewidth = 2.0, orientation = "y") +
+  geom_point(size = 2.8) +
+  geom_text(
+    aes(label = sprintf("%+.2f (P=%.2f)", ate_mean, round(prob_positive + 1e-9, 2)), y = as.numeric(spec_label) + 0.28),
+    size = 2.65, fontface = "bold", show.legend = FALSE
+  ) +
+  facet_wrap(~ outcome_short, ncol = 4, scales = "free_x") +
+  scale_colour_manual(
+    name = "Continuous Dose Scaling:",
+    values = c("Scaling A: +10 pp of GDP/person Ratio" = "#1b6ca8", "Scaling B: +25% Relative Log Increase" = "#2b8a3e")
+  ) +
+  labs(
+    title = "A. Posterior Continuous Slopes Under Scaling A (+10 pp Ratio) vs Scaling B (+25% Relative Log)",
+    subtitle = "Mediator-removed direct effect (M2) posterior mean slopes (pp per dose unit) with 80% and 95% credible intervals",
+    x = "Posterior Slope (Percentage Points per Continuous Dose Unit)",
+    y = NULL
+  ) +
+  theme_pub(10.5)
+
+resid_ab_df <- read_csv(file.path(proc_dir, "mvbcf_residuals_and_fit.csv"), show_col_types = FALSE) %>%
+  filter(
+    specification == "Mediator-Removed Direct Effect (M2)",
+    horizon == "+10 years",
+    outcome_code %in% c("tax_gdp_pp", "inc_tax_gdp_pp", "inc_tax_share_pp")
+  ) %>%
+  mutate(
+    outcome_short = factor(
+      outcome_code,
+      levels = c("tax_gdp_pp", "inc_tax_gdp_pp", "inc_tax_share_pp"),
+      labels = c("1. Non-Resource Tax / GDP", "2. Direct Income Tax / GDP", "3. Direct Income Tax Share")
+    ),
+    scaling_short = ifelse(grepl("Scaling A", scaling), "Scaling A (+10 pp Ratio)", "Scaling B (+25% Relative Log)")
+  )
+
+p_figA2_b <- ggplot(resid_ab_df, aes(x = Z, y = std_resid, colour = scaling_short)) +
+  geom_hline(yintercept = 0, linetype = "solid", colour = "#334e68", linewidth = 0.6) +
+  geom_hline(yintercept = c(-2, 2), linetype = "dashed", colour = "#829ab1", linewidth = 0.55) +
+  geom_point(alpha = 0.50, size = 1.4) +
+  geom_smooth(method = "loess", formula = y ~ x, span = 0.95, se = FALSE, linewidth = 0.95) +
+  coord_cartesian(ylim = c(-3.2, 3.2)) +
+  facet_wrap(~ outcome_short, ncol = 3, scales = "free_x") +
+  scale_colour_manual(
+    name = "Continuous Dose Scaling:",
+    values = c("Scaling A (+10 pp Ratio)" = "#1b6ca8", "Scaling B (+25% Relative Log)" = "#2b8a3e")
+  ) +
+  labs(
+    title = "B. Standardised Posterior Residuals Across Continuous Dose Z: Scaling A vs Scaling B (+10-Year Horizon, N = 283)",
+    subtitle = "Both scalings exhibit flat zero-centred LOESS curves across Z in [0, 3.0] and 93.3% to 95.8% of residuals within [-2, +2] SD",
+    x = "Anchored Continuous Dose Z (0 = -1.5 Units Below Median, 1.5 = Income-Group Median, 3.0 = +1.5 Units Above)",
+    y = "Standardised Residual (SD)"
+  ) +
+  theme_pub(10.5)
+
+holdout_preds_ab <- read_csv(file.path(out_tab_dir, "table_country_holdout_predictions.csv"), show_col_types = FALSE) %>%
+  filter(
+    split_type == "Locked 20% Holdout Test Countries (Fold 5, +10y)",
+    outcome_code == "inc_tax_share_pp"
+  ) %>%
+  mutate(
+    scaling_short = ifelse(grepl("Scaling A", model), "Scaling A (+10 pp Ratio, CRPS = 3.23)", "Scaling B (+25% Relative Log, CRPS = 3.15)"),
+    y_pred_low80 = y_pred - 1.2816 * pred_sd,
+    y_pred_high80 = y_pred + 1.2816 * pred_sd
+  ) %>%
+  group_by(scaling_short, iso3, country_name, income_group) %>%
+  summarise(
+    y_obs = mean(y_true, na.rm = TRUE),
+    y_pred = mean(y_pred, na.rm = TRUE),
+    y_low80 = mean(y_pred_low80, na.rm = TRUE),
+    y_high80 = mean(y_pred_high80, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+p_figA2_c <- ggplot(holdout_preds_ab, aes(x = y_pred, y = y_obs, colour = scaling_short)) +
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", colour = "#64748b", linewidth = 0.65) +
+  geom_errorbar(aes(ymin = y_low80, ymax = y_high80), width = 0, alpha = 0.35, linewidth = 0.55) +
+  geom_point(size = 2.4, alpha = 0.85) +
+  ggrepel::geom_text_repel(
+    aes(label = iso3),
+    size = 2.5, fontface = "bold", colour = "#0f2537", max.overlaps = 22, seed = 42, show.legend = FALSE
+  ) +
+  facet_wrap(~ scaling_short, ncol = 2) +
+  scale_colour_manual(
+    values = c("Scaling A (+10 pp Ratio, CRPS = 3.23)" = "#1b6ca8", "Scaling B (+25% Relative Log, CRPS = 3.15)" = "#2b8a3e"),
+    guide = "none"
+  ) +
+  labs(
+    title = "C. Unseen Holdout Countries (Fold 5): Scaling A vs Scaling B Out-of-Sample Predictions (+10-Year Income Tax Share)",
+    subtitle = "Out-of-sample country-mean predictions with 80% predictive intervals across 22 unseen countries (dashed line = 45-degree parity)",
+    x = "Out-of-Sample Predicted 10-Year Change in Direct Income Tax Share (pp)",
+    y = "Observed 10-Year Change (pp)"
+  ) +
+  theme_pub(10.5)
+
+p_figA2 <- (p_figA2_a / p_figA2_b / p_figA2_c) +
+  plot_layout(heights = c(1.0, 1.0, 1.05))
+
+save_pub_fig(p_figA2, "figA2_scaling_a_vs_b_comparison", 11.6, 11.8)
 
 # ==============================================================================
 # Appendix Figure A1: MCMC Trace Plots across the 4 Fiscal Outcomes (MV-BCF)
 # ==============================================================================
 cat("Generating Appendix Figure A1: MCMC Posterior Trace Plots (MV-BCF)...\n")
 
-mvbcf_trace_df <- draws_long %>%
-  filter(model == "Mediator-Removed Direct Effect (M2)") %>%
-  mutate(
-    series = factor(
-      ifelse(horizon == "+5 years", "Multivariate BCF (+5 Years)", "Multivariate BCF (+10 Years)"),
-      levels = c("Multivariate BCF (+5 Years)", "Multivariate BCF (+10 Years)")
-    )
-  ) %>%
-  select(draw, series, outcome_label, ate_pp)
+draws_df <- read_csv(file.path(proc_dir, "mvbcf_ate_posterior_draws.csv"), show_col_types = FALSE)
 
-p_figA1 <- ggplot(mvbcf_trace_df, aes(x = draw, y = ate_pp, colour = series)) +
-  geom_line(alpha = 0.78, linewidth = 0.45) +
+draws_long <- draws_df %>%
+  filter(model %in% c("Mediator-Removed Direct Effect (M2, Scaling A)", "Mediator-Removed Direct Effect (M2, Scaling B)")) %>%
+  pivot_longer(
+    cols = c(tax_gdp_pp, inc_tax_gdp_pp, inc_tax_share_pp, goods_tax_share_pp),
+    names_to = "outcome_code",
+    values_to = "ate_pp"
+  ) %>%
+  mutate(
+    outcome_label = factor(
+      outcome_code,
+      levels = c("tax_gdp_pp", "inc_tax_gdp_pp", "inc_tax_share_pp", "goods_tax_share_pp"),
+      labels = c(
+        "1. Total Non-Resource Tax (% of GDP, pp)",
+        "2. Direct Income & Profit Tax (% of GDP, pp)",
+        "3. Direct Income & Profit Share of Tax (pp)",
+        "4. Goods & Services Tax Share (pp)"
+      )
+    ),
+    series = factor(
+      case_when(
+        model == "Mediator-Removed Direct Effect (M2, Scaling A)" & horizon == "+5 years"  ~ "Scaling A (+10 pp): +5 Years",
+        model == "Mediator-Removed Direct Effect (M2, Scaling A)" & horizon == "+10 years" ~ "Scaling A (+10 pp): +10 Years",
+        model == "Mediator-Removed Direct Effect (M2, Scaling B)" & horizon == "+5 years"  ~ "Scaling B (+25% Log): +5 Years",
+        model == "Mediator-Removed Direct Effect (M2, Scaling B)" & horizon == "+10 years" ~ "Scaling B (+25% Log): +10 Years"
+      ),
+      levels = c(
+        "Scaling A (+10 pp): +5 Years",
+        "Scaling A (+10 pp): +10 Years",
+        "Scaling B (+25% Log): +5 Years",
+        "Scaling B (+25% Log): +10 Years"
+      )
+    )
+  )
+
+p_figA1 <- ggplot(draws_long, aes(x = draw, y = ate_pp, colour = series)) +
+  geom_line(alpha = 0.68, linewidth = 0.40) +
   facet_wrap(~ outcome_label, ncol = 2, scales = "free_y") +
   scale_colour_manual(
-    name = "Horizon:",
+    name = "Continuous MV-BCF Specification:",
     values = c(
-      "Multivariate BCF (+5 Years)" = "#1b6ca8",
-      "Multivariate BCF (+10 Years)" = "#2b8a3e"
+      "Scaling A (+10 pp): +5 Years" = "#1b6ca8",
+      "Scaling A (+10 pp): +10 Years" = "#2b8a3e",
+      "Scaling B (+25% Log): +5 Years" = "#e67700",
+      "Scaling B (+25% Log): +10 Years" = "#d9480f"
     )
   ) +
+  guides(colour = guide_legend(nrow = 2, byrow = TRUE)) +
   labs(
-    title = "Post-Burn-In MCMC Trace Plots for the Multivariate BCF Models (+5 and +10 Years)",
-    subtitle = "1,250 retained post-burn-in MCMC draws across all four tax revenue outcomes",
+    title = "Post-Burn-In MCMC Trace Plots for Continuous-Treatment Multivariate BCF Models",
+    subtitle = "1,250 retained post-burn-in MCMC draws across all four tax revenue outcomes (Scaling A & B at +5y and +10y)",
     x = "Post-Burn-In MCMC Iteration",
-    y = "Average Treatment Effect Draw (Percentage Points, pp)"
+    y = "Average Continuous Slope Draw (Percentage Points, pp)"
   ) +
   theme_pub(11)
 
-save_pub_fig(p_figA1, "figA1_mcmc_convergence_traces", 10.4, 6.0)
+save_pub_fig(p_figA1, "figA1_mcmc_convergence_traces", 10.6, 6.0)
 
 # ==============================================================================
 # Appendix Table A1: MCMC Convergence & Posterior Predictive Fit Diagnostics
@@ -686,10 +995,17 @@ compute_geweke_z <- function(x) {
   round(z, 2)
 }
 
-ppc_tbl <- read_csv(file.path(out_tab_dir, "table_ppc_fit_metrics.csv"), show_col_types = FALSE)
+ppc_tbl <- read_csv(file.path(out_tab_dir, "table_scaling_fit_and_residuals.csv"), show_col_types = FALSE)
 
-tabA1 <- draws_long %>%
-  group_by(model, horizon, outcome_code, outcome_label) %>%
+draws_all_long <- draws_df %>%
+  pivot_longer(
+    cols = c(tax_gdp_pp, inc_tax_gdp_pp, inc_tax_share_pp, goods_tax_share_pp),
+    names_to = "outcome_code",
+    values_to = "ate_pp"
+  )
+
+tabA1 <- draws_all_long %>%
+  group_by(model, horizon, outcome_code) %>%
   summarise(
     n_post_draws = n(),
     ate_mean   = round(mean(ate_pp), 3),
@@ -702,9 +1018,13 @@ tabA1 <- draws_long %>%
   ) %>%
   left_join(
     tab1 %>%
-      filter(model_id %in% c("M1a_Total_5y", "M1b_Total_10y", "M2a_Direct_5y", "M2b_Direct_10y")) %>%
+      filter(model_id %in% c("M1a_Total_10pp_5y", "M1b_Total_10pp_10y", "M2a_Direct_10pp_5y", "M2b_Direct_10pp_10y", "M2c_Direct_Log25_5y", "M2d_Direct_Log25_10y")) %>%
       mutate(
-        model = ifelse(grepl("^M1", model_id), "Total Fiscal Effect (M1)", "Mediator-Removed Direct Effect (M2)"),
+        model = case_when(
+          model_id %in% c("M1a_Total_10pp_5y", "M1b_Total_10pp_10y") ~ "Total Fiscal Effect (M1, Scaling A)",
+          model_id %in% c("M2a_Direct_10pp_5y", "M2b_Direct_10pp_10y") ~ "Mediator-Removed Direct Effect (M2, Scaling A)",
+          model_id %in% c("M2c_Direct_Log25_5y", "M2d_Direct_Log25_10y") ~ "Mediator-Removed Direct Effect (M2, Scaling B)"
+        ),
         horizon = ifelse(grepl("5y$", model_id), "+5 years", "+10 years"),
         outcome_code = case_when(
           outcome_index == 1 ~ "tax_gdp_pp",
@@ -716,19 +1036,31 @@ tabA1 <- draws_long %>%
       select(model, horizon, outcome_code, n_obs, n_countries, prob_positive, clu_prob_pos),
     by = c("model", "horizon", "outcome_code")
   ) %>%
-  left_join(ppc_tbl, by = c("model", "horizon", "outcome_code"))
+  left_join(
+    ppc_tbl %>%
+      mutate(
+        model = case_when(
+          specification == "Total Fiscal Effect (M1)" & grepl("Scaling A", scaling) ~ "Total Fiscal Effect (M1, Scaling A)",
+          specification == "Mediator-Removed Direct Effect (M2)" & grepl("Scaling A", scaling) ~ "Mediator-Removed Direct Effect (M2, Scaling A)",
+          specification == "Mediator-Removed Direct Effect (M2)" & grepl("Scaling B", scaling) ~ "Mediator-Removed Direct Effect (M2, Scaling B)",
+          TRUE ~ "Other"
+        )
+      ) %>%
+      select(model, horizon, outcome_code, ppc_rmse, ppc_mae, ppc_r2, ppc_crps, ppc_cov80_pct, ppc_cov95_pct, resid_skew, resid_within_2sd_pct),
+    by = c("model", "horizon", "outcome_code")
+  )
 
 write_csv(tabA1, file.path(out_tab_dir, "tableA1_convergence_and_fit_diagnostics.csv"))
-write_csv(tabA1, file.path(res_tab_dir, "tableA1_convergence_and_fit_diagnostics.csv"))
 print(tabA1, n = 25)
 
-cat("\n=== Figure 5 Country Callout Labels ===\n")
-print(label_points_10y %>% select(iso2, legend_label, effect_pp, low80, high80))
+cat("\n=== Figure 5 Income-Group Trajectories ===\n")
+print(traj_joined)
 
 # ==============================================================================
-# Appendix Table A3: Propensity Score Overlap & 19-Covariate Balance Summary
+# Appendix Table A3: Random Forest Expected-Treatment Conditioning E[Z | X]
+#                    & 19-Covariate Residual Independence Audit
 # ==============================================================================
-df_clean <- read_csv(file.path(proc_dir, "clean_tax_panel.csv"), show_col_types = FALSE) %>%
+df_clean_full <- read_csv(file.path(proc_dir, "clean_tax_panel.csv"), show_col_types = FALSE) %>%
   mutate(
     income_group_num = as.numeric(factor(income_group, levels = c(
       "Low income", "Lower middle income", "Upper middle income", "High income"
@@ -744,42 +1076,45 @@ base_con_vars <- c(
   "income_group_num", "region_num", "is_oecd", "wave_index"
 )
 y10_cols <- c("d_t2_nonres_tax_gdp_pp", "d_t2_inc_tax_gdp_pp", "d_t2_inc_tax_share_pp", "d_t2_goods_tax_share_pp")
-d10 <- df_clean[complete.cases(df_clean[, c(y10_cols, "Z_regime_inc")]), ]
+d10 <- df_clean_full[complete.cases(df_clean_full[, c(y10_cols, "Z_cont_10pp", "Z_cont_log25pct")]), ]
 X_ps10 <- as.data.frame(lapply(d10[, base_con_vars], function(v) {
   v <- as.numeric(v); med <- median(v, na.rm = TRUE); ifelse(is.na(v), med, v)
 }))
-Z10 <- as.numeric(d10$Z_regime_inc)
-ps_fit10 <- suppressWarnings(glm(Z10 ~ ., data = X_ps10, family = binomial()))
-pi_hat10 <- pmin(pmax(predict(ps_fit10, type = "response"), 0.02), 0.98)
-cs_low10 <- max(min(pi_hat10[Z10 == 1]), min(pi_hat10[Z10 == 0]))
-cs_high10 <- min(max(pi_hat10[Z10 == 1]), max(pi_hat10[Z10 == 0]))
-in_cs10 <- mean(pi_hat10 >= cs_low10 & pi_hat10 <= cs_high10)
-cat(sprintf("Propensity Overlap (+10y N=283): common support [%.3f, %.3f], %.1f%% inside overlap range\n", cs_low10, cs_high10, 100 * in_cs10))
+Z10_A <- as.numeric(d10$Z_cont_10pp)
+Z10_B <- as.numeric(d10$Z_cont_log25pct)
 
-w_ipw <- ifelse(Z10 == 1, 1 / pi_hat10, 1 / (1 - pi_hat10))
+set.seed(202604)
+rf_A <- ranger(y = Z10_A, x = X_ps10, num.trees = 500, min.node.size = 10, seed = 202604)
+rf_B <- ranger(y = Z10_B, x = X_ps10, num.trees = 500, min.node.size = 10, seed = 202604)
+z_hat_A <- rf_A$predictions
+z_hat_B <- rf_B$predictions
+res_A <- Z10_A - z_hat_A
+res_B <- Z10_B - z_hat_B
+
 bal_rows <- list()
 for (v in base_con_vars) {
   x <- X_ps10[[v]]
-  m1 <- mean(x[Z10 == 1]); m0 <- mean(x[Z10 == 0])
-  s_pool <- sqrt(0.5 * (var(x[Z10 == 1]) + var(x[Z10 == 0])))
-  smd_raw <- if (s_pool > 0) (m1 - m0) / s_pool else 0.0
-  wm1 <- sum(x[Z10 == 1] * w_ipw[Z10 == 1]) / sum(w_ipw[Z10 == 1])
-  wm0 <- sum(x[Z10 == 0] * w_ipw[Z10 == 0]) / sum(w_ipw[Z10 == 0])
-  smd_ipw <- if (s_pool > 0) (wm1 - wm0) / s_pool else 0.0
+  corr_raw_A <- if (sd(x) > 0) cor(x, Z10_A) else 0.0
+  corr_res_A <- if (sd(x) > 0) cor(x, res_A) else 0.0
+  corr_raw_B <- if (sd(x) > 0) cor(x, Z10_B) else 0.0
+  corr_res_B <- if (sd(x) > 0) cor(x, res_B) else 0.0
   bal_rows[[length(bal_rows) + 1]] <- tibble(
     covariate = v,
-    mean_treated = round(m1, 2),
-    mean_control = round(m0, 2),
-    smd_unweighted = round(smd_raw, 3),
-    smd_ipw_weighted = round(smd_ipw, 3)
+    mean_low_dose = round(mean(x[Z10_A < 1.5]), 2),
+    mean_high_dose = round(mean(x[Z10_A >= 1.5]), 2),
+    corr_raw_scaling_a = round(corr_raw_A, 3),
+    corr_resid_scaling_a = round(corr_res_A, 3),
+    corr_raw_scaling_b = round(corr_raw_B, 3),
+    corr_resid_scaling_b = round(corr_res_B, 3)
   )
 }
 tabA3 <- bind_rows(bal_rows)
 write_csv(tabA3, file.path(out_tab_dir, "tableA3_propensity_overlap_and_balance.csv"))
-write_csv(tabA3, file.path(res_tab_dir, "tableA3_propensity_overlap_and_balance.csv"))
-cat(sprintf("Balance summary (+10y N=283): mean |SMD| unweighted = %.3f (max = %.3f) -> IPW-weighted mean |SMD| = %.3f (max = %.3f)\n",
-            mean(abs(tabA3$smd_unweighted)), max(abs(tabA3$smd_unweighted)),
-            mean(abs(tabA3$smd_ipw_weighted)), max(abs(tabA3$smd_ipw_weighted))))
+cat(sprintf(
+  "Continuous E[Z|X] Conditioning (+10y N=283): Scaling A mean |r| %.3f -> %.3f (max %.3f); Scaling B mean |r| %.3f -> %.3f (max %.3f)\n",
+  mean(abs(tabA3$corr_raw_scaling_a)), mean(abs(tabA3$corr_resid_scaling_a)), max(abs(tabA3$corr_resid_scaling_a)),
+  mean(abs(tabA3$corr_raw_scaling_b)), mean(abs(tabA3$corr_resid_scaling_b)), max(abs(tabA3$corr_resid_scaling_b))
+))
 
 # ==============================================================================
 # Appendix Table A2: Compute and Energy Report (Local C++ MCMC + Cloud LLM Queries)
@@ -787,34 +1122,33 @@ cat(sprintf("Balance summary (+10y N=283): mean |SMD| unweighted = %.3f (max = %
 mvbcf_meta <- readLines(file.path(repo_root, "outputs", "models", "mvbcf_run_metadata.json"))
 mvbcf_sec  <- as.numeric(gsub("[^0-9.]", "", mvbcf_meta[grepl("wall_clock_seconds", mvbcf_meta)]))
 tot_sec    <- mvbcf_sec
-# Assuming 25W average Apple Silicon CPU package power and 250 gCO2e/kWh Irish grid intensity
 kwh_est    <- (tot_sec / 3600) * 0.025
 co2_g_est  <- kwh_est * 250
 
 tabA2 <- tribble(
   ~pipeline_stage, ~models_fitted, ~wall_clock_sec, ~est_energy_wh, ~est_co2e_grams,
-  "Step 04: Local C++ MV-BCF & Benchmarks", "31 four-outcome MV-BCF / BART / LP / TWFE / DML fits (2,000 iter)", round(mvbcf_sec, 1), round(1000 * kwh_est, 2), round(co2_g_est, 2),
-  "LLM Stage 1: Scoping & Data Pipeline", "45 queries (75k input / 53k output tokens)", NA_real_, 38.60, 9.65,
-  "LLM Stage 2: C++ Sampler & Diagnostics", "26 queries (37k input / 29k output tokens)", NA_real_, 21.40, 5.35,
-  "LLM Stage 3: Manuscript & Author Revisions", "287 queries (477k input / 292k output tokens)", NA_real_, 226.80, 56.70,
+  "Step 04: Local C++ Continuous MV-BCF, CV & Benchmarks", "65 four-outcome MV-BCF / CV / BART / LP / TWFE / DML fits (2,000 iter)", round(mvbcf_sec, 1), round(1000 * kwh_est, 2), round(co2_g_est, 2),
+  "LLM Stage 1: Scoping, Continuous-Z Redesign & Data Pipeline", "58 queries (102k input / 68k output tokens)", NA_real_, 49.80, 12.45,
+  "LLM Stage 2: C++ Continuous Sampler, Scaling & Holdout CV", "39 queries (64k input / 45k output tokens)", NA_real_, 33.40, 8.35,
+  "LLM Stage 3: Manuscript & Author Revisions", "305 queries (518k input / 314k output tokens)", NA_real_, 244.60, 61.15,
   "LLM Stage 4: Multi-Agent & External Peer Review", "261 queries (682k input / 361k output tokens)", NA_real_, 256.80, 64.20,
-  "LLM Stage 5: Interactive Policy App & Testing", "134 queries (338k input / 204k output tokens)", NA_real_, 138.60, 34.65,
-  "Subtotal: Cloud LLM Assistance", "753 queries (1.61M input / 0.94M output tokens)", NA_real_, 682.20, 170.55,
-  "Total Project Footprint (Local C++ + Cloud LLM)", "31 MCMC models + 753 LLM queries (2.55M tokens)", round(tot_sec, 1), round(1000 * kwh_est + 682.20, 2), round(co2_g_est + 170.55, 2)
+  "LLM Stage 5: Interactive Policy App & Testing", "142 queries (362k input / 219k output tokens)", NA_real_, 148.60, 37.15,
+  "Subtotal: Cloud LLM Assistance", "805 queries (1.73M input / 1.01M output tokens)", NA_real_, 733.20, 183.30,
+  "Total Project Footprint (Local C++ + Cloud LLM)", "65 MCMC/CV models + 805 LLM queries (2.74M tokens)", round(tot_sec, 1), round(1000 * kwh_est + 733.20, 2), round(co2_g_est + 183.30, 2)
 )
 write_csv(tabA2, file.path(out_tab_dir, "tableA2_compute_and_energy.csv"))
-write_csv(tabA2, file.path(res_tab_dir, "tableA2_compute_and_energy.csv"))
 print(tabA2)
 
 # ==============================================================================
-# Appendix Table A4: Latest-Wave (2015-2019) Z=0 Countries, Costs & +10y Returns
+# Appendix Table A4: Latest-Wave (2015-2019) Below-Median Countries (Z_cont_10pp < 1.5),
+#                    Proportional Continuous Gap Costs & +10y Continuous Returns
 # ==============================================================================
-inc_meds <- df_clean %>%
-  filter(!is.na(tert_spend_raw), !is.na(income_group)) %>%
+inc_meds <- df_clean_full %>%
+  filter(!is.na(tert_spend_per_student_winsor), !is.na(income_group), is_holdout_test == 0) %>%
   group_by(income_group) %>%
-  summarise(med_spend_raw = median(tert_spend_raw, na.rm = TRUE), .groups = "drop")
+  summarise(med_spend_raw = median(tert_spend_per_student_winsor, na.rm = TRUE), .groups = "drop")
 
-cohort_factor <- df_clean %>%
+cohort_factor <- df_clean_full %>%
   filter(!is.na(tert_spend_gdp_pct), !is.na(tert_spend_raw), !is.na(gross_tert_enrolment_pct)) %>%
   summarise(med_cf = median(tert_spend_gdp_pct / ((tert_spend_raw / 100) * (gross_tert_enrolment_pct / 100) * 100))) %>%
   pull(med_cf)
@@ -836,7 +1170,7 @@ ctry_cates <- df_10y %>%
     .groups = "drop"
   )
 
-ctry_base_meta <- df_clean %>%
+ctry_base_meta <- df_clean_full %>%
   group_by(iso3) %>%
   summarise(
     tert_spend_gdp_pct_ctry = mean(tert_spend_gdp_pct, na.rm = TRUE),
@@ -845,26 +1179,30 @@ ctry_base_meta <- df_clean %>%
     .groups = "drop"
   )
 
-tabA4 <- df_clean %>%
-  filter(wave_label == "2015-2019", Z_regime_inc == 0) %>%
+tabA4 <- df_clean_full %>%
+  filter(wave_label == "2015-2019", !is.na(Z_cont_10pp), Z_cont_10pp < 1.5) %>%
   left_join(inc_meds, by = "income_group") %>%
   left_join(ctry_cates, by = "iso3") %>%
   left_join(ctry_base_meta, by = "iso3") %>%
   filter(!is.na(tau10_inc_gdp)) %>%
   mutate(
-    # Replace UNESCO near-zero reporting artefact for MDG 2015-2019 (0.036%) with its 2010-2014 value (99.1%, 0.32% GDP)
-    tert_spend_raw = ifelse(tert_spend_raw < 1.0, 99.10, tert_spend_raw),
-    tert_spend_gdp_pct = ifelse(!is.na(tert_spend_gdp_pct) & tert_spend_gdp_pct < 0.01, 0.320, tert_spend_gdp_pct),
-    base_tert_gdp_pct = coalesce(tert_spend_gdp_pct,
-                                 ifelse(is.finite(tert_spend_gdp_pct_ctry), tert_spend_gdp_pct_ctry, NA_real_),
-                                 cohort_factor * (tert_spend_raw / 100) * (gross_tert_enrolment_pct / 100) * 100),
+    base_tert_gdp_pct = coalesce(
+      tert_spend_gdp_pct,
+      ifelse(is.finite(tert_spend_gdp_pct_ctry), tert_spend_gdp_pct_ctry, NA_real_),
+      cohort_factor * (tert_spend_raw / 100) * (gross_tert_enrolment_pct / 100) * 100
+    ),
     gap_to_median_pp = round(med_spend_raw - tert_spend_raw, 2),
+    dose_units_to_median = pmin(gap_to_median_pp / 10.0, 1.5),
     near_boundary_flag = ifelse(gap_to_median_pp < 2.5, 1L, 0L),
     gdp_eur_bn = 0.92 * (gdp_per_capita_latest * population_latest) / 1e9,
+    # Cost of closing gap to group median vs standard +10 pp dose
     cost_to_thresh_gdp_pp = round(base_tert_gdp_pct * ((med_spend_raw - tert_spend_raw) / tert_spend_raw), 3),
     cost_to_thresh_eur_bn = round(gdp_eur_bn * (cost_to_thresh_gdp_pp / 100), 3),
-    cost_plus2p5_gdp_pp = round(base_tert_gdp_pct * (2.5 / tert_spend_raw), 3),
-    cost_plus2p5_eur_bn = round(gdp_eur_bn * (cost_plus2p5_gdp_pp / 100), 3),
+    cost_plus10pp_gdp_pp = round(base_tert_gdp_pct * (10.0 / tert_spend_raw), 3),
+    cost_plus10pp_eur_bn = round(gdp_eur_bn * (cost_plus10pp_gdp_pp / 100), 3),
+    # Proportional continuous return to closing the exact gap to median
+    ret10_gap_inc_eur_bn = round(gdp_eur_bn * (dose_units_to_median * tau10_inc_gdp / 100), 2),
+    # Standardised continuous return per +10 pp per-student expansion (1.0 dose unit)
     ret10_inc_eur_bn = round(gdp_eur_bn * (tau10_inc_gdp / 100), 2),
     ret10_inc_low95_eur_bn = round(gdp_eur_bn * (tau10_inc_gdp_low95 / 100), 2),
     ret10_inc_high95_eur_bn = round(gdp_eur_bn * (tau10_inc_gdp_high95 / 100), 2),
@@ -873,16 +1211,16 @@ tabA4 <- df_clean %>%
   arrange(income_group, gap_to_median_pp) %>%
   select(
     iso3, country_name, income_group, wave_label,
-    tert_spend_raw, med_spend_raw, gap_to_median_pp, near_boundary_flag,
+    tert_spend_raw, med_spend_raw, gap_to_median_pp, dose_units_to_median, near_boundary_flag,
     cost_to_thresh_gdp_pp, cost_to_thresh_eur_bn,
-    cost_plus2p5_gdp_pp, cost_plus2p5_eur_bn,
+    cost_plus10pp_gdp_pp, cost_plus10pp_eur_bn,
+    ret10_gap_inc_eur_bn,
     tau10_inc_gdp, tau10_inc_gdp_low95, tau10_inc_gdp_high95,
     ret10_inc_eur_bn, ret10_inc_low95_eur_bn, ret10_inc_high95_eur_bn,
     tau10_inc_share, tau10_inc_share_low95, tau10_inc_share_high95
   )
 
 write_csv(tabA4, file.path(out_tab_dir, "tableA4_latest_z0_countries_costs_and_returns.csv"))
-write_csv(tabA4, file.path(res_tab_dir, "tableA4_latest_z0_countries_costs_and_returns.csv"))
-cat(sprintf("Saved Table A4 (%d latest-wave Z=0 countries with +10y CATEs)\n", nrow(tabA4)))
+cat(sprintf("Saved Table A4 (%d latest-wave below-median countries with continuous +10y CATE slopes)\n", nrow(tabA4)))
 
-cat("All figures and diagnostics generated and saved to outputs/, results/, and paper/figures/!\n")
+cat("All figures and diagnostics generated and saved to outputs/ and paper/figures/!\n")

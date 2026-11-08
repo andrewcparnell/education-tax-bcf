@@ -14,15 +14,13 @@ dir.create("app/data", recursive = TRUE, showWarnings = FALSE)
 df_full <- read.csv("data/processed/clean_tax_panel.csv", stringsAsFactors = FALSE)
 df_5y   <- read.csv("data/processed/panel_5y_with_icates.csv", stringsAsFactors = FALSE)
 df_10y  <- read.csv("data/processed/panel_10y_with_icates.csv", stringsAsFactors = FALSE)
-df_3w   <- read.csv("data/processed/panel_longitudinal_3wave_predictions.csv", stringsAsFactors = FALSE)
 tab_ate <- read.csv("outputs/tables/table1_mvbcf_ate_posteriors.csv", stringsAsFactors = FALSE)
-tab_lbc <- read.csv("outputs/tables/table5_longitudinal_bcf_trajectories.csv", stringsAsFactors = FALSE)
 tab_sub <- read.csv("outputs/tables/table3_subgroup_cates.csv", stringsAsFactors = FALSE)
 
 # ------------------------------------------------------------------------------
-# 1. Country-Level CATEs (+5y, +10y, and Longitudinal Trajectory) + Moderators
+# 1. Country-Level Continuous CATE Slopes (+5y and +10y) + Baseline Moderators
 # ------------------------------------------------------------------------------
-all_isos <- sort(unique(c(df_5y$iso3, df_10y$iso3, df_3w$iso3)))
+all_isos <- sort(unique(c(df_5y$iso3, df_10y$iso3)))
 
 mean_na <- function(x) {
   x <- x[is.finite(x)]
@@ -33,7 +31,6 @@ mean_na <- function(x) {
 country_rows <- lapply(all_isos, function(iso) {
   sub5  <- df_5y[df_5y$iso3 == iso, , drop = FALSE]
   sub10 <- df_10y[df_10y$iso3 == iso, , drop = FALSE]
-  sub3  <- df_3w[df_3w$iso3 == iso, , drop = FALSE]
   subf  <- df_full[df_full$iso3 == iso, , drop = FALSE]
   subf  <- subf[order(subf$wave_start_year), , drop = FALSE]
 
@@ -50,6 +47,8 @@ country_rows <- lapply(all_isos, function(iso) {
     n_waves_10y = nrow(sub10),
     # Baseline context (country average across estimation waves)
     tert_spend_per_student_gdp_pc = mean_na(subf$tert_spend_per_student_winsor),
+    z_cont_10pp = mean_na(subf$Z_cont_10pp),
+    z_cont_log25pct = mean_na(subf$Z_cont_log25pct),
     real_tert_spend_per_student_ppp = mean_na(subf$real_tert_spend_per_student_ppp),
     tert_spend_gdp_pct = mean_na(subf$tert_spend_gdp_pct),
     gross_tert_enrolment_pct = mean_na(subf$gross_tert_enrolment_pct),
@@ -65,7 +64,7 @@ country_rows <- lapply(all_isos, function(iso) {
     goods_tax_share_pct = mean_na(subf$goods_services_tax_share_rev_pct),
     gini_disp = mean_na(subf$gini_disp_harmonised),
     life_expectancy_yrs = mean_na(subf$life_expectancy_birth_yrs),
-    # +5y CATEs (Model M2a)
+    # +5y Continuous Slopes per +10 pp (Model M2a, Scaling A)
     tau5_tax_gdp = mean_na(sub5$m2_5y_tau_tax_gdp_pp),
     tau5_tax_gdp_low80 = mean_na(sub5$m2_5y_tau_low80_tax_gdp_pp),
     tau5_tax_gdp_high80 = mean_na(sub5$m2_5y_tau_high80_tax_gdp_pp),
@@ -86,7 +85,7 @@ country_rows <- lapply(all_isos, function(iso) {
     tau5_goods_share_high80 = mean_na(sub5$m2_5y_tau_high80_goods_tax_share_pp),
     tau5_goods_share_low95 = mean_na(sub5$m2_5y_tau_low95_goods_tax_share_pp),
     tau5_goods_share_high95 = mean_na(sub5$m2_5y_tau_high95_goods_tax_share_pp),
-    # +10y CATEs (Model M2b)
+    # +10y Continuous Slopes per +10 pp (Model M2b, Scaling A)
     tau10_tax_gdp = mean_na(sub10$m2_10y_tau_tax_gdp_pp),
     tau10_tax_gdp_low80 = mean_na(sub10$m2_10y_tau_low80_tax_gdp_pp),
     tau10_tax_gdp_high80 = mean_na(sub10$m2_10y_tau_high80_tax_gdp_pp),
@@ -107,23 +106,6 @@ country_rows <- lapply(all_isos, function(iso) {
     tau10_goods_share_high80 = mean_na(sub10$m2_10y_tau_high80_goods_tax_share_pp),
     tau10_goods_share_low95 = mean_na(sub10$m2_10y_tau_low95_goods_tax_share_pp),
     tau10_goods_share_high95 = mean_na(sub10$m2_10y_tau_high95_goods_tax_share_pp),
-    # Longitudinal 3-wave (lbcf)
-    lbcf_w1_tax_gdp = mean_na(sub3$lbcf_tau1_tax_gdp_pp),
-    lbcf_cum_tax_gdp = mean_na(sub3$lbcf_tau_cum_tax_gdp_pp),
-    lbcf_cum_tax_gdp_low80 = mean_na(sub3$lbcf_tau_cum_low80_tax_gdp_pp),
-    lbcf_cum_tax_gdp_high80 = mean_na(sub3$lbcf_tau_cum_high80_tax_gdp_pp),
-    lbcf_w1_inc_gdp = mean_na(sub3$lbcf_tau1_inc_tax_gdp_pp),
-    lbcf_cum_inc_gdp = mean_na(sub3$lbcf_tau_cum_inc_tax_gdp_pp),
-    lbcf_cum_inc_gdp_low80 = mean_na(sub3$lbcf_tau_cum_low80_inc_tax_gdp_pp),
-    lbcf_cum_inc_gdp_high80 = mean_na(sub3$lbcf_tau_cum_high80_inc_tax_gdp_pp),
-    lbcf_w1_inc_share = mean_na(sub3$lbcf_tau1_inc_tax_share_pp),
-    lbcf_cum_inc_share = mean_na(sub3$lbcf_tau_cum_inc_tax_share_pp),
-    lbcf_cum_inc_share_low80 = mean_na(sub3$lbcf_tau_cum_low80_inc_tax_share_pp),
-    lbcf_cum_inc_share_high80 = mean_na(sub3$lbcf_tau_cum_high80_inc_tax_share_pp),
-    lbcf_w1_goods_share = mean_na(sub3$lbcf_tau1_goods_tax_share_pp),
-    lbcf_cum_goods_share = mean_na(sub3$lbcf_tau_cum_goods_tax_share_pp),
-    lbcf_cum_goods_share_low80 = mean_na(sub3$lbcf_tau_cum_low80_goods_tax_share_pp),
-    lbcf_cum_goods_share_high80 = mean_na(sub3$lbcf_tau_cum_high80_goods_tax_share_pp),
     stringsAsFactors = FALSE
   )
 })
@@ -214,7 +196,6 @@ app_payload <- list(
   countries = df_countries,
   historical = df_hist,
   global_ate = tab_ate,
-  longitudinal_ate = tab_lbc,
   subgroup_cates = tab_sub,
   surrogates = surrogates
 )

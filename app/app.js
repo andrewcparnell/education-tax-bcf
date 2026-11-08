@@ -34,12 +34,12 @@
     PP:      { code: "PP",      baseCode: "EUR", symbol: "pp",     rate: 1.0,  isTotal: false, label: "Percentage points (pp)" }
   };
 
-  // World Bank Income-Group Median Thresholds (% of GDP per person per student)
+  // World Bank Income-Group Training Median Thresholds (% of GDP per person per student)
   const INCOME_GROUP_THRESHOLDS = {
-    "High income": 26.9,
-    "Upper middle income": 26.8,
-    "Lower middle income": 76.5,
-    "Low income": 205.2
+    "High income": 26.4,
+    "Upper middle income": 27.6,
+    "Lower middle income": 68.9,
+    "Low income": 183.8
   };
 
   let currentUnit = "EUR_TOT";

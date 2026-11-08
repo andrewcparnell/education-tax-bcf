@@ -1,16 +1,16 @@
-feature_label,vif,cor_with_5y_tax_gdp_chg,cor_with_5y_inc_share_chg
-Log Real GDP per Person (PPP),7.25,-0.13,-0.066
-Baseline Life Expectancy (Years),6.03,-0.084,0.014
-Baseline Gross Secondary Enrolment (%),4.23,-0.117,-0.076
-Baseline Gross Tertiary Enrolment (%),3.61,-0.152,-0.094
-Baseline Non-Resource Tax / GDP (%),3.19,-0.19,-0.046
-Working-Age Population Share (%),3.08,-0.062,-0.091
-Baseline Goods & Services Share (%),2.06,0.01,0.142
-Baseline Direct Income Tax Share (%),2.03,-0.053,-0.167
-Baseline Disposable Gini Index,1.89,0.112,0.075
-Baseline Total Education Spend (% GDP),1.77,-0.044,0.008
-Log Population Size,1.74,-0.067,-0.012
-Natural Resource Rents (% GDP),1.66,0.078,-0.023
-Trade Openness (% GDP),1.53,-0.011,-0.006
-Unemployment Rate (%),1.44,0.078,-0.027
-Lagged (t-1) GDP per Person Growth (%),1.17,0.052,0.032
+feature_label,vif,cor_with_Z_10pp,cor_with_Z_log25pct,cor_with_5y_tax_gdp_chg,cor_with_5y_inc_share_chg
+Log Real GDP per Person (PPP),7.06,0.173,0.093,-0.138,-0.071
+Baseline Life Expectancy (Years),5.65,-0.024,-0.069,-0.065,0.015
+Baseline Gross Secondary Enrolment (%),4.19,0.105,0.059,-0.112,-0.096
+Baseline Gross Tertiary Enrolment (%),4.14,-0.053,-0.097,-0.131,-0.126
+Working-Age Population Share (%),3.22,-0.06,-0.111,-0.053,-0.111
+Baseline Non-Resource Tax / GDP (%),3.05,0.272,0.228,-0.181,-0.064
+Baseline Direct Income Tax Share (%),2.04,0.181,0.16,-0.081,-0.14
+Baseline Goods & Services Share (%),2.02,-0.139,-0.149,0.046,0.128
+Log Population Size,1.93,-0.119,-0.092,-0.091,-0.012
+Baseline Disposable Gini Index,1.82,-0.069,-0.091,0.136,0.094
+Baseline Total Education Spend (% GDP),1.81,0.506,0.491,-0.018,-0.032
+Trade Openness (% GDP),1.63,0.13,0.109,-0.039,-0.026
+Natural Resource Rents (% GDP),1.54,0.048,0.085,0.03,0.005
+Unemployment Rate (%),1.43,0.086,0.06,0.075,-0.011
+Lagged (t-1) GDP per Person Growth (%),1.16,-0.278,-0.29,0.069,0.026

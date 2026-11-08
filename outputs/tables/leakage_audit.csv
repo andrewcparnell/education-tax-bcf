@@ -1,7 +1,7 @@
 check_id,audit_check,requirement,observed_result,status
 L1,Sovereign country fold isolation,Each sovereign country (iso3) appears in exactly 1 fold across all 8 waves,Max folds per country = 1 across 217 countries,PASS
-L2,Zero mechanical GDP product identities,No fiscal outcome multiplies a tax ratio by GDP or GDP per person,All 4 outcomes are pure % of GDP or % of revenue changes,PASS
-L3,Zero treatment or outcome imputation,Primary estimation samples use 100% strictly observed Z and Y vectors,0 imputed treatment or outcome values in N=372 (+5y) and N=283 (+10y),PASS
-L4,Strict pre-treatment propensity conditioning,"Propensity score pi_hat(X_i,t) excludes post-treatment mediators M_{i,t+h}",pi_hat estimated strictly on 19 pre-treatment wave-t / t-1 covariates,PASS
-L5,Lagged GDP growth control (no wave-t collider),Baseline economic growth measured at wave t-1 (lag_gdp_pc_growth_pct),"Contemporaneous wave-t growth excluded from X_{i,t}",PASS
-L6,Out-of-fold country-blocked preprocessing check,Out-of-fold median imputation & propensity score match full-sample mvbcf,Verified in Robustness Check R8 (difference <= 0.04 pp across channels),PASS
+L2,Locked holdout test set isolation,Income-group centring medians computed strictly on training folds 1-4,Fold 5 (20% unseen countries) locked during Phase 2 centring & Phase 3 EDA,PASS
+L3,Zero mechanical GDP product identities,No fiscal outcome multiplies a tax ratio by GDP or GDP per person,All 4 outcomes are pure % of GDP or % of revenue changes,PASS
+L4,Zero treatment or outcome imputation,Primary estimation samples use 100% strictly observed Z and Y vectors,0 imputed treatment or outcome values in N=371 (+5y) and N=283 (+10y),PASS
+L5,Country-blocked Random Forest E[Z|X] conditioning,"Expected treatment z_hat(X_i,t) cross-fitted by country fold on pre-treatment X",500-tree Random Forest fitted strictly on out-of-fold countries,PASS
+L6,Lagged GDP growth control (no wave-t collider),Baseline economic growth measured at wave t-1 (lag_gdp_pc_growth_pct),"Contemporaneous wave-t growth excluded from X_{i,t}",PASS

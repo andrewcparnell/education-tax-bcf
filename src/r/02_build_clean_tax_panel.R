@@ -188,6 +188,16 @@ for (r in seq_len(nrow(anomalies))) {
               anomalies$wave_label[r], anomalies$tax_rev_gdp_pct[r]))
 }
 
+tert_anomalies <- grid_df %>%
+  filter(!is.na(tert_spend_per_student_gdp_pc) & tert_spend_per_student_gdp_pc > 0 & tert_spend_per_student_gdp_pc < 1.0) %>%
+  select(iso3, country_name, wave_label, tert_spend_per_student_gdp_pc)
+cat(sprintf("Screened %d impossible UNESCO tertiary per-student reporting anomaly (<1.0%% of GDP per person):\n", nrow(tert_anomalies)))
+for (r in seq_len(nrow(tert_anomalies))) {
+  cat(sprintf("  - %s (%s) in %s: raw tert_spend_per_student_gdp_pc = %.4f%%\n",
+              tert_anomalies$country_name[r], tert_anomalies$iso3[r],
+              tert_anomalies$wave_label[r], tert_anomalies$tert_spend_per_student_gdp_pc[r]))
+}
+
 # Construct wave-level derived variables
 panel_df <- grid_df %>%
   mutate(
@@ -210,10 +220,13 @@ panel_df <- grid_df %>%
     goods_tax_gdp_pct = ifelse(!is.na(non_resource_tax_gdp_pct) & !is.na(goods_services_tax_share_rev_pct) & goods_services_tax_share_rev_pct >= 0,
                                non_resource_tax_gdp_pct * (goods_services_tax_share_rev_pct / 100.0), NA_real_),
     gini_disp_harmonised = ifelse(!is.na(swiid_gini_disp), swiid_gini_disp, wb_gini_index),
-    tert_spend_raw = ifelse(!is.na(tert_spend_per_student_gdp_pc) & tert_spend_per_student_gdp_pc > 0,
+    # Screen out UNESCO unit-scale error (<1.0% of GDP per person, e.g. MDG 2015-2019 at 0.0359%)
+    tert_spend_raw = ifelse(!is.na(tert_spend_per_student_gdp_pc) & tert_spend_per_student_gdp_pc >= 1.0,
                             tert_spend_per_student_gdp_pc, NA_real_),
     tert_spend_per_student_winsor = ifelse(!is.na(tert_spend_raw),
                                            pmin(pmax(tert_spend_raw, 1.0), 150.0), NA_real_),
+    log_tert_spend_winsor = ifelse(!is.na(tert_spend_raw) & tert_spend_raw > 0,
+                                   log(tert_spend_raw), NA_real_),
     real_tert_spend_per_student_ppp = ifelse(!is.na(tert_spend_raw) & !is.na(gdp_per_capita_ppp_const2021) & gdp_per_capita_ppp_const2021 > 0,
                                              gdp_per_capita_ppp_const2021 * (tert_spend_raw / 100.0), NA_real_),
     log_real_tert_spend_per_student = ifelse(!is.na(real_tert_spend_per_student_ppp) & real_tert_spend_per_student_ppp > 0,
@@ -225,13 +238,42 @@ panel_df <- grid_df %>%
   ) %>%
   select(-res_rents_clean, -tax_rev_gdp_pct_unscreened)
 
-# Match exact median helper from Python (even-length average, odd-length middle)
-global_med_spend <- median(panel_df$tert_spend_raw, na.rm = TRUE)
+# Create deterministic 5-fold country-blocked split BEFORE computing centring medians
+# Stratified by World Bank income_group and whether country has observed tertiary & tax data
+# Fold 1-4 = 80% Training/CV Countries; Fold 5 = 20% Locked Holdout Test Countries
+set.seed(20261103)
+country_strata <- panel_df %>%
+  group_by(iso3, income_group) %>%
+  summarise(
+    has_tert_and_tax = as.integer(any(!is.na(tert_spend_raw) & !is.na(non_resource_tax_gdp_pct))),
+    .groups = "drop"
+  ) %>%
+  arrange(income_group, desc(has_tert_and_tax), iso3) %>%
+  group_by(income_group, has_tert_and_tax) %>%
+  mutate(
+    country_fold = sample(rep(1:5, length.out = n())),
+    is_holdout_test = ifelse(country_fold == 5L, 1L, 0L)
+  ) %>%
+  ungroup() %>%
+  select(iso3, country_fold, is_holdout_test) %>%
+  arrange(iso3)
 
-inc_meds <- panel_df %>%
+write_csv(country_strata, file.path(split_dir, "country_folds.csv"))
+
+panel_df <- panel_df %>%
+  left_join(country_strata, by = "iso3")
+
+# Compute global and income-group centring medians strictly on TRAINING countries (is_holdout_test == 0)
+# to prevent any information leakage from the 20% held-out test countries
+train_panel <- panel_df %>% filter(is_holdout_test == 0L)
+global_med_spend <- median(train_panel$tert_spend_raw, na.rm = TRUE)
+
+inc_meds <- train_panel %>%
   group_by(income_group) %>%
   summarise(
     med_spend_raw = median(tert_spend_raw, na.rm = TRUE),
+    med_spend_winsor = median(tert_spend_per_student_winsor, na.rm = TRUE),
+    med_log_spend_winsor = median(log_tert_spend_winsor, na.rm = TRUE),
     med_real_spend = median(log_real_tert_spend_per_student, na.rm = TRUE),
     med_tert_gdp = median(tert_spend_gdp_pct, na.rm = TRUE),
     med_edu_total = median(edu_spend_total_gdp_pct, na.rm = TRUE),
@@ -252,12 +294,29 @@ panel_df <- panel_df %>%
     d_prev_inc_tax_share_pp = income_profit_tax_share_rev_pct - lag(income_profit_tax_share_rev_pct, 1L),
     d_prev_goods_tax_share_pp = goods_services_tax_share_rev_pct - lag(goods_services_tax_share_rev_pct, 1L),
 
-    # Tertiary Treatment 1: Per-Student Spending Ratio (% of GDP per person)
+    # Primary Continuous Tertiary Treatments (Scaling A & Scaling B)
+    # Raw signed deviations from training income-group median (saved for sensitivity checks):
+    Z_cont_10pp_raw = ifelse(!is.na(tert_spend_per_student_winsor) & !is.na(med_spend_winsor),
+                             (tert_spend_per_student_winsor - med_spend_winsor) / 10.0, NA_real_),
+    Z_cont_log25pct_raw = ifelse(!is.na(log_tert_spend_winsor) & !is.na(med_log_spend_winsor),
+                                 (log_tert_spend_winsor - med_log_spend_winsor) / log(1.25), NA_real_),
+    # Scaling A (Z_cont_10pp): Non-negative continuous dose in [0, 3] (+10 pp of GDP/pc per unit,
+    # winsorised at [-1.5, +1.5] around training income-group median and anchored at +1.5 so Z >= 0)
+    Z_cont_10pp = ifelse(!is.na(Z_cont_10pp_raw),
+                         pmin(pmax(Z_cont_10pp_raw, -1.5), 1.5) + 1.5, NA_real_),
+    # Scaling B (Z_cont_log25pct): Non-negative continuous dose in [0, 3] (+25% relative increase per unit,
+    # winsorised at [-1.5, +1.5] around training income-group log median and anchored at +1.5 so Z >= 0)
+    Z_cont_log25pct = ifelse(!is.na(Z_cont_log25pct_raw),
+                             pmin(pmax(Z_cont_log25pct_raw, -1.5), 1.5) + 1.5, NA_real_),
+
+    # Tertiary Treatment 1: Per-Student Spending Ratio (% of GDP per person) Changes & Binary Reference
     prev_sp_winsor = lag(tert_spend_per_student_winsor, 1L),
     tert_spend_rel_change_pct = ifelse(!is.na(tert_spend_per_student_winsor) & !is.na(prev_sp_winsor) & prev_sp_winsor > 0,
                                        ((tert_spend_per_student_winsor - prev_sp_winsor) / prev_sp_winsor) * 100.0, NA_real_),
     tert_spend_abs_change = ifelse(!is.na(tert_spend_per_student_winsor) & !is.na(prev_sp_winsor) & prev_sp_winsor > 0,
                                    tert_spend_per_student_winsor - prev_sp_winsor, NA_real_),
+    Z_cont_delta_10pp = ifelse(!is.na(tert_spend_abs_change),
+                               pmin(pmax(tert_spend_abs_change / 10.0, -1.5), 1.5) + 1.5, NA_real_),
     Z_expansion_obs = ifelse(!is.na(tert_spend_abs_change) & !is.na(tert_spend_rel_change_pct),
                              ifelse(tert_spend_abs_change >= 2.5 & tert_spend_rel_change_pct >= 2.5, 1L, 0L), NA_integer_),
     Z_regime_inc = ifelse(!is.na(tert_spend_raw) & !is.na(med_spend_raw),
@@ -266,6 +325,8 @@ panel_df <- panel_df %>%
                              ifelse(tert_spend_raw > global_med_spend, 1L, 0L), NA_integer_),
 
     # Tertiary Treatment 2: Real 2021 PPP Dollars per Tertiary Student (no GDP denominator)
+    Z_cont_real_ppp_log25pct = ifelse(!is.na(log_real_tert_spend_per_student) & !is.na(med_real_spend),
+                                      pmin(pmax((log_real_tert_spend_per_student - med_real_spend) / log(1.25), -1.5), 1.5) + 1.5, NA_real_),
     prev_log_rsp = lag(log_real_tert_spend_per_student, 1L),
     d_log_real_spend_stu_pct = ifelse(!is.na(log_real_tert_spend_per_student) & !is.na(prev_log_rsp),
                                       (log_real_tert_spend_per_student - prev_log_rsp) * 100.0, NA_real_),
@@ -275,6 +336,8 @@ panel_df <- panel_df %>%
                                  ifelse(log_real_tert_spend_per_student > med_real_spend, 1L, 0L), NA_integer_),
 
     # Tertiary Treatment 3: Public Tertiary Budget % of GDP (no student headcount denominator)
+    Z_cont_budget_gdp_025pp = ifelse(!is.na(tert_spend_gdp_pct) & !is.na(med_tert_gdp),
+                                     pmin(pmax((tert_spend_gdp_pct - med_tert_gdp) / 0.25, -1.5), 1.5) + 1.5, NA_real_),
     prev_bgdp = lag(tert_spend_gdp_pct, 1L),
     d_tert_spend_gdp_pp = ifelse(!is.na(tert_spend_gdp_pct) & !is.na(prev_bgdp),
                                  tert_spend_gdp_pct - prev_bgdp, NA_real_),
@@ -322,7 +385,8 @@ panel_df <- panel_df %>%
     d_t2_life_exp_yrs = lead(life_expectancy_birth_yrs, 2L) - life_expectancy_birth_yrs
   ) %>%
   ungroup() %>%
-  select(-med_spend_raw, -med_real_spend, -med_tert_gdp, -med_edu_total,
+  select(-med_spend_raw, -med_spend_winsor, -med_log_spend_winsor,
+         -med_real_spend, -med_tert_gdp, -med_edu_total,
          -prev_sp_winsor, -prev_log_rsp, -prev_bgdp)
 
 # Hygiene Check: Verify zero duplicate (iso3, wave_index) keys
@@ -330,14 +394,10 @@ n_dups <- nrow(panel_df) - n_distinct(paste(panel_df$iso3, panel_df$wave_index))
 if (n_dups > 0) stop(sprintf("Found %d duplicate country-wave rows!", n_dups))
 cat(sprintf("Hygiene check passed: 0 duplicate keys across %d country-wave rows (%d sovereign countries x 8 waves).\n",
             nrow(panel_df), n_distinct(panel_df$iso3)))
-
-# Save 5-fold country-blocked assignment for out-of-fold propensity / imputation audits
-set.seed(20261103)
-country_folds <- tibble(
-  iso3 = sort(unique(panel_df$iso3)),
-  country_fold = sample(rep(1:5, length.out = n_distinct(panel_df$iso3)))
-)
-write_csv(country_folds, file.path(split_dir, "country_folds.csv"))
+cat(sprintf("Stratified 5-fold country-blocked split saved to %s (%d training countries in folds 1-4; %d locked holdout test countries in fold 5).\n",
+            file.path("data/processed/splits", "country_folds.csv"),
+            sum(country_strata$is_holdout_test == 0L),
+            sum(country_strata$is_holdout_test == 1L)))
 
 # Save 5-year and non-overlapping 10-year panels
 out_5y <- file.path(proc_dir, "clean_tax_panel.csv")
@@ -375,17 +435,24 @@ dict_spec <- tribble(
   "region", "Baseline Covariate", "World Bank geographic region", "7 categories", "character", "World Bank Country Metadata API",
   "income_group", "Baseline Covariate / Moderator", "World Bank national income group tier", "4 ordered tiers", "character", "World Bank Country Metadata API",
   "is_oecd", "Baseline Covariate / Moderator", "Indicator for OECD member state", "Binary (0 or 1)", "integer", "OECD / World Bank Metadata",
+  "country_fold", "Split Identifier", "Income-stratified 5-fold country assignment (1-4 = training/CV folds; 5 = locked holdout test fold)", "Fold integer (1-5)", "integer", "Constructed (set.seed(20261103))",
+  "is_holdout_test", "Split Identifier", "1 if country is in the locked 20% holdout test set (country_fold == 5); 0 if in 80% training set", "Binary (0 or 1)", "integer", "Constructed (set.seed(20261103))",
   "wave_index", "Time Index", "Non-overlapping 5-year wave index (1 = 1985-1989 to 8 = 2020-2024)", "Wave integer (1-8)", "integer", "Constructed (5-year windows)",
   "wave_label", "Time Index", "Calendar year range of the 5-year wave", "Year interval", "character", "Constructed (5-year windows)",
-  "tert_spend_raw", "Treatment (Continuous)", "Un-winsorised public expenditure per tertiary student as % of GDP per person", "% of GDP per person", "numeric", "UNESCO UIS (SE.XPD.TERT.PC.ZS)",
-  "tert_spend_per_student_winsor", "Treatment (Continuous)", "Public expenditure per tertiary student (% of GDP per person, winsorised at [1, 150])", "% of GDP per person", "numeric", "UNESCO UIS (SE.XPD.TERT.PC.ZS)",
-  "real_tert_spend_per_student_ppp", "Treatment (Continuous)", "Real constant-2021 PPP international dollars spent per tertiary student (no GDP denominator)", "2021 PPP USD / student", "numeric", "UNESCO UIS & WDI (SE.XPD.TERT.PC.ZS * NY.GDP.PCAP.PP.KD)",
-  "tert_spend_gdp_pct", "Treatment (Continuous)", "Public tertiary education expenditure as % of GDP (no student headcount denominator)", "% of GDP", "numeric", "UNESCO UIS (SE.XPD.TOTL.GD.ZS * SE.XPD.TERT.ZS)",
-  "Z_regime_inc", "Primary Binary Treatment (1A)", "1 if un-winsorised per-student tertiary spending ratio exceeds World Bank income-group median", "Binary (0 or 1)", "integer", "Constructed (strictly observed)",
-  "Z_expansion_obs", "Binary Treatment (1B)", "1 if observed per-student tertiary spending ratio increases by >=2.5 pp and >=2.5% over wave", "Binary (0 or 1)", "integer", "Constructed (strictly observed)",
-  "Z_real_spend_regime", "Binary Treatment (2A)", "1 if real 2021 PPP dollars per tertiary student exceeds World Bank income-group median", "Binary (0 or 1)", "integer", "Constructed (no GDP denominator)",
-  "Z_real_spend_expansion", "Binary Treatment (2B)", "1 if real 2021 PPP dollars per tertiary student grows by >=5% over 5-year wave", "Binary (0 or 1)", "integer", "Constructed (no GDP denominator)",
-  "Z_tert_gdp_regime", "Binary Treatment (3A)", "1 if public tertiary education budget (% of GDP) exceeds World Bank income-group median", "Binary (0 or 1)", "integer", "Constructed (no student headcount denominator)",
+  "tert_spend_raw", "Treatment (Continuous Raw)", "Un-winsorised public expenditure per tertiary student as % of GDP per person (screened >= 1.0%)", "% of GDP per person", "numeric", "UNESCO UIS (SE.XPD.TERT.PC.ZS)",
+  "tert_spend_per_student_winsor", "Treatment (Continuous Raw)", "Public expenditure per tertiary student (% of GDP per person, winsorised at [1, 150])", "% of GDP per person", "numeric", "UNESCO UIS (SE.XPD.TERT.PC.ZS)",
+  "Z_cont_10pp", "Primary Continuous Treatment (Scaling A)", "Winsorised per-student tertiary spending centred on training income-group median, scaled per +10 pp of GDP per person", "+10 pp of GDP/pc per student", "numeric", "Constructed (Scaling A)",
+  "Z_cont_log25pct", "Primary Continuous Treatment (Scaling B)", "Log per-student tertiary spending centred on training income-group log median, scaled per +25% relative increase (log(1.25))", "+25% relative increase", "numeric", "Constructed (Scaling B)",
+  "Z_cont_delta_10pp", "Continuous Treatment (1B: 5y Change)", "Within-country 5-year change in per-student tertiary spending ratio, scaled per +10 pp of GDP per person", "+10 pp 5-year change", "numeric", "Constructed (within-country change)",
+  "real_tert_spend_per_student_ppp", "Treatment (Continuous Raw)", "Real constant-2021 PPP international dollars spent per tertiary student (no GDP denominator)", "2021 PPP USD / student", "numeric", "UNESCO UIS & WDI (SE.XPD.TERT.PC.ZS * NY.GDP.PCAP.PP.KD)",
+  "Z_cont_real_ppp_log25pct", "Continuous Treatment (2A: Real PPP Dollars)", "Log real 2021 PPP dollars per tertiary student centred on training income-group median, scaled per +25% increase", "+25% real PPP USD / student", "numeric", "Constructed (no GDP denominator)",
+  "tert_spend_gdp_pct", "Treatment (Continuous Raw)", "Public tertiary education expenditure as % of GDP (no student headcount denominator)", "% of GDP", "numeric", "UNESCO UIS (SE.XPD.TOTL.GD.ZS * SE.XPD.TERT.ZS)",
+  "Z_cont_budget_gdp_025pp", "Continuous Treatment (3A: Budget % GDP)", "Public tertiary education budget (% of GDP) centred on training income-group median, scaled per +0.25 pp of GDP", "+0.25 pp of GDP", "numeric", "Constructed (no student headcount denominator)",
+  "Z_regime_inc", "Legacy Binary Treatment (1A)", "1 if un-winsorised per-student tertiary spending ratio exceeds training World Bank income-group median", "Binary (0 or 1)", "integer", "Constructed (binary benchmark)",
+  "Z_expansion_obs", "Legacy Binary Treatment (1B)", "1 if observed per-student tertiary spending ratio increases by >=2.5 pp and >=2.5% over wave", "Binary (0 or 1)", "integer", "Constructed (binary benchmark)",
+  "Z_real_spend_regime", "Legacy Binary Treatment (2A)", "1 if real 2021 PPP dollars per tertiary student exceeds training World Bank income-group median", "Binary (0 or 1)", "integer", "Constructed (no GDP denominator)",
+  "Z_real_spend_expansion", "Legacy Binary Treatment (2B)", "1 if real 2021 PPP dollars per tertiary student grows by >=5% over 5-year wave", "Binary (0 or 1)", "integer", "Constructed (no GDP denominator)",
+  "Z_tert_gdp_regime", "Legacy Binary Treatment (3A)", "1 if public tertiary education budget (% of GDP) exceeds training World Bank income-group median", "Binary (0 or 1)", "integer", "Constructed (no student headcount denominator)",
   "d_t1_nonres_tax_gdp_pp", "Outcome Y1 (+5y)", "5-year change in domestic non-resource tax revenue (% of GDP)", "Percentage points of GDP", "numeric", "IMF GFS / WDI / UNU-WIDER GRD",
   "d_t2_nonres_tax_gdp_pp", "Outcome Y1 (+10y)", "10-year change in domestic non-resource tax revenue (% of GDP)", "Percentage points of GDP", "numeric", "IMF GFS / WDI / UNU-WIDER GRD",
   "d_t1_inc_tax_gdp_pp", "Outcome Y2 (+5y)", "5-year change in direct income, profit, and capital gains tax revenue (% of GDP)", "Percentage points of GDP", "numeric", "IMF GFS / WDI (GC.TAX.YPKG.ZS * NonResTax/GDP)",

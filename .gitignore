@@ -13,7 +13,6 @@ venv/
 .ipynb_checkpoints/
 
 # Large intermediate MCMC objects (keep summary CSVs and JSON metadata)
-results/models/*.rds
 outputs/models/*.rds
 
 # Quarto / Typst / LaTeX build artifacts

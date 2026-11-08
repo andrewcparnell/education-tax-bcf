@@ -2,6 +2,6 @@
   "script": "src/r/04_run_mvbcf_tax_models.R",
   "seed": 20261103,
   "r_version": "R version 4.6.1 (2026-06-24)",
-  "wall_clock_seconds": 611.37,
-  "timestamp_utc": "2026-11-05 23:34:53 UTC"
+  "wall_clock_seconds": 1223.83,
+  "timestamp_utc": "2026-11-08 17:49:55 UTC"
 }

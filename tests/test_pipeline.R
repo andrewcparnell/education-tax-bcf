@@ -51,34 +51,42 @@ req_tables <- c(
   "table_method_benchmarks.csv",
   "table_moderator_importance.csv",
   "table4_robustness_checks.csv",
-  "table5_longitudinal_bcf_trajectories.csv",
+  "table_scaling_fit_and_residuals.csv",
+  "table_holdout_country_validation.csv",
+  "table_country_holdout_predictions.csv",
   "tableA1_convergence_and_fit_diagnostics.csv",
   "tableA2_compute_and_energy.csv",
-  "tableA3_propensity_overlap_and_balance.csv"
+  "tableA3_propensity_overlap_and_balance.csv",
+  "tableA4_latest_z0_countries_costs_and_returns.csv"
 )
 
 for (tb in req_tables) {
   tb_path <- file.path(repo_root, "outputs", "tables", tb)
-  stopifnot( file.exists(tb_path))
+  stopifnot(file.exists(tb_path))
   tb_df <- read_csv(tb_path, show_col_types = FALSE)
   stopifnot(nrow(tb_df) > 0)
 }
 
-# 4. Verify all publication figures exist in paper/figures/
+# 4. Verify all publication figures exist in outputs/figures/ and paper/figures/
 req_figs <- c(
   "fig1_structural_schematic.pdf",
-  "eda_fig1_raw_distributions_and_bivariate.pdf",
+  "fig0_panel_data_overview.pdf",
   "fig2_total_vs_direct_tax_posteriors.pdf",
   "fig3_denominator_unbundling_horserace.pdf",
   "fig4_enrolment_and_oecd_moderation.pdf",
   "fig5_longitudinal_country_trajectories.pdf",
-  "figA1_mcmc_convergence_traces.pdf"
+  "fig6_scaling_fit_and_holdout_validation.pdf",
+  "figA1_mcmc_convergence_traces.pdf",
+  "figA2_scaling_a_vs_b_comparison.pdf"
 )
 
 for (fg in req_figs) {
   fg_path <- file.path(repo_root, "paper", "figures", fg)
   stopifnot(file.exists(fg_path))
+  out_fg_path <- file.path(repo_root, "outputs", "figures", fg)
+  stopifnot(file.exists(out_fg_path))
 }
+stopifnot(file.exists(file.path(repo_root, "outputs", "figures", "eda_fig1_raw_distributions_and_bivariate.pdf")))
 
 # 4b. Verify interactive app files exist in app/
 req_app <- c(
@@ -98,24 +106,35 @@ for (af in req_app) {
   stopifnot(file.exists(af_path))
 }
 
-# 5. Verify numerical consistency between CSV tables and paper.tex / paper.md
+# 5. Verify numerical consistency between CSV tables, paper.tex, and paper.md
 tex_str <- paste(readLines(file.path(repo_root, "paper", "paper.tex"), warn = FALSE), collapse = "\n")
-md_str  <- paste(readLines(file.path(repo_root, "paper", "paper.md"), warn = FALSE), collapse = "\n")
+md_str <- paste(readLines(file.path(repo_root, "paper", "paper.md"), warn = FALSE), collapse = "\n")
 
 tab1 <- read_csv(file.path(repo_root, "outputs", "tables", "table1_mvbcf_ate_posteriors.csv"), show_col_types = FALSE)
-for (m_id in c("M1b_Total_10y", "M2a_Direct_5y", "M2b_Direct_10y", "M3b_ObsExp_10y", "M3d_RealPPP_10y")) {
+for (m_id in c("M1b_Total_10pp_10y", "M2a_Direct_10pp_5y", "M2b_Direct_10pp_10y", "M2d_Direct_Log25_10y", "M3b_Delta10pp_10y", "M3d_RealPPP_10y")) {
   sub <- tab1 %>% filter(model_id == m_id, outcome_index %in% c(1, 2, 3))
-  for (val in sprintf("%+.2f", sub$ate_mean)) {
+  for (val in sprintf("%+.2f", round(sub$ate_mean + sign(sub$ate_mean) * 1e-9, 2))) {
     stopifnot("Missing ATE number in paper.tex" = grepl(val, tex_str, fixed = TRUE))
-    stopifnot("Missing ATE number in paper.md"  = grepl(val, md_str, fixed = TRUE))
+    stopifnot("Missing ATE number in paper.md" = grepl(val, md_str, fixed = TRUE))
   }
 }
 
 tab4 <- read_csv(file.path(repo_root, "outputs", "tables", "table4_robustness_checks.csv"), show_col_types = FALSE)
-sub_r13 <- tab4 %>% filter(model_id == "R13_Top33_Threshold_10y", outcome_index %in% c(1, 2, 3))
-for (val in sprintf("%+.2f", sub_r13$ate_mean)) {
-  stopifnot("Missing R13 top-tercile ATE in paper.tex" = grepl(val, tex_str, fixed = TRUE))
-  stopifnot("Missing R13 top-tercile ATE in paper.md"  = grepl(val, md_str, fixed = TRUE))
+for (r_id in c("R13_TrainingSet_Only_10y", "R14_Binary_Regime_10y")) {
+  sub_r <- tab4 %>% filter(model_id == r_id, outcome_index %in% c(1, 2, 3))
+  for (val in sprintf("%+.2f", round(sub_r$ate_mean + sign(sub_r$ate_mean) * 1e-9, 2))) {
+    stopifnot("Missing robustness ATE in paper.tex" = grepl(val, tex_str, fixed = TRUE))
+  }
+}
+sub_r13 <- tab4 %>% filter(model_id == "R13_TrainingSet_Only_10y", outcome_index %in% c(1, 2, 3))
+for (val in sprintf("%+.2f", round(sub_r13$ate_mean + sign(sub_r13$ate_mean) * 1e-9, 2))) {
+  stopifnot("Missing R13 robustness ATE in paper.md" = grepl(val, md_str, fixed = TRUE))
+}
+
+# Verify all outputs/tables/*.csv references in paper.md exist on disk
+md_table_refs <- regmatches(md_str, gregexpr("outputs/tables/[A-Za-z0-9_]+\\.csv", md_str))[[1]]
+for (ref in unique(md_table_refs)) {
+  stopifnot("Missing referenced CSV from paper.md" = file.exists(file.path(repo_root, ref)))
 }
 
 cat("ALL AUTOMATED PIPELINE TESTS PASSED (0 errors)!\n")

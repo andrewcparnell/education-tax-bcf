@@ -5,17 +5,24 @@ country_name,Identifier,Sovereign country name,World Bank Country Metadata API
 region,Baseline Covariate,World Bank geographic region,World Bank Country Metadata API
 income_group,Baseline Covariate / Moderator,World Bank national income group tier,World Bank Country Metadata API
 is_oecd,Baseline Covariate / Moderator,Indicator for OECD member state,OECD / World Bank Metadata
+country_fold,Split Identifier,Income-stratified 5-fold country assignment (1-4 = training/CV folds; 5 = locked holdout test fold),Constructed (set.seed(20261103))
+is_holdout_test,Split Identifier,1 if country is in the locked 20% holdout test set (country_fold == 5); 0 if in 80% training set,Constructed (set.seed(20261103))
 wave_index,Time Index,Non-overlapping 5-year wave index (1 = 1985-1989 to 8 = 2020-2024),Constructed (5-year windows)
 wave_label,Time Index,Calendar year range of the 5-year wave,Constructed (5-year windows)
-tert_spend_raw,Treatment (Continuous),Un-winsorised public expenditure per tertiary student as % of GDP per person,UNESCO UIS (SE.XPD.TERT.PC.ZS)
-tert_spend_per_student_winsor,Treatment (Continuous),"Public expenditure per tertiary student (% of GDP per person, winsorised at [1, 150])",UNESCO UIS (SE.XPD.TERT.PC.ZS)
-real_tert_spend_per_student_ppp,Treatment (Continuous),Real constant-2021 PPP international dollars spent per tertiary student (no GDP denominator),UNESCO UIS & WDI (SE.XPD.TERT.PC.ZS * NY.GDP.PCAP.PP.KD)
-tert_spend_gdp_pct,Treatment (Continuous),Public tertiary education expenditure as % of GDP (no student headcount denominator),UNESCO UIS (SE.XPD.TOTL.GD.ZS * SE.XPD.TERT.ZS)
-Z_regime_inc,Primary Binary Treatment (1A),1 if un-winsorised per-student tertiary spending ratio exceeds World Bank income-group median,Constructed (strictly observed)
-Z_expansion_obs,Binary Treatment (1B),1 if observed per-student tertiary spending ratio increases by >=2.5 pp and >=2.5% over wave,Constructed (strictly observed)
-Z_real_spend_regime,Binary Treatment (2A),1 if real 2021 PPP dollars per tertiary student exceeds World Bank income-group median,Constructed (no GDP denominator)
-Z_real_spend_expansion,Binary Treatment (2B),1 if real 2021 PPP dollars per tertiary student grows by >=5% over 5-year wave,Constructed (no GDP denominator)
-Z_tert_gdp_regime,Binary Treatment (3A),1 if public tertiary education budget (% of GDP) exceeds World Bank income-group median,Constructed (no student headcount denominator)
+tert_spend_raw,Treatment (Continuous Raw),Un-winsorised public expenditure per tertiary student as % of GDP per person (screened >= 1.0%),UNESCO UIS (SE.XPD.TERT.PC.ZS)
+tert_spend_per_student_winsor,Treatment (Continuous Raw),"Public expenditure per tertiary student (% of GDP per person, winsorised at [1, 150])",UNESCO UIS (SE.XPD.TERT.PC.ZS)
+Z_cont_10pp,Primary Continuous Treatment (Scaling A),"Winsorised per-student tertiary spending centred on training income-group median, scaled per +10 pp of GDP per person",Constructed (Scaling A)
+Z_cont_log25pct,Primary Continuous Treatment (Scaling B),"Log per-student tertiary spending centred on training income-group log median, scaled per +25% relative increase (log(1.25))",Constructed (Scaling B)
+Z_cont_delta_10pp,Continuous Treatment (1B: 5y Change),"Within-country 5-year change in per-student tertiary spending ratio, scaled per +10 pp of GDP per person",Constructed (within-country change)
+real_tert_spend_per_student_ppp,Treatment (Continuous Raw),Real constant-2021 PPP international dollars spent per tertiary student (no GDP denominator),UNESCO UIS & WDI (SE.XPD.TERT.PC.ZS * NY.GDP.PCAP.PP.KD)
+Z_cont_real_ppp_log25pct,Continuous Treatment (2A: Real PPP Dollars),"Log real 2021 PPP dollars per tertiary student centred on training income-group median, scaled per +25% increase",Constructed (no GDP denominator)
+tert_spend_gdp_pct,Treatment (Continuous Raw),Public tertiary education expenditure as % of GDP (no student headcount denominator),UNESCO UIS (SE.XPD.TOTL.GD.ZS * SE.XPD.TERT.ZS)
+Z_cont_budget_gdp_025pp,Continuous Treatment (3A: Budget % GDP),"Public tertiary education budget (% of GDP) centred on training income-group median, scaled per +0.25 pp of GDP",Constructed (no student headcount denominator)
+Z_regime_inc,Legacy Binary Treatment (1A),1 if un-winsorised per-student tertiary spending ratio exceeds training World Bank income-group median,Constructed (binary benchmark)
+Z_expansion_obs,Legacy Binary Treatment (1B),1 if observed per-student tertiary spending ratio increases by >=2.5 pp and >=2.5% over wave,Constructed (binary benchmark)
+Z_real_spend_regime,Legacy Binary Treatment (2A),1 if real 2021 PPP dollars per tertiary student exceeds training World Bank income-group median,Constructed (no GDP denominator)
+Z_real_spend_expansion,Legacy Binary Treatment (2B),1 if real 2021 PPP dollars per tertiary student grows by >=5% over 5-year wave,Constructed (no GDP denominator)
+Z_tert_gdp_regime,Legacy Binary Treatment (3A),1 if public tertiary education budget (% of GDP) exceeds training World Bank income-group median,Constructed (no student headcount denominator)
 d_t1_nonres_tax_gdp_pp,Outcome Y1 (+5y),5-year change in domestic non-resource tax revenue (% of GDP),IMF GFS / WDI / UNU-WIDER GRD
 d_t2_nonres_tax_gdp_pp,Outcome Y1 (+10y),10-year change in domestic non-resource tax revenue (% of GDP),IMF GFS / WDI / UNU-WIDER GRD
 d_t1_inc_tax_gdp_pp,Outcome Y2 (+5y),"5-year change in direct income, profit, and capital gains tax revenue (% of GDP)",IMF GFS / WDI (GC.TAX.YPKG.ZS * NonResTax/GDP)

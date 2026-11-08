@@ -1,5 +1,0 @@
-Z_regime_inc,horizon,n_obs,n_countries,mean_d_tax_gdp_pp,mean_d_inc_tax_gdp_pp,mean_d_inc_tax_share_pp,mean_d_goods_tax_share_pp
-0,+5 years (t+1),196,80,0.35,0.26,0.89,0.57
-1,+5 years (t+1),176,74,0.37,0.4,1.74,0.5
-0,+10 years (t+2),142,70,0.59,0.44,1.56,0.99
-1,+10 years (t+2),141,69,0.8,0.66,2.57,0.97

@@ -1,0 +1,97 @@
+split_type,model,outcome_index,outcome,outcome_code,n_obs,n_countries,rmse,mae,crps,cov80_pct,cov95_pct,mean_tau_pred,crps_diff_vs_mvbcf_A,dm_p_val
+"5-Fold Country-Blocked CV (All 112 Countries, +10y)",1. MV-BCF Scaling A (Z_cont_10pp),1,Non-Resource Tax / GDP (pp),tax_gdp_pp,283,112,3.148,2.202,1.638,82.3,91.5,0.272,-0,0.998
+"5-Fold Country-Blocked CV (All 112 Countries, +10y)",1. MV-BCF Scaling A (Z_cont_10pp),2,Direct Income & Profit Tax / GDP (pp),inc_tax_gdp_pp,283,112,1.543,1.177,0.849,82.3,94.7,0.144,0,0.996
+"5-Fold Country-Blocked CV (All 112 Countries, +10y)",1. MV-BCF Scaling A (Z_cont_10pp),3,Direct Income & Profit Share of Revenue (pp),inc_tax_share_pp,283,112,6.112,4.761,3.409,79.9,91.5,0.655,-0,1
+"5-Fold Country-Blocked CV (All 112 Countries, +10y)",1. MV-BCF Scaling A (Z_cont_10pp),4,Goods & Services Tax Share of Revenue (pp),goods_tax_share_pp,283,112,6.485,4.659,3.426,81.6,93.3,-0.39,-0,1
+"5-Fold Country-Blocked CV (All 112 Countries, +10y)",2. MV-BCF Scaling B (Z_cont_log25pct),1,Non-Resource Tax / GDP (pp),tax_gdp_pp,283,112,3.157,2.182,1.64,81.6,91.5,0.27,0.002,0.989
+"5-Fold Country-Blocked CV (All 112 Countries, +10y)",2. MV-BCF Scaling B (Z_cont_log25pct),2,Direct Income & Profit Tax / GDP (pp),inc_tax_gdp_pp,283,112,1.559,1.195,0.857,81.3,95.1,0.119,0.008,0.872
+"5-Fold Country-Blocked CV (All 112 Countries, +10y)",2. MV-BCF Scaling B (Z_cont_log25pct),3,Direct Income & Profit Share of Revenue (pp),inc_tax_share_pp,283,112,6.317,4.857,3.507,78.4,91.5,0.532,0.098,0.646
+"5-Fold Country-Blocked CV (All 112 Countries, +10y)",2. MV-BCF Scaling B (Z_cont_log25pct),4,Goods & Services Tax Share of Revenue (pp),goods_tax_share_pp,283,112,6.594,4.621,3.469,81.3,91.9,-0.285,0.043,0.868
+"5-Fold Country-Blocked CV (All 112 Countries, +10y)",3. Single-Forest BART,1,Non-Resource Tax / GDP (pp),tax_gdp_pp,283,112,3.137,2.188,1.639,83.4,92.6,NA,0.001,0.996
+"5-Fold Country-Blocked CV (All 112 Countries, +10y)",3. Single-Forest BART,2,Direct Income & Profit Tax / GDP (pp),inc_tax_gdp_pp,283,112,1.533,1.167,0.841,83.4,94.7,NA,-0.008,0.879
+"5-Fold Country-Blocked CV (All 112 Countries, +10y)",3. Single-Forest BART,3,Direct Income & Profit Share of Revenue (pp),inc_tax_share_pp,283,112,6.16,4.754,3.431,79.5,91.9,NA,0.022,0.918
+"5-Fold Country-Blocked CV (All 112 Countries, +10y)",3. Single-Forest BART,4,Goods & Services Tax Share of Revenue (pp),goods_tax_share_pp,283,112,6.531,4.542,3.423,81.6,92.9,NA,-0.003,0.991
+"5-Fold Country-Blocked CV (All 112 Countries, +10y)",4. Random Forest (ranger),1,Non-Resource Tax / GDP (pp),tax_gdp_pp,283,112,3.046,2.078,1.588,83.7,93.6,NA,-0.05,0.686
+"5-Fold Country-Blocked CV (All 112 Countries, +10y)",4. Random Forest (ranger),2,Direct Income & Profit Tax / GDP (pp),inc_tax_gdp_pp,283,112,1.507,1.141,0.827,81.3,93.6,NA,-0.022,0.669
+"5-Fold Country-Blocked CV (All 112 Countries, +10y)",4. Random Forest (ranger),3,Direct Income & Profit Share of Revenue (pp),inc_tax_share_pp,283,112,6.069,4.66,3.386,80.2,92.2,NA,-0.023,0.914
+"5-Fold Country-Blocked CV (All 112 Countries, +10y)",4. Random Forest (ranger),4,Goods & Services Tax Share of Revenue (pp),goods_tax_share_pp,283,112,6.893,4.684,3.581,82.7,91.5,NA,0.155,0.549
+"5-Fold Country-Blocked CV (All 112 Countries, +10y)",5. Ridge Regression (L2),1,Non-Resource Tax / GDP (pp),tax_gdp_pp,283,112,3.242,2.324,1.718,77.7,89.8,NA,0.08,0.523
+"5-Fold Country-Blocked CV (All 112 Countries, +10y)",5. Ridge Regression (L2),2,Direct Income & Profit Tax / GDP (pp),inc_tax_gdp_pp,283,112,1.613,1.249,0.894,77.7,91.2,NA,0.045,0.375
+"5-Fold Country-Blocked CV (All 112 Countries, +10y)",5. Ridge Regression (L2),3,Direct Income & Profit Share of Revenue (pp),inc_tax_share_pp,283,112,6.598,5.158,3.708,74.6,90.5,NA,0.299,0.161
+"5-Fold Country-Blocked CV (All 112 Countries, +10y)",5. Ridge Regression (L2),4,Goods & Services Tax Share of Revenue (pp),goods_tax_share_pp,283,112,7.173,5.072,3.768,74.6,89.8,NA,0.342,0.187
+"5-Fold Country-Blocked CV (All 112 Countries, +10y)",6. Linear Local Projections (OLS),1,Non-Resource Tax / GDP (pp),tax_gdp_pp,283,112,3.377,2.436,1.797,75.3,88.3,NA,0.159,0.203
+"5-Fold Country-Blocked CV (All 112 Countries, +10y)",6. Linear Local Projections (OLS),2,Direct Income & Profit Tax / GDP (pp),inc_tax_gdp_pp,283,112,1.662,1.293,0.927,75.3,89.4,NA,0.078,0.125
+"5-Fold Country-Blocked CV (All 112 Countries, +10y)",6. Linear Local Projections (OLS),3,Direct Income & Profit Share of Revenue (pp),inc_tax_share_pp,283,112,6.789,5.285,3.821,71.7,89.4,NA,0.412,0.053
+"5-Fold Country-Blocked CV (All 112 Countries, +10y)",6. Linear Local Projections (OLS),4,Goods & Services Tax Share of Revenue (pp),goods_tax_share_pp,283,112,7.607,5.412,4.016,71.4,89,NA,0.59,0.023
+"5-Fold Country-Blocked CV (All 112 Countries, +10y)",7. Historical Training Mean,1,Non-Resource Tax / GDP (pp),tax_gdp_pp,283,112,3.05,2.088,1.596,86.2,94,NA,-0.042,0.734
+"5-Fold Country-Blocked CV (All 112 Countries, +10y)",7. Historical Training Mean,2,Direct Income & Profit Tax / GDP (pp),inc_tax_gdp_pp,283,112,1.555,1.176,0.857,84.8,94.7,NA,0.008,0.872
+"5-Fold Country-Blocked CV (All 112 Countries, +10y)",7. Historical Training Mean,3,Direct Income & Profit Share of Revenue (pp),inc_tax_share_pp,283,112,6.456,5.05,3.632,79.5,92.9,NA,0.223,0.295
+"5-Fold Country-Blocked CV (All 112 Countries, +10y)",7. Historical Training Mean,4,Goods & Services Tax Share of Revenue (pp),goods_tax_share_pp,283,112,7.155,4.878,3.728,86.2,93.6,NA,0.302,0.243
+"5-Fold Country-Blocked CV (All 112 Countries, +10y)",8. Zero-Change Baseline (Delta Y = 0),1,Non-Resource Tax / GDP (pp),tax_gdp_pp,283,112,3.125,2.135,1.636,83.7,93.6,NA,-0.002,0.985
+"5-Fold Country-Blocked CV (All 112 Countries, +10y)",8. Zero-Change Baseline (Delta Y = 0),2,Direct Income & Profit Tax / GDP (pp),inc_tax_gdp_pp,283,112,1.647,1.271,0.914,76.7,93.6,NA,0.065,0.201
+"5-Fold Country-Blocked CV (All 112 Countries, +10y)",8. Zero-Change Baseline (Delta Y = 0),3,Direct Income & Profit Share of Revenue (pp),inc_tax_share_pp,283,112,6.759,5.343,3.806,79.2,93.3,NA,0.397,0.062
+"5-Fold Country-Blocked CV (All 112 Countries, +10y)",8. Zero-Change Baseline (Delta Y = 0),4,Goods & Services Tax Share of Revenue (pp),goods_tax_share_pp,283,112,7.199,4.84,3.748,85.9,94,NA,0.322,0.214
+"Locked 20% Holdout Test Countries (Fold 5, +10y)",1. MV-BCF Scaling A (Z_cont_10pp),1,Non-Resource Tax / GDP (pp),tax_gdp_pp,54,22,3.188,2.303,1.734,75.9,88.9,0.439,0,0.999
+"Locked 20% Holdout Test Countries (Fold 5, +10y)",1. MV-BCF Scaling A (Z_cont_10pp),2,Direct Income & Profit Tax / GDP (pp),inc_tax_gdp_pp,54,22,1.526,1.224,0.855,85.2,94.4,0.205,0,0.999
+"Locked 20% Holdout Test Countries (Fold 5, +10y)",1. MV-BCF Scaling A (Z_cont_10pp),3,Direct Income & Profit Share of Revenue (pp),inc_tax_share_pp,54,22,5.784,4.53,3.235,83.3,94.4,0.724,-0,0.999
+"Locked 20% Holdout Test Countries (Fold 5, +10y)",1. MV-BCF Scaling A (Z_cont_10pp),4,Goods & Services Tax Share of Revenue (pp),goods_tax_share_pp,54,22,5.479,4.262,3.075,83.3,96.3,-0.36,-0,0.999
+"Locked 20% Holdout Test Countries (Fold 5, +10y)",2. MV-BCF Scaling B (Z_cont_log25pct),1,Non-Resource Tax / GDP (pp),tax_gdp_pp,54,22,3.095,2.167,1.675,77.8,85.2,0.314,-0.059,0.844
+"Locked 20% Holdout Test Countries (Fold 5, +10y)",2. MV-BCF Scaling B (Z_cont_log25pct),2,Direct Income & Profit Tax / GDP (pp),inc_tax_gdp_pp,54,22,1.498,1.142,0.829,83.3,94.4,0.191,-0.026,0.84
+"Locked 20% Holdout Test Countries (Fold 5, +10y)",2. MV-BCF Scaling B (Z_cont_log25pct),3,Direct Income & Profit Share of Revenue (pp),inc_tax_share_pp,54,22,5.69,4.357,3.146,83.3,96.3,0.483,-0.089,0.823
+"Locked 20% Holdout Test Countries (Fold 5, +10y)",2. MV-BCF Scaling B (Z_cont_log25pct),4,Goods & Services Tax Share of Revenue (pp),goods_tax_share_pp,54,22,5.881,4.545,3.255,81.5,92.6,-0.491,0.18,0.579
+"Locked 20% Holdout Test Countries (Fold 5, +10y)",3. Single-Forest BART,1,Non-Resource Tax / GDP (pp),tax_gdp_pp,54,22,3.013,2.139,1.633,81.5,90.7,NA,-0.101,0.735
+"Locked 20% Holdout Test Countries (Fold 5, +10y)",3. Single-Forest BART,2,Direct Income & Profit Tax / GDP (pp),inc_tax_gdp_pp,54,22,1.474,1.174,0.826,83.3,94.4,NA,-0.029,0.822
+"Locked 20% Holdout Test Countries (Fold 5, +10y)",3. Single-Forest BART,3,Direct Income & Profit Share of Revenue (pp),inc_tax_share_pp,54,22,5.505,4.301,3.089,81.5,96.3,NA,-0.146,0.714
+"Locked 20% Holdout Test Countries (Fold 5, +10y)",3. Single-Forest BART,4,Goods & Services Tax Share of Revenue (pp),goods_tax_share_pp,54,22,5.323,4.147,2.996,87,96.3,NA,-0.079,0.807
+"Locked 20% Holdout Test Countries (Fold 5, +10y)",4. Random Forest (ranger),1,Non-Resource Tax / GDP (pp),tax_gdp_pp,54,22,2.93,2.045,1.599,81.5,92.6,NA,-0.135,0.651
+"Locked 20% Holdout Test Countries (Fold 5, +10y)",4. Random Forest (ranger),2,Direct Income & Profit Tax / GDP (pp),inc_tax_gdp_pp,54,22,1.447,1.142,0.811,79.6,94.4,NA,-0.044,0.732
+"Locked 20% Holdout Test Countries (Fold 5, +10y)",4. Random Forest (ranger),3,Direct Income & Profit Share of Revenue (pp),inc_tax_share_pp,54,22,5.742,4.435,3.212,85.2,96.3,NA,-0.023,0.953
+"Locked 20% Holdout Test Countries (Fold 5, +10y)",4. Random Forest (ranger),4,Goods & Services Tax Share of Revenue (pp),goods_tax_share_pp,54,22,5.141,3.937,2.941,88.9,96.3,NA,-0.134,0.679
+"Locked 20% Holdout Test Countries (Fold 5, +10y)",5. Ridge Regression (L2),1,Non-Resource Tax / GDP (pp),tax_gdp_pp,54,22,3.179,2.374,1.772,72.2,85.2,NA,0.038,0.898
+"Locked 20% Holdout Test Countries (Fold 5, +10y)",5. Ridge Regression (L2),2,Direct Income & Profit Tax / GDP (pp),inc_tax_gdp_pp,54,22,1.62,1.227,0.891,75.9,88.9,NA,0.036,0.778
+"Locked 20% Holdout Test Countries (Fold 5, +10y)",5. Ridge Regression (L2),3,Direct Income & Profit Share of Revenue (pp),inc_tax_share_pp,54,22,5.563,4.42,3.136,81.5,98.1,NA,-0.099,0.804
+"Locked 20% Holdout Test Countries (Fold 5, +10y)",5. Ridge Regression (L2),4,Goods & Services Tax Share of Revenue (pp),goods_tax_share_pp,54,22,5.361,4.311,3.038,83.3,96.3,NA,-0.037,0.908
+"Locked 20% Holdout Test Countries (Fold 5, +10y)",6. Linear Local Projections (OLS),1,Non-Resource Tax / GDP (pp),tax_gdp_pp,54,22,3.335,2.504,1.857,70.4,87,NA,0.123,0.679
+"Locked 20% Holdout Test Countries (Fold 5, +10y)",6. Linear Local Projections (OLS),2,Direct Income & Profit Tax / GDP (pp),inc_tax_gdp_pp,54,22,1.672,1.251,0.918,75.9,87,NA,0.063,0.622
+"Locked 20% Holdout Test Countries (Fold 5, +10y)",6. Linear Local Projections (OLS),3,Direct Income & Profit Share of Revenue (pp),inc_tax_share_pp,54,22,5.642,4.484,3.183,79.6,96.3,NA,-0.052,0.896
+"Locked 20% Holdout Test Countries (Fold 5, +10y)",6. Linear Local Projections (OLS),4,Goods & Services Tax Share of Revenue (pp),goods_tax_share_pp,54,22,5.403,4.381,3.064,79.6,96.3,NA,-0.011,0.972
+"Locked 20% Holdout Test Countries (Fold 5, +10y)",7. Historical Training Mean,1,Non-Resource Tax / GDP (pp),tax_gdp_pp,54,22,2.75,2.024,1.528,81.5,94.4,NA,-0.206,0.489
+"Locked 20% Holdout Test Countries (Fold 5, +10y)",7. Historical Training Mean,2,Direct Income & Profit Tax / GDP (pp),inc_tax_gdp_pp,54,22,1.422,1.156,0.811,88.9,98.1,NA,-0.044,0.732
+"Locked 20% Holdout Test Countries (Fold 5, +10y)",7. Historical Training Mean,3,Direct Income & Profit Share of Revenue (pp),inc_tax_share_pp,54,22,6.22,4.878,3.503,83.3,94.4,NA,0.268,0.503
+"Locked 20% Holdout Test Countries (Fold 5, +10y)",7. Historical Training Mean,4,Goods & Services Tax Share of Revenue (pp),goods_tax_share_pp,54,22,5.54,4.246,3.174,88.9,98.1,NA,0.099,0.761
+"Locked 20% Holdout Test Countries (Fold 5, +10y)",8. Zero-Change Baseline (Delta Y = 0),1,Non-Resource Tax / GDP (pp),tax_gdp_pp,54,22,2.865,2.101,1.587,83.3,94.4,NA,-0.147,0.622
+"Locked 20% Holdout Test Countries (Fold 5, +10y)",8. Zero-Change Baseline (Delta Y = 0),2,Direct Income & Profit Tax / GDP (pp),inc_tax_gdp_pp,54,22,1.528,1.25,0.877,75.9,98.1,NA,0.022,0.863
+"Locked 20% Holdout Test Countries (Fold 5, +10y)",8. Zero-Change Baseline (Delta Y = 0),3,Direct Income & Profit Share of Revenue (pp),inc_tax_share_pp,54,22,6.309,5.031,3.552,87,92.6,NA,0.317,0.428
+"Locked 20% Holdout Test Countries (Fold 5, +10y)",8. Zero-Change Baseline (Delta Y = 0),4,Goods & Services Tax Share of Revenue (pp),goods_tax_share_pp,54,22,5.678,4.211,3.239,85.2,100,NA,0.164,0.613
+"Locked 20% Holdout Test Countries (Fold 5, +5y)",1. MV-BCF Scaling A (Z_cont_10pp),1,Non-Resource Tax / GDP (pp),tax_gdp_pp,70,23,2.191,1.599,1.203,74.3,90,0.034,-0,1
+"Locked 20% Holdout Test Countries (Fold 5, +5y)",1. MV-BCF Scaling A (Z_cont_10pp),2,Direct Income & Profit Tax / GDP (pp),inc_tax_gdp_pp,70,23,1.039,0.809,0.575,82.9,95.7,0.093,-0,0.993
+"Locked 20% Holdout Test Countries (Fold 5, +5y)",1. MV-BCF Scaling A (Z_cont_10pp),3,Direct Income & Profit Share of Revenue (pp),inc_tax_share_pp,70,23,4.847,3.483,2.607,80,92.9,0.578,0,0.999
+"Locked 20% Holdout Test Countries (Fold 5, +5y)",1. MV-BCF Scaling A (Z_cont_10pp),4,Goods & Services Tax Share of Revenue (pp),goods_tax_share_pp,70,23,4.091,3.28,2.329,87.1,98.6,-0.065,-0,0.999
+"Locked 20% Holdout Test Countries (Fold 5, +5y)",2. MV-BCF Scaling B (Z_cont_log25pct),1,Non-Resource Tax / GDP (pp),tax_gdp_pp,70,23,2.247,1.625,1.229,74.3,91.4,0.066,0.026,0.862
+"Locked 20% Holdout Test Countries (Fold 5, +5y)",2. MV-BCF Scaling B (Z_cont_log25pct),2,Direct Income & Profit Tax / GDP (pp),inc_tax_gdp_pp,70,23,1.014,0.784,0.563,82.9,97.1,0.103,-0.012,0.833
+"Locked 20% Holdout Test Countries (Fold 5, +5y)",2. MV-BCF Scaling B (Z_cont_log25pct),3,Direct Income & Profit Share of Revenue (pp),inc_tax_share_pp,70,23,5.078,3.673,2.721,78.6,92.9,0.457,0.114,0.704
+"Locked 20% Holdout Test Countries (Fold 5, +5y)",2. MV-BCF Scaling B (Z_cont_log25pct),4,Goods & Services Tax Share of Revenue (pp),goods_tax_share_pp,70,23,4.001,3.12,2.272,87.1,98.6,-0.134,-0.057,0.796
+"Locked 20% Holdout Test Countries (Fold 5, +5y)",3. Single-Forest BART,1,Non-Resource Tax / GDP (pp),tax_gdp_pp,70,23,2.181,1.599,1.208,75.7,92.9,NA,0.005,0.974
+"Locked 20% Holdout Test Countries (Fold 5, +5y)",3. Single-Forest BART,2,Direct Income & Profit Tax / GDP (pp),inc_tax_gdp_pp,70,23,0.994,0.777,0.553,84.3,97.1,NA,-0.022,0.704
+"Locked 20% Holdout Test Countries (Fold 5, +5y)",3. Single-Forest BART,3,Direct Income & Profit Share of Revenue (pp),inc_tax_share_pp,70,23,4.827,3.443,2.572,82.9,92.9,NA,-0.035,0.908
+"Locked 20% Holdout Test Countries (Fold 5, +5y)",3. Single-Forest BART,4,Goods & Services Tax Share of Revenue (pp),goods_tax_share_pp,70,23,3.974,3.069,2.258,88.6,98.6,NA,-0.071,0.747
+"Locked 20% Holdout Test Countries (Fold 5, +5y)",4. Random Forest (ranger),1,Non-Resource Tax / GDP (pp),tax_gdp_pp,70,23,2.241,1.635,1.241,74.3,95.7,NA,0.038,0.8
+"Locked 20% Holdout Test Countries (Fold 5, +5y)",4. Random Forest (ranger),2,Direct Income & Profit Tax / GDP (pp),inc_tax_gdp_pp,70,23,1.015,0.801,0.566,85.7,95.7,NA,-0.009,0.873
+"Locked 20% Holdout Test Countries (Fold 5, +5y)",4. Random Forest (ranger),3,Direct Income & Profit Share of Revenue (pp),inc_tax_share_pp,70,23,4.882,3.571,2.636,82.9,91.4,NA,0.029,0.922
+"Locked 20% Holdout Test Countries (Fold 5, +5y)",4. Random Forest (ranger),4,Goods & Services Tax Share of Revenue (pp),goods_tax_share_pp,70,23,3.962,3.065,2.276,90,100,NA,-0.053,0.81
+"Locked 20% Holdout Test Countries (Fold 5, +5y)",5. Ridge Regression (L2),1,Non-Resource Tax / GDP (pp),tax_gdp_pp,70,23,2.246,1.654,1.247,71.4,88.6,NA,0.044,0.769
+"Locked 20% Holdout Test Countries (Fold 5, +5y)",5. Ridge Regression (L2),2,Direct Income & Profit Tax / GDP (pp),inc_tax_gdp_pp,70,23,1.066,0.838,0.595,82.9,94.3,NA,0.02,0.742
+"Locked 20% Holdout Test Countries (Fold 5, +5y)",5. Ridge Regression (L2),3,Direct Income & Profit Share of Revenue (pp),inc_tax_share_pp,70,23,4.837,3.466,2.591,78.6,91.4,NA,-0.016,0.959
+"Locked 20% Holdout Test Countries (Fold 5, +5y)",5. Ridge Regression (L2),4,Goods & Services Tax Share of Revenue (pp),goods_tax_share_pp,70,23,3.942,3.036,2.228,85.7,97.1,NA,-0.101,0.647
+"Locked 20% Holdout Test Countries (Fold 5, +5y)",6. Linear Local Projections (OLS),1,Non-Resource Tax / GDP (pp),tax_gdp_pp,70,23,2.275,1.683,1.264,71.4,87.1,NA,0.061,0.684
+"Locked 20% Holdout Test Countries (Fold 5, +5y)",6. Linear Local Projections (OLS),2,Direct Income & Profit Tax / GDP (pp),inc_tax_gdp_pp,70,23,1.072,0.841,0.598,82.9,94.3,NA,0.023,0.704
+"Locked 20% Holdout Test Countries (Fold 5, +5y)",6. Linear Local Projections (OLS),3,Direct Income & Profit Share of Revenue (pp),inc_tax_share_pp,70,23,4.863,3.5,2.603,81.4,92.9,NA,-0.004,0.99
+"Locked 20% Holdout Test Countries (Fold 5, +5y)",6. Linear Local Projections (OLS),4,Goods & Services Tax Share of Revenue (pp),goods_tax_share_pp,70,23,3.956,3.061,2.235,85.7,97.1,NA,-0.094,0.67
+"Locked 20% Holdout Test Countries (Fold 5, +5y)",7. Historical Training Mean,1,Non-Resource Tax / GDP (pp),tax_gdp_pp,70,23,2.126,1.546,1.183,74.3,94.3,NA,-0.02,0.893
+"Locked 20% Holdout Test Countries (Fold 5, +5y)",7. Historical Training Mean,2,Direct Income & Profit Tax / GDP (pp),inc_tax_gdp_pp,70,23,1.016,0.781,0.566,84.3,97.1,NA,-0.009,0.873
+"Locked 20% Holdout Test Countries (Fold 5, +5y)",7. Historical Training Mean,3,Direct Income & Profit Share of Revenue (pp),inc_tax_share_pp,70,23,5.135,3.723,2.777,78.6,94.3,NA,0.17,0.571
+"Locked 20% Holdout Test Countries (Fold 5, +5y)",7. Historical Training Mean,4,Goods & Services Tax Share of Revenue (pp),goods_tax_share_pp,70,23,4.064,3.144,2.334,88.6,98.6,NA,0.005,0.983
+"Locked 20% Holdout Test Countries (Fold 5, +5y)",8. Zero-Change Baseline (Delta Y = 0),1,Non-Resource Tax / GDP (pp),tax_gdp_pp,70,23,2.176,1.614,1.214,74.3,94.3,NA,0.011,0.942
+"Locked 20% Holdout Test Countries (Fold 5, +5y)",8. Zero-Change Baseline (Delta Y = 0),2,Direct Income & Profit Tax / GDP (pp),inc_tax_gdp_pp,70,23,1.087,0.849,0.609,84.3,95.7,NA,0.034,0.571
+"Locked 20% Holdout Test Countries (Fold 5, +5y)",8. Zero-Change Baseline (Delta Y = 0),3,Direct Income & Profit Share of Revenue (pp),inc_tax_share_pp,70,23,5.236,3.888,2.831,80,94.3,NA,0.224,0.455
+"Locked 20% Holdout Test Countries (Fold 5, +5y)",8. Zero-Change Baseline (Delta Y = 0),4,Goods & Services Tax Share of Revenue (pp),goods_tax_share_pp,70,23,4.079,3.09,2.339,90,100,NA,0.01,0.965

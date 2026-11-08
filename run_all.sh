@@ -5,11 +5,11 @@
 # Rebuilds the entire project from raw data verification to the compiled PDF
 # manuscript and house-style verification with zero manual steps:
 #   1. Step 01: Verify raw data & SHA-256 checksums (src/r/01_download_tax_education_data.R)
-#   2. Step 02: Build clean 5-year & 10-year panels (src/r/02_build_clean_tax_panel.R)
-#   3. Step 03: Generate EDA tables & figures (src/r/03_eda_and_summary_tables.R)
-#   4. Step 04: Fit Multivariate BCF models, benchmarks & robustness suite (src/r/04_run_mvbcf_tax_models.R)
-#   5. Step 05: Fit 3-Wave Longitudinal BCF trajectory models (src/r/05_run_longitudinal_bcf_tax.R)
-#   6. Step 06: Generate publication figures & MCMC/PPC diagnostics (src/r/06_generate_figures_and_diagnostics.R)
+#   2. Step 02: Build clean 5-year & 10-year panels and country-blocked folds (src/r/02_build_clean_tax_panel.R)
+#   3. Step 03: Generate training-set EDA tables, figures & report (src/r/03_eda_and_summary_tables.R)
+#   4. Step 04: Fit Continuous Multivariate BCF models, CV, holdout & benchmarks (src/r/04_run_mvbcf_tax_models.R)
+#   5. Step 05: Generate publication figures, residual & holdout diagnostics (src/r/06_generate_figures_and_diagnostics.R)
+#   6. Step 06: Export interactive policy app data payload (app/prepare_app_data.R)
 #   7. Step 07: Run automated data & numerical consistency tests (tests/test_pipeline.R)
 #   8. Step 08: Compile LaTeX manuscript (paper/paper.tex -> paper/paper.pdf)
 #   9. Step 09: Run automated house-style linter (scripts/check_style.py)
@@ -33,15 +33,20 @@ Rscript src/r/02_build_clean_tax_panel.R
 
 echo "[3/9] Running Step 03: Generating EDA summary tables & diagnostic figures..."
 Rscript src/r/03_eda_and_summary_tables.R
+if command -v quarto >/dev/null 2>&1; then
+  quarto render eda/eda_report.qmd >/dev/null 2>&1 || true
+elif [ -x "/Applications/RStudio.app/Contents/Resources/app/quarto/bin/quarto" ]; then
+  /Applications/RStudio.app/Contents/Resources/app/quarto/bin/quarto render eda/eda_report.qmd >/dev/null 2>&1 || true
+fi
 
-echo "[4/9] Running Step 04: Fitting Multivariate BCF (mvbcf), benchmarks & robustness checks..."
+echo "[4/9] Running Step 04: Fitting Continuous Multivariate BCF (mvbcf), CV, holdout & benchmarks..."
 Rscript src/r/04_run_mvbcf_tax_models.R
 
-echo "[5/9] Running Step 05: Fitting 3-Wave Longitudinal BCF (lbcf_3wave) trajectories..."
-Rscript src/r/05_run_longitudinal_bcf_tax.R
-
-echo "[6/9] Running Step 06: Generating publication figures & MCMC/PPC diagnostics..."
+echo "[5/9] Running Step 05: Generating publication figures, residual & holdout diagnostics..."
 Rscript src/r/06_generate_figures_and_diagnostics.R
+
+echo "[6/9] Running Step 06: Exporting interactive policy app data payload..."
+Rscript app/prepare_app_data.R
 
 echo "[7/9] Running Step 07: Executing automated pipeline & number-matching tests..."
 Rscript tests/test_pipeline.R

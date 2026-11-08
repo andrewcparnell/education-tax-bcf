@@ -9,6 +9,7 @@ Checks prose files (.tex, .md, .qmd, .txt, .Rmd) against the project house style
   3. American spellings   : a curated list, plus a general -ize/-yze sweep
   4. AI cliches           : stock filler phrases
   5. Minor nits           : double spaces, "very unique", straight quotes in LaTeX
+  6. Paragraph length     : manuscript paragraphs must have 3 to 8 sentences
 
 Markdown fenced code blocks, inline code spans, LaTeX verbatim/lstlisting
 environments and LaTeX comments are skipped, so code samples are not flagged.
@@ -381,7 +382,373 @@ def suppressed_lines(lines: list[str]) -> set[int]:
     return skipped
 
 
-def check_file(path: Path, data_plural: str = "off") -> list[Issue]:
+# --------------------------------------------------------------------------
+# Paragraph sentence-count checking
+# --------------------------------------------------------------------------
+
+NON_MANUSCRIPT_NAMES = {
+    "readme.md", "progress.md", "provenance.md", "skill.md",
+    "workflow.md", "cover_letter.md", "novelty_statement.md",
+}
+
+NON_MANUSCRIPT_DIRS = {"reviews", "literature", "eda", "references"}
+
+ABBREV_RE = re.compile(
+    r"\b(?:e\.g|i\.e|et al|vs|cf|viz|al|ca|approx|resp|eq|eqs|fig|figs|sec|secs|"
+    r"ch|no|nos|vol|vols|pp|p|dr|prof|mr|mrs|ms|st|jr|sr|inc|ltd|co)\.",
+    re.IGNORECASE,
+)
+
+EQ_END_PERIOD_RE = re.compile(
+    r"\.\s*(?:\\(?:label|tag)\{[^}]*\}\s*)*(?:\$\$|\\end\{[^}]+\})?\s*$"
+)
+
+
+def _strip_nested_command(text: str, cmd: str) -> str:
+    """Remove \\cmd{...} handling nested braces."""
+    pattern = re.compile(rf"\\{cmd}\s*\{{")
+    while True:
+        m = pattern.search(text)
+        if not m:
+            break
+        start = m.start()
+        idx = m.end()
+        depth = 1
+        while idx < len(text) and depth > 0:
+            if text[idx] == "{" and (idx == 0 or text[idx - 1] != "\\"):
+                depth += 1
+            elif text[idx] == "}" and (idx == 0 or text[idx - 1] != "\\"):
+                depth -= 1
+            idx += 1
+        text = text[:start] + text[idx:]
+    return text
+
+
+def count_sentences(paragraph: str) -> int:
+    """Count sentences in a prose paragraph (LaTeX or Markdown)."""
+    text = paragraph.strip()
+    if not text:
+        return 0
+    for cmd in ("footnote", "footnotetext"):
+        text = _strip_nested_command(text, cmd)
+    text = re.sub(
+        r"\$\$[^$]+\$\$",
+        lambda m: " . " if EQ_END_PERIOD_RE.search(m.group(0)) else " ",
+        text,
+    )
+    text = re.sub(r"\$[^$]+\$", " MATH ", text)
+    text = re.sub(r"https?://[^\s)]+", "URL", text)
+    text = ABBREV_RE.sub("ABBR", text)
+    text = re.sub(r"\b[A-Z]\.(?=\s+[A-Z])", "INIT", text)
+    text = re.sub(r"(?<=\d)\.(?=\d)", "DEC", text)
+    text = re.sub(r"\.{2,}", " ", text)
+    ends = re.findall(r"[.!?][\"\x27\)\]\}\*]*(?:\s+|$)", text)
+    return len(ends)
+
+
+def _merge_prose_blocks(raw_blocks: list[tuple[int, int, str, str]]) -> list[tuple[int, int, str]]:
+    """Merge prose blocks bridged by display equations and skip list lead-ins."""
+    merged: list[tuple[int, int, str]] = []
+    idx = 0
+    while idx < len(raw_blocks):
+        start_ln, end_ln, kind, txt = raw_blocks[idx]
+        if kind != "prose":
+            idx += 1
+            continue
+        while idx + 1 < len(raw_blocks) and raw_blocks[idx + 1][2] == "eq":
+            eq_dots: list[str] = []
+            j = idx + 1
+            while j < len(raw_blocks) and raw_blocks[j][2] == "eq":
+                if raw_blocks[j][3]:
+                    eq_dots.append(raw_blocks[j][3])
+                end_ln = raw_blocks[j][1]
+                j += 1
+            if eq_dots:
+                txt = txt + " " + " ".join(eq_dots)
+            if j < len(raw_blocks) and raw_blocks[j][2] == "prose":
+                txt = txt + " " + raw_blocks[j][3]
+                end_ln = raw_blocks[j][1]
+                idx = j
+            else:
+                idx = j - 1
+                break
+        if txt.rstrip().endswith(":") and idx + 1 < len(raw_blocks) and raw_blocks[idx + 1][2] == "list":
+            idx += 1
+            continue
+        if count_sentences(txt) == 0:
+            idx += 1
+            continue
+        merged.append((start_ln, end_ln, txt))
+        idx += 1
+    return merged
+
+
+def extract_tex_paragraphs(lines: list[str]) -> list[tuple[int, int, str]]:
+    """Extract (start_line, end_line, text) for prose paragraphs in a .tex file."""
+    has_begin_doc = any("\\begin{document}" in l for l in lines)
+    in_doc = not has_begin_doc
+    in_declarations = False
+    skip_envs = {
+        "figure", "figure*", "table", "table*", "tabular", "tabularx", "longtable",
+        "threeparttable", "tablenotes", "itemize", "enumerate", "description",
+        "thebibliography", "verbatim", "lstlisting", "minted", "tikzpicture",
+        "titlepage", "author",
+    }
+    eq_envs = {
+        "equation", "equation*", "align", "align*", "gather", "gather*",
+        "multline", "multline*", "eqnarray", "eqnarray*",
+    }
+    in_skip = 0
+    in_eq = 0
+    raw_blocks: list[tuple[int, int, str, str]] = []
+    curr_lines: list[str] = []
+    curr_start = 1
+    curr_end = 1
+
+    def flush_prose() -> None:
+        nonlocal curr_lines
+        if curr_lines:
+            raw_blocks.append((curr_start, curr_end, "prose", " ".join(curr_lines)))
+            curr_lines = []
+
+    for i, raw in enumerate(lines, 1):
+        line = re.sub(r"(?<!\\)%.*", "", raw).strip()
+        if "\\begin{document}" in line:
+            in_doc = True
+            continue
+        if "\\end{document}" in line:
+            flush_prose()
+            break
+        if not in_doc:
+            continue
+        if re.match(
+            r"^\\section\*?\{.*(?:Declarations|Statements|Acknowledgements|Acknowledgments|"
+            r"Author Contributions|Data Availability|Code Availability)",
+            line,
+            re.IGNORECASE,
+        ):
+            flush_prose()
+            in_declarations = True
+            continue
+        if re.match(r"^\\(?:section|appendix)\b", line):
+            in_declarations = False
+        if in_declarations:
+            continue
+
+        entered_skip = False
+        for env in skip_envs:
+            if re.search(rf"\\begin\{{{re.escape(env)}\}}", line):
+                flush_prose()
+                kind = "list" if env in {"itemize", "enumerate", "description"} else "other"
+                raw_blocks.append((i, i, kind, ""))
+                in_skip += 1
+                entered_skip = True
+            if re.search(rf"\\end\{{{re.escape(env)}\}}", line):
+                in_skip = max(0, in_skip - 1)
+        if in_skip > 0 or entered_skip or any(re.search(rf"\\end\{{{re.escape(env)}\}}", line) for env in skip_envs):
+            continue
+
+        for env in eq_envs:
+            if re.search(rf"\\begin\{{{re.escape(env)}\}}", line):
+                flush_prose()
+                in_eq += 1
+        if in_eq > 0:
+            raw_blocks.append((i, i, "eq", "." if EQ_END_PERIOD_RE.search(line) else ""))
+            for env in eq_envs:
+                if re.search(rf"\\end\{{{re.escape(env)}\}}", line):
+                    in_eq = max(0, in_eq - 1)
+            continue
+
+        if not line:
+            flush_prose()
+            continue
+
+        if (
+            re.match(
+                r"^\\(?:maketitle|section|subsection|subsubsection|paragraph|subparagraph|"
+                r"FloatBarrier|clearpage|newpage|pagebreak|appendix|bibliographystyle|"
+                r"bibliography|vspace|hspace)\b",
+                line,
+            )
+            or re.match(r"^\\(?:begin|end)\{abstract\}", line)
+            or re.match(r"^(?:\\noindent\s*)?\\textbf\{Keywords:?\}", line)
+        ):
+            flush_prose()
+            raw_blocks.append((i, i, "other", ""))
+            continue
+        if re.match(r"^\\label\{[^}]*\}$", line):
+            continue
+
+        if not curr_lines:
+            curr_start = i
+        curr_end = i
+        curr_lines.append(line)
+
+    flush_prose()
+    return _merge_prose_blocks(raw_blocks)
+
+
+def extract_md_paragraphs(lines: list[str]) -> list[tuple[int, int, str]]:
+    """Extract (start_line, end_line, text) for prose paragraphs in Markdown/Quarto."""
+    in_fence = False
+    in_yaml = False
+    in_math = False
+    in_declarations = False
+    raw_blocks: list[tuple[int, int, str, str]] = []
+    curr_lines: list[str] = []
+    curr_start = 1
+    curr_end = 1
+
+    def flush_prose() -> None:
+        nonlocal curr_lines
+        if curr_lines:
+            raw_blocks.append((curr_start, curr_end, "prose", " ".join(curr_lines)))
+            curr_lines = []
+
+    for i, raw in enumerate(lines, 1):
+        s = raw.strip()
+        if i == 1 and s == "---":
+            in_yaml = True
+            continue
+        if in_yaml:
+            if s in {"---", "..."}:
+                in_yaml = False
+            continue
+        if re.match(r"^(```|~~~)", s):
+            flush_prose()
+            in_fence = not in_fence
+            raw_blocks.append((i, i, "other", ""))
+            continue
+        if in_fence:
+            continue
+
+        if s.startswith("$$") and (s == "$$" or not s.endswith("$$")):
+            flush_prose()
+            in_math = not in_math
+            raw_blocks.append((i, i, "eq", "." if EQ_END_PERIOD_RE.search(s) else ""))
+            continue
+        if in_math:
+            if EQ_END_PERIOD_RE.search(s):
+                raw_blocks.append((i, i, "eq", "."))
+            if s.endswith("$$"):
+                in_math = False
+            continue
+        if s.startswith("$$") and s.endswith("$$") and len(s) >= 4:
+            flush_prose()
+            raw_blocks.append((i, i, "eq", "." if EQ_END_PERIOD_RE.search(s) else ""))
+            continue
+
+        if s.startswith("#"):
+            flush_prose()
+            if re.search(
+                r"(?:Declarations|Statements|Acknowledgements|Acknowledgments|"
+                r"Author Contributions|Data Availability|Code Availability|References|Bibliography)",
+                s,
+                re.IGNORECASE,
+            ):
+                in_declarations = True
+            elif re.match(r"^#+\s+(?:\d+\.?|Appendix)\b", s, re.IGNORECASE):
+                in_declarations = False
+            raw_blocks.append((i, i, "other", ""))
+            continue
+        if in_declarations:
+            continue
+
+        if not s:
+            flush_prose()
+            continue
+
+        if re.match(r"^(?:[-*+]|\d+[.)])\s+", s):
+            flush_prose()
+            raw_blocks.append((i, i, "list", ""))
+            continue
+
+        if (
+            s.startswith(("|", "![", "<!--", ">", ": "))
+            or re.match(r"^(?:---|___|\*\*\*)\s*$", s)
+            or re.match(r"^\*(?:Table|Figure)\s+\d+", s, re.IGNORECASE)
+            or re.match(
+                r"^\*\*(?:Keywords|Author Contributions|Data Availability|Code Availability|"
+                r"Funding|Conflict of Interest|Ethics|Acknowledgements|Note|Source)[:.]?\*\*",
+                s,
+                re.IGNORECASE,
+            )
+        ):
+            flush_prose()
+            raw_blocks.append((i, i, "other", ""))
+            continue
+
+        if not curr_lines:
+            curr_start = i
+        curr_end = i
+        curr_lines.append(s)
+
+    flush_prose()
+    return _merge_prose_blocks(raw_blocks)
+
+
+def should_check_paragraphs(path: Path) -> bool:
+    """Return True if `path` is a manuscript file subject to the paragraph-length rule."""
+    if path.name.lower() in NON_MANUSCRIPT_NAMES:
+        return False
+    if any(part.lower() in NON_MANUSCRIPT_DIRS for part in path.parts):
+        return False
+    return True
+
+
+def check_paragraphs(
+    path: Path,
+    lines: list[str],
+    skipped: set[int],
+    min_sentences: int = 3,
+    max_sentences: int = 8,
+) -> list[Issue]:
+    if (min_sentences <= 0 and max_sentences <= 0) or not should_check_paragraphs(path):
+        return []
+    suffix = path.suffix.lower()
+    if suffix == ".tex":
+        paras = extract_tex_paragraphs(lines)
+    else:
+        paras = extract_md_paragraphs(lines)
+
+    issues: list[Issue] = []
+    for start_ln, end_ln, text in paras:
+        if any(ln in skipped for ln in range(start_ln, end_ln + 1)):
+            continue
+        n_sents = count_sentences(text)
+        if min_sentences > 0 and n_sents < min_sentences:
+            issues.append(
+                Issue(
+                    path=path,
+                    line_no=start_ln,
+                    col=1,
+                    rule="short-paragraph",
+                    severity="error",
+                    snippet=text.strip()[:110],
+                    message=f"Paragraph has {n_sents} sentence(s); minimum is {min_sentences}.",
+                )
+            )
+        elif max_sentences > 0 and n_sents > max_sentences:
+            issues.append(
+                Issue(
+                    path=path,
+                    line_no=start_ln,
+                    col=1,
+                    rule="long-paragraph",
+                    severity="error",
+                    snippet=text.strip()[:110],
+                    message=f"Paragraph has {n_sents} sentences; maximum is {max_sentences}.",
+                )
+            )
+    return issues
+
+
+def check_file(
+    path: Path,
+    data_plural: str = "off",
+    min_sentences: int = 3,
+    max_sentences: int = 8,
+) -> list[Issue]:
     suffix = path.suffix.lower()
     try:
         text = path.read_text(encoding="utf-8")
@@ -434,6 +801,7 @@ def check_file(path: Path, data_plural: str = "off") -> list[Issue]:
                 )
             )
 
+    issues.extend(check_paragraphs(path, lines, skipped, min_sentences, max_sentences))
     return issues
 
 
@@ -467,6 +835,10 @@ def main() -> int:
     ap.add_argument("--data-plural", choices=["off", "warn", "error"], default="off",
                     help="flag 'data is/was'. Journals differ, so follow the landmark "
                          "paper chosen in Phase 5 (default: off)")
+    ap.add_argument("--min-sentences", type=int, default=3,
+                    help="minimum number of sentences per manuscript paragraph (default: 3; 0 to disable)")
+    ap.add_argument("--max-sentences", type=int, default=8,
+                    help="maximum number of sentences per manuscript paragraph (default: 8; 0 to disable)")
     args = ap.parse_args()
 
     files = gather_files(args.targets, args.all)
@@ -476,7 +848,7 @@ def main() -> int:
 
     all_issues: list[Issue] = []
     for f in files:
-        all_issues.extend(check_file(f, args.data_plural))
+        all_issues.extend(check_file(f, args.data_plural, args.min_sentences, args.max_sentences))
 
     errors = [i for i in all_issues if i.severity == "error"]
     warnings = [i for i in all_issues if i.severity == "warning"]

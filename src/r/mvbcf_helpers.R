@@ -55,8 +55,8 @@ run_mvbcf <- function(X_con,
               is.matrix(X_con) & is.numeric(X_con))
   stopifnot("y is not a numeric matrix" =
               is.matrix(y) & is.numeric(y))
-  stopifnot("Z is not a numeric vector of 1s and 0s" =
-              is.numeric(Z) & (sum(Z == 0) + sum(Z == 1) == length(Z)))
+  stopifnot("Z must be a finite numeric vector (continuous or binary)" =
+              is.numeric(Z) & all(is.finite(Z)))
   stopifnot("X_mod is not a numeric matrix" =
               is.matrix(X_mod) & is.numeric(X_mod))
   stopifnot("X_con_test is not a numeric matrix" =
