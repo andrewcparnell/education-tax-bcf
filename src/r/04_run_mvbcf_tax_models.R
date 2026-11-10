@@ -1297,6 +1297,9 @@ rob_train_only_10y <- fit_mvbcf_spec(df_train_only, y10_cols, "Z_cont_10pp", ext
 # R14: Legacy Binary Income-Group Regime Benchmark (Z_regime_inc in {0, 1})
 rob_binary_10y <- fit_mvbcf_spec(df, y10_cols, "Z_regime_inc", extra_con = mediators_10y)
 
+# R15: Identical Covariates in Baseline and Treatment Forests (W = X, all 19 baseline variables)
+rob_same_xw_10y <- fit_mvbcf_spec(df, y10_cols, "Z_cont_10pp", extra_con = mediators_10y, mod_cols = base_con_vars)
+
 table4_robustness <- bind_rows(
   summarise_fit(rob_pure_wdi,       "R1_Pure_WDI_Tax_10y",      "Pure Unadjusted WDI Tax/GDP (+10y)",                    "+10 years (t+2)"),
   summarise_fit(rob_nonoverlap,     "R2_NonOverlap_10y",        "Non-Overlapping Decadal Waves (+10y)",                  "+10 years (t+2)"),
@@ -1312,7 +1315,8 @@ table4_robustness <- bind_rows(
   summarise_fit(rob_noncomp_10y,    "R11_NonComp_GoodsGDP_10y", "Non-Compositional Negative Control: Goods Tax/GDP (+10y)", "+10 years (t+2)"),
   summarise_fit(rob_precovid_10y,   "R12_PreCOVID_Sample_10y",  "Pre-COVID Sample Excluding 2020-2024 Outcome Wave (+10y)", "+10 years (t+2)"),
   summarise_fit(rob_train_only_10y, "R13_TrainingSet_Only_10y", "Strictly 80% Training Countries Only (Folds 1-4, +10y)","+10 years (t+2)"),
-  summarise_fit(rob_binary_10y,     "R14_Binary_Regime_10y",    "Legacy Binary Median-Cutoff Benchmark (Z in {0,1}, +10y)", "+10 years (t+2)")
+  summarise_fit(rob_binary_10y,     "R14_Binary_Regime_10y",    "Legacy Binary Median-Cutoff Benchmark (Z in {0,1}, +10y)", "+10 years (t+2)"),
+  summarise_fit(rob_same_xw_10y,    "R15_Same_X_and_W_10y",     "Identical Covariates in Baseline and Treatment Forests (W = X, +10y)", "+10 years (t+2)")
 )
 
 save_both_tabs(table4_robustness, "table4_robustness_checks.csv")

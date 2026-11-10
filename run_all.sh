@@ -59,6 +59,8 @@ if command -v pdflatex >/dev/null 2>&1; then
     bibtex paper >/dev/null
     pdflatex -interaction=nonstopmode paper.tex >/dev/null
     pdflatex -interaction=nonstopmode paper.tex >/dev/null
+    pdflatex -interaction=nonstopmode paper.tex >/dev/null
+    rm -f paper.aux paper.bbl paper.blg paper.log paper.out
   )
   echo "      Compiled paper/paper.pdf successfully."
 else

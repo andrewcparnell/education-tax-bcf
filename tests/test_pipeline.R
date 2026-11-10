@@ -120,16 +120,24 @@ for (m_id in c("M1b_Total_10pp_10y", "M2a_Direct_10pp_5y", "M2b_Direct_10pp_10y"
 }
 
 tab4 <- read_csv(file.path(repo_root, "outputs", "tables", "table4_robustness_checks.csv"), show_col_types = FALSE)
-for (r_id in c("R13_TrainingSet_Only_10y", "R14_Binary_Regime_10y")) {
+for (r_id in c("R13_TrainingSet_Only_10y", "R14_Binary_Regime_10y", "R15_Same_X_and_W_10y")) {
   sub_r <- tab4 %>% filter(model_id == r_id, outcome_index %in% c(1, 2, 3))
   for (val in sprintf("%+.2f", round(sub_r$ate_mean + sign(sub_r$ate_mean) * 1e-9, 2))) {
     stopifnot("Missing robustness ATE in paper.tex" = grepl(val, tex_str, fixed = TRUE))
   }
 }
-sub_r13 <- tab4 %>% filter(model_id == "R13_TrainingSet_Only_10y", outcome_index %in% c(1, 2, 3))
-for (val in sprintf("%+.2f", round(sub_r13$ate_mean + sign(sub_r13$ate_mean) * 1e-9, 2))) {
-  stopifnot("Missing R13 robustness ATE in paper.md" = grepl(val, md_str, fixed = TRUE))
+for (r_id in c("R13_TrainingSet_Only_10y", "R15_Same_X_and_W_10y")) {
+  sub_r_md <- tab4 %>% filter(model_id == r_id, outcome_index %in% c(1, 2, 3))
+  for (val in sprintf("%+.2f", round(sub_r_md$ate_mean + sign(sub_r_md$ate_mean) * 1e-9, 2))) {
+    stopifnot("Missing robustness ATE in paper.md" = grepl(val, md_str, fixed = TRUE))
+  }
 }
+
+# Verify zero occurrences of the word 'dose' and presence of Dedication in paper.tex and paper.md
+stopifnot("Forbidden word 'dose' found in paper.tex" = !grepl("\\bdoses?\\b", tex_str, ignore.case = TRUE))
+stopifnot("Forbidden word 'dose' found in paper.md" = !grepl("\\bdoses?\\b", md_str, ignore.case = TRUE))
+stopifnot("Missing Dedication in paper.tex" = grepl("Robert Christopher Parnell", tex_str, fixed = TRUE))
+stopifnot("Missing Dedication in paper.md" = grepl("Robert Christopher Parnell", md_str, fixed = TRUE))
 
 # Verify all outputs/tables/*.csv references in paper.md exist on disk
 md_table_refs <- regmatches(md_str, gregexpr("outputs/tables/[A-Za-z0-9_]+\\.csv", md_str))[[1]]
