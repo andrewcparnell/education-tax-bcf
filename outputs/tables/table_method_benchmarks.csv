@@ -31,3 +31,7 @@ B6_DoubleML_CrossFit_10y,Benchmark 4: Cross-Fitted Double/Debiased ML (RF E[Z|X]
 B6_DoubleML_CrossFit_10y,Benchmark 4: Cross-Fitted Double/Debiased ML (RF E[Z|X] + Ridge E[Y|X]),+10 years (t+2),283,112,2,Direct Income & Profit Tax / GDP (pp),0.059,0.12,-0.175,0.293,0.689
 B6_DoubleML_CrossFit_10y,Benchmark 4: Cross-Fitted Double/Debiased ML (RF E[Z|X] + Ridge E[Y|X]),+10 years (t+2),283,112,3,Direct Income & Profit Share of Revenue (pp),0.073,0.515,-0.937,1.083,0.556
 B6_DoubleML_CrossFit_10y,Benchmark 4: Cross-Fitted Double/Debiased ML (RF E[Z|X] + Ridge E[Y|X]),+10 years (t+2),283,112,4,Goods & Services Tax Share of Revenue (pp),0.558,0.654,-0.725,1.84,0.803
+B7_Causal_Forest_RLearner_10y,"Benchmark 5: Frequentist Orthogonal Causal Forest (R-Learner, Clustered SE)",+10 years (t+2),283,112,1,Non-Resource Tax / GDP (pp),0.253,0.185,-0.109,0.615,0.915
+B7_Causal_Forest_RLearner_10y,"Benchmark 5: Frequentist Orthogonal Causal Forest (R-Learner, Clustered SE)",+10 years (t+2),283,112,2,Direct Income & Profit Tax / GDP (pp),0.111,0.098,-0.081,0.303,0.871
+B7_Causal_Forest_RLearner_10y,"Benchmark 5: Frequentist Orthogonal Causal Forest (R-Learner, Clustered SE)",+10 years (t+2),283,112,3,Direct Income & Profit Share of Revenue (pp),0.502,0.388,-0.258,1.262,0.902
+B7_Causal_Forest_RLearner_10y,"Benchmark 5: Frequentist Orthogonal Causal Forest (R-Learner, Clustered SE)",+10 years (t+2),283,112,4,Goods & Services Tax Share of Revenue (pp),-0.439,0.419,-1.26,0.382,0.147

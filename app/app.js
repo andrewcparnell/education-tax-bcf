@@ -304,11 +304,13 @@
   });
 
   // ===========================================================================
-  // TAB 1: Future Tax Estimation
+  // TAB 1: Return on Investment (ROI) & Future Tax Estimation
   // ===========================================================================
   const t1State = {
-    horizon: "10",
-    outcome: "inc_gdp",
+    horizon: "career",
+    outcome: "tax_gdp",
+    scatterX: "Z1",
+    scatterY: "bcr",
     selectedIsos: ["IRL", "GBR", "NOR", "AUT", "CHL", "ZAF"],
     searchQuery: ""
   };
@@ -318,6 +320,7 @@
     europe: ["IRL", "GBR", "NOR", "AUT", "SWE", "DEU", "FRA"],
     nordic_tuition: ["NOR", "DNK", "SWE", "AUT", "USA", "GBR", "CHL", "IRL"],
     emerging: ["CHL", "COL", "ZAF", "MEX", "BRA", "THA"],
+    all: COUNTRIES.filter((c) => c.tau10_tax_gdp !== null && c.tau10_tax_gdp !== undefined).map((c) => c.iso3),
     clear: []
   };
 
@@ -382,6 +385,22 @@
       renderTab1();
     });
 
+    const scatterXSel = document.getElementById("t1-scatter-x-select");
+    if (scatterXSel) {
+      scatterXSel.addEventListener("change", () => {
+        t1State.scatterX = scatterXSel.value;
+        renderTab1();
+      });
+    }
+
+    const scatterYSel = document.getElementById("t1-scatter-y-select");
+    if (scatterYSel) {
+      scatterYSel.addEventListener("change", () => {
+        t1State.scatterY = scatterYSel.value;
+        renderTab1();
+      });
+    }
+
     document.querySelectorAll("[data-preset]").forEach((btn) => {
       btn.addEventListener("click", () => {
         const key = btn.getAttribute("data-preset");
@@ -402,16 +421,278 @@
     buildTab1CountryList();
   }
 
+  function computeCohortRoiMetrics(c, outKey, doseUnits) {
+    const dose = Number.isFinite(Number(doseUnits)) ? Number(doseUnits) : 1.0;
+    const costInfo = computeAnnualFundingCost(c, "Z1", dose);
+    const meta = OUTCOME_META[outKey] || OUTCOME_META.tax_gdp;
+    const shareFactor = meta.isShareOfTax ? Number(c.non_resource_tax_gdp_pct || 20) / 100 : 1.0;
+
+    const pp10 = c[`tau10_${outKey}`];
+    const ppLow80 = c[`tau10_${outKey}_low80`];
+    const ppHigh80 = c[`tau10_${outKey}_high80`];
+    const ppLow95 = c[`tau10_${outKey}_low95`];
+    const ppHigh95 = c[`tau10_${outKey}_high95`];
+
+    if (pp10 === null || pp10 === undefined || !Number.isFinite(Number(pp10))) {
+      return null;
+    }
+
+    const ppMean = dose * Number(pp10);
+    const ppL80 = ppLow80 !== null && ppLow80 !== undefined ? dose * Number(ppLow80) : ppMean - 0.25;
+    const ppH80 = ppHigh80 !== null && ppHigh80 !== undefined ? dose * Number(ppHigh80) : ppMean + 0.25;
+    const ppL95 = ppLow95 !== null && ppLow95 !== undefined ? dose * Number(ppLow95) : ppMean - 0.38;
+    const ppH95 = ppHigh95 !== null && ppHigh95 !== undefined ? dose * Number(ppHigh95) : ppMean + 0.38;
+    const ppSd = c[`tau10_${outKey}_sd`] !== null && Number.isFinite(Number(c[`tau10_${outKey}_sd`]))
+      ? dose * Number(c[`tau10_${outKey}_sd`])
+      : Math.abs(ppH95 - ppL95) / 3.92;
+
+    // 40-year career multiplier for revenue outcomes = 8x Year-10 annual flow
+    const careerMult = meta.isShareOfTax ? 1.0 : 8.0;
+
+    const careerBnMean = careerMult * costInfo.gdpTotBn * shareFactor * (ppMean / 100);
+    const careerBnLow95 = careerMult * costInfo.gdpTotBn * shareFactor * (ppL95 / 100);
+    const careerBnHigh95 = careerMult * costInfo.gdpTotBn * shareFactor * (ppH95 / 100);
+    const careerBnSd = Math.max(0.0005, careerMult * costInfo.gdpTotBn * shareFactor * (ppSd / 100));
+
+    const bcr = !meta.isShareOfTax && costInfo.costTotBn > 0 ? careerBnMean / costInfo.costTotBn : null;
+    const bcrLow95 = !meta.isShareOfTax && costInfo.costTotBn > 0 ? careerBnLow95 / costInfo.costTotBn : null;
+    const bcrHigh95 = !meta.isShareOfTax && costInfo.costTotBn > 0 ? careerBnHigh95 / costInfo.costTotBn : null;
+    const probNetPos = !meta.isShareOfTax && costInfo.costTotBn > 0
+      ? normCdf((careerBnMean - costInfo.costTotBn) / careerBnSd)
+      : normCdf(ppMean / Math.max(0.001, ppSd));
+
+    // Values in currently selected unit (EUR_TOT, USD_TOT, GBP_TOT, per-person, or PP)
+    const meanUnitVal = careerMult * convertValue(ppMean, c, outKey);
+    const low80UnitVal = careerMult * convertValue(ppL80, c, outKey);
+    const high80UnitVal = careerMult * convertValue(ppH80, c, outKey);
+    const low95UnitVal = careerMult * convertValue(ppL95, c, outKey);
+    const high95UnitVal = careerMult * convertValue(ppH95, c, outKey);
+    const inputUnitVal = meta.isShareOfTax ? null : convertValue(costInfo.costGdpPct, c, "tax_gdp");
+
+    return {
+      sym: costInfo.sym,
+      costGdpPct: costInfo.costGdpPct,
+      costTotBn: costInfo.costTotBn,
+      careerBnMean,
+      careerBnLow95,
+      careerBnHigh95,
+      bcr,
+      bcrLow95,
+      bcrHigh95,
+      probNetPos,
+      ppMean,
+      ppL95,
+      ppH95,
+      meanUnitVal,
+      low80UnitVal,
+      high80UnitVal,
+      low95UnitVal,
+      high95UnitVal,
+      inputUnitVal
+    };
+  }
+
+  function renderTab1RoiScatter(selected) {
+    const scatterDiv = document.getElementById("t1-roi-scatter-plot");
+    const scatterTitleEl = document.getElementById("t1-roi-scatter-title");
+    if (!scatterDiv) return;
+
+    if (!selected || selected.length === 0) {
+      Plotly.purge(scatterDiv);
+      scatterDiv.innerHTML = `<div style="padding:2.5rem;text-align:center;color:#64748b;">Select one or more countries on the left to view the Investment Variable vs 40-Year ROI scatter plot.</div>`;
+      return;
+    }
+
+    scatterDiv.innerHTML = "";
+    const outKey = t1State.outcome;
+    const meta = OUTCOME_META[outKey] || OUTCOME_META.tax_gdp;
+    const uCfg = UNIT_CONFIG[currentUnit] || UNIT_CONFIG.EUR_TOT;
+    const xKey = t1State.scatterX || "Z1";
+    const useBcr = (t1State.scatterY || "bcr") === "bcr" && !meta.isShareOfTax;
+
+    const xAxisMeta = {
+      Z1: {
+        label: "Current Per-Student University Spending (% of GDP per Person, Z1 Base)",
+        getVal: (c) => Number(c.tert_spend_per_student_gdp_pc),
+        fmt: (v) => `${Number(v).toFixed(1)}% of GDP/person`
+      },
+      Z3: {
+        label: "Real Per-Student University Spending (2021 PPP USD, Z3)",
+        getVal: (c) => Number(c.real_tert_spend_per_student_ppp),
+        fmt: (v) => `$${Math.round(Number(v)).toLocaleString("en-GB")} PPP/student`
+      },
+      Z4: {
+        label: "Total University Budget (% of GDP, Z4)",
+        getVal: (c) => Number(c.tert_spend_gdp_pct),
+        fmt: (v) => `${Number(v).toFixed(2)}% of GDP`
+      },
+      input_cost: {
+        label: `Cohort Degree Input Cost (+10 pp Per-Student Boost, ${uCfg.label.replace(" / year", "")})`,
+        getVal: (c, roi) => (roi.inputUnitVal !== null ? Number(roi.inputUnitVal) : Number(roi.costTotBn)),
+        fmt: (v) => formatEffectValue(v).replace(/^\+/, "")
+      }
+    }[xKey];
+
+    const pts = selected
+      .map((c) => {
+        const roi = computeCohortRoiMetrics(c, outKey, 1.0);
+        if (!roi) return null;
+        const xVal = xAxisMeta.getVal(c, roi);
+        if (!Number.isFinite(xVal)) return null;
+        const yMean = useBcr ? roi.bcr : roi.meanUnitVal;
+        const yLow95 = useBcr ? roi.bcrLow95 : roi.low95UnitVal;
+        const yHigh95 = useBcr ? roi.bcrHigh95 : roi.high95UnitVal;
+        if (yMean === null || !Number.isFinite(Number(yMean))) return null;
+        return { c, roi, xVal, yMean, yLow95, yHigh95 };
+      })
+      .filter(Boolean);
+
+    if (pts.length === 0) {
+      Plotly.purge(scatterDiv);
+      scatterDiv.innerHTML = `<div style="padding:2.5rem;text-align:center;color:#64748b;">Selected countries have 5-year horizon data only; select countries with 10-year horizon data to plot 40-year career ROI.</div>`;
+      return;
+    }
+
+    if (scatterTitleEl) {
+      scatterTitleEl.textContent = useBcr
+        ? `Investment Variable vs 40-Year Career ROI Ratio (${meta.label}, ${pts.length} Countries)`
+        : `Investment Variable vs 40-Year Career Tax Output (${meta.label}, ${pts.length} Countries)`;
+    }
+
+    const traceScatter = {
+      type: "scatter",
+      mode: pts.length <= 35 ? "markers+text" : "markers",
+      name: useBcr ? "40-Year Career ROI Ratio (95% CI)" : "40-Year Career Output (95% CI)",
+      x: pts.map((p) => p.xVal),
+      y: pts.map((p) => p.yMean),
+      text: pts.map((p) => p.c.iso3),
+      textposition: "top center",
+      textfont: { size: 10.5, color: "#0f172a", weight: "bold" },
+      marker: {
+        color: pts.map((p) => (p.c.is_oecd ? "#1b6ca8" : "#136f63")),
+        size: 11,
+        line: { color: "#ffffff", width: 1.2 }
+      },
+      error_y: {
+        type: "data",
+        symmetric: false,
+        array: pts.map((p) => (p.yHigh95 !== null ? p.yHigh95 - p.yMean : 0)),
+        arrayminus: pts.map((p) => (p.yLow95 !== null ? p.yMean - p.yLow95 : 0)),
+        color: "rgba(15, 23, 42, 0.35)",
+        thickness: 1.8,
+        width: 4
+      },
+      customdata: pts.map((p) => {
+        const yMeanStr = useBcr ? `${p.yMean.toFixed(2)}x` : formatEffectValue(p.yMean);
+        const yLowStr = useBcr ? `${p.yLow95.toFixed(2)}x` : formatEffectValue(p.yLow95);
+        const yHighStr = useBcr ? `${p.yHigh95.toFixed(2)}x` : formatEffectValue(p.yHigh95);
+        const inputStr = p.roi.inputUnitVal !== null
+          ? formatEffectValue(p.roi.inputUnitVal).replace(/^\+/, "")
+          : `${p.roi.sym}${p.roi.costTotBn.toFixed(2)} bn`;
+        return [
+          p.c.country_name,
+          xAxisMeta.fmt(p.xVal),
+          inputStr,
+          yMeanStr,
+          yLowStr,
+          yHighStr,
+          p.roi.probNetPos.toFixed(2),
+          p.c.income_group || ""
+        ];
+      }),
+      hovertemplate:
+        "<b>%{customdata[0]} (%{customdata[7]})</b><br>" +
+        "Investment level: <b>%{customdata[1]}</b><br>" +
+        "Cohort degree input cost: <b>%{customdata[2]}</b><br>" +
+        (useBcr ? "40-year career ROI (Output/Input): " : "40-year career output: ") +
+        "<b>%{customdata[3]}</b><br>" +
+        "95% credible interval: [%{customdata[4]}, %{customdata[5]}]<br>" +
+        "P(40y Output > Input): <b>%{customdata[6]}</b><extra></extra>"
+    };
+
+    const shapes = [
+      {
+        type: "line",
+        xref: "paper",
+        x0: 0,
+        x1: 1,
+        y0: 0,
+        y1: 0,
+        line: { color: "#be123c", width: 1.6, dash: "dot" }
+      }
+    ];
+    const annotations = [];
+
+    if (useBcr) {
+      shapes.push({
+        type: "line",
+        xref: "paper",
+        x0: 0,
+        x1: 1,
+        y0: 1.0,
+        y1: 1.0,
+        line: { color: "#0b2545", width: 2.0, dash: "dash" }
+      });
+      annotations.push({
+        xref: "paper",
+        yref: "y",
+        x: 0.99,
+        y: 1.0,
+        yshift: 11,
+        xanchor: "right",
+        text: "Break-Even (ROI = 1.0x: Output = Input)",
+        showarrow: false,
+        font: { size: 11, color: "#0b2545", weight: "bold" }
+      });
+    }
+
+    const yAxisTitle = useBcr
+      ? `40-Year Career ROI Ratio (40y Output / Cohort Input, x)`
+      : !meta.isShareOfTax
+        ? `40-Year Career Tax Output (${uCfg.label.replace(" / year", " across career")})`
+        : `10-Year Structural Shift (${uCfg.label})`;
+
+    Plotly.newPlot(
+      scatterDiv,
+      [traceScatter],
+      {
+        margin: { t: 28, r: 30, b: 56, l: 75 },
+        xaxis: {
+          title: xAxisMeta.label,
+          type: xKey === "Z3" && pts.length > 8 ? "log" : "linear",
+          gridcolor: "#f1f5f9",
+          zeroline: false
+        },
+        yaxis: {
+          title: yAxisTitle,
+          gridcolor: "#f1f5f9",
+          zeroline: false
+        },
+        shapes,
+        annotations,
+        showlegend: false,
+        paper_bgcolor: "#ffffff",
+        plot_bgcolor: "#ffffff"
+      },
+      { responsive: true, displayModeBar: false }
+    );
+  }
+
   function renderTab1() {
     const plotDiv = document.getElementById("t1-forest-plot");
     const titleEl = document.getElementById("t1-main-chart-title");
+    const subTitleEl = document.getElementById("t1-chart-subtitle");
+    const bannerEl = document.getElementById("t1-roi-summary-banner");
     const selected = t1State.selectedIsos
       .map((iso) => COUNTRY_MAP[iso])
       .filter(Boolean);
 
+    renderTab1RoiScatter(selected);
+
     if (selected.length === 0) {
       Plotly.purge(plotDiv);
-      plotDiv.innerHTML = `<div style="padding:4rem;text-align:center;color:#64748b;">Select one or more countries on the left to view estimated tax effects.</div>`;
+      if (bannerEl) bannerEl.innerHTML = "Select one or more countries on the left to view Cohort Return on Investment estimates.";
+      plotDiv.innerHTML = `<div style="padding:4rem;text-align:center;color:#64748b;">Select one or more countries on the left to view estimated Return on Investment and tax effects.</div>`;
       return;
     }
 
@@ -419,6 +700,36 @@
     const outKey = t1State.outcome;
     const meta = OUTCOME_META[outKey];
     const uCfg = UNIT_CONFIG[currentUnit];
+
+    // Populate top Cohort ROI Summary Banner for selected countries
+    if (bannerEl) {
+      const fmtBn = (sym, v) => {
+        if (v === null || v === undefined || !Number.isFinite(Number(v))) return "N/A";
+        const s = v >= 0 ? "+" : "-";
+        const a = Math.abs(v);
+        return a >= 0.05 ? `${s}${sym}${a.toFixed(2)}B` : `${s}${sym}${Math.round(a * 1000)}M`;
+      };
+      const chips = selected
+        .map((c) => {
+          const roiY1 = computeCohortRoiMetrics(c, "tax_gdp", 1.0);
+          const roiY2 = computeCohortRoiMetrics(c, "inc_gdp", 1.0);
+          if (!roiY1 || !roiY2) return null;
+          return (
+            `<span style="display:inline-block; background:#ffffff; border:1px solid #cbd5e1; border-radius:5px; padding:0.25rem 0.55rem; margin:0.18rem 0.3rem 0.18rem 0; font-size:0.78rem;">` +
+            `<b>${c.country_name}:</b> Input <b>${roiY1.sym}${roiY1.costTotBn.toFixed(2)}B</b> &rarr; ` +
+            `40y Total Tax (Y1) <b style="color:#136f63;">${fmtBn(roiY1.sym, roiY1.careerBnMean)}</b> (${roiY1.bcr.toFixed(2)}x, P<sub>net</sub>=${roiY1.probNetPos.toFixed(2)}) | ` +
+            `Inc. Tax Floor (Y2) <b style="color:#0b2545;">${fmtBn(roiY2.sym, roiY2.careerBnMean)}</b> (${roiY2.bcr.toFixed(2)}x, P<sub>net</sub>=${roiY2.probNetPos.toFixed(2)})` +
+            `</span>`
+          );
+        })
+        .filter(Boolean)
+        .join("");
+
+      bannerEl.innerHTML =
+        `<div style="font-weight:700; color:#0b2545; margin-bottom:0.2rem;">Cohort Return on Investment Summary (+10 pp Per-Student Funding Boost): Single Entering Cohort Input vs 40-Year Career Tax Output</div>` +
+        `<div style="font-size:0.77rem; color:#334155; margin-bottom:0.35rem;">Because one entering cohort is 1/<i>D</i> of the student body and studies for <i>D</i> years, its multi-year degree cost equals 1 year of the system-wide boost, while its 40-year career tax output equals 8 &times; the Year-10 annual flow. <b>Y1 (Total Tax)</b> is the full Exchequer return; <b>Y2 (Direct Income Tax)</b> is the conservative floor.</div>` +
+        `<div>${chips || "10-year career ROI available for countries with 10-year horizon coverage."}</div>`;
+    }
 
     // Zero reference line shape + annotation
     const makeZeroShapes = (nRows) => [
@@ -441,6 +752,168 @@
       showarrow: false,
       font: { size: 12, color: "#be123c", weight: "bold" }
     };
+
+    if (t1State.horizon === "career") {
+      const isRev = !meta.isShareOfTax;
+      titleEl.textContent = isRev
+        ? `40-Year Career Return on Investment (${meta.label}) vs Cohort Degree Input Cost`
+        : `${meta.label}: 10-Year Structural Tax-Mix Shift (+10 pp Per-Student Funding Boost)`;
+      if (subTitleEl) {
+        subTitleEl.textContent = isRev
+          ? "Gold diamond = Cohort Degree Input Cost | Circle & bars = 40-Year Career Tax Output (80% & 95% CI)"
+          : "80% (thick) & 95% (thin) credible intervals | Hover for details";
+      }
+
+      const roiRows = selected
+        .map((c) => {
+          const roi = computeCohortRoiMetrics(c, outKey, 1.0);
+          return { c, roi, sortKey: roi && roi.meanUnitVal !== null ? roi.meanUnitVal : -1e9 };
+        })
+        .sort((a, b) => a.sortKey - b.sortKey);
+
+      const yLabels = roiRows.map((r) => r.c.country_name);
+
+      const trace95 = {
+        type: "scatter",
+        mode: "markers",
+        name: "95% credible interval",
+        y: yLabels,
+        x: roiRows.map((r) => (r.roi ? r.roi.meanUnitVal : null)),
+        marker: { color: "rgba(0,0,0,0)", size: 1 },
+        error_x: {
+          type: "data",
+          symmetric: false,
+          array: roiRows.map((r) => (r.roi && r.roi.high95UnitVal !== null ? r.roi.high95UnitVal - r.roi.meanUnitVal : 0)),
+          arrayminus: roiRows.map((r) => (r.roi && r.roi.low95UnitVal !== null ? r.roi.meanUnitVal - r.roi.low95UnitVal : 0)),
+          color: "#94a3b8",
+          thickness: 1.6,
+          width: 0
+        },
+        hoverinfo: "skip"
+      };
+
+      const trace80 = {
+        type: "scatter",
+        mode: "markers",
+        name: isRev ? "40-Yr Career Tax Output (mean & 80% CI)" : "10-Yr Tax Share Shift (mean & 80% CI)",
+        y: yLabels,
+        x: roiRows.map((r) => (r.roi ? r.roi.meanUnitVal : null)),
+        marker: { color: meta.colour, size: 12, symbol: "circle" },
+        error_x: {
+          type: "data",
+          symmetric: false,
+          array: roiRows.map((r) => (r.roi && r.roi.high80UnitVal !== null ? r.roi.high80UnitVal - r.roi.meanUnitVal : 0)),
+          arrayminus: roiRows.map((r) => (r.roi && r.roi.low80UnitVal !== null ? r.roi.meanUnitVal - r.roi.low80UnitVal : 0)),
+          color: meta.colour,
+          thickness: 4,
+          width: 6
+        },
+        customdata: roiRows.map((r) => {
+          if (!r.roi) return ["N/A", "N/A", "N/A", "N/A", "N/A", ""];
+          const sym = r.roi.sym;
+          const outStr = isRev
+            ? `${sym}${r.roi.careerBnMean >= 0 ? "+" : "-"}${Math.abs(r.roi.careerBnMean).toFixed(2)} bn`
+            : `${r.roi.ppMean >= 0 ? "+" : "-"}${Math.abs(r.roi.ppMean).toFixed(2)} pp`;
+          const ci95Str = isRev
+            ? `[${sym}${r.roi.careerBnLow95 >= 0 ? "+" : "-"}${Math.abs(r.roi.careerBnLow95).toFixed(1)}B, ${sym}${r.roi.careerBnHigh95 >= 0 ? "+" : "-"}${Math.abs(r.roi.careerBnHigh95).toFixed(1)}B]`
+            : `[${r.roi.ppL95.toFixed(2)} pp, ${r.roi.ppH95.toFixed(2)} pp]`;
+          const inStr = isRev
+            ? `${sym}${r.roi.costTotBn.toFixed(2)} bn (${r.roi.costGdpPct.toFixed(2)}% of GDP)`
+            : `${sym}${r.roi.costTotBn.toFixed(2)} bn cohort input`;
+          const bcrStr = isRev && r.roi.bcr !== null
+            ? `${r.roi.bcr.toFixed(2)}x cohort input | P(net return > 0) = ${r.roi.probNetPos.toFixed(2)}`
+            : `Posterior P(effect > 0) = ${r.roi.probNetPos.toFixed(2)}`;
+          return [outStr, ci95Str, inStr, bcrStr, formatCountryContextLines(r.c)];
+        }),
+        hovertemplate:
+          "<b>%{y}</b><br>" +
+          (isRev ? "40-Yr Career Output: <b>%{customdata[0]}</b><br>" : "10-Yr Shift: <b>%{customdata[0]}</b><br>") +
+          "95% CI: %{customdata[1]}<br>" +
+          "Cohort Degree Input Cost: <b>%{customdata[2]}</b><br>" +
+          "ROI Summary: <b>%{customdata[3]}</b><br>" +
+          "%{customdata[4]}<extra></extra>"
+      };
+
+      const traces = [trace95, trace80];
+
+      if (isRev) {
+        traces.push({
+          type: "scatter",
+          mode: "markers",
+          name: "Cohort Degree Input Cost (+10 pp)",
+          y: yLabels,
+          x: roiRows.map((r) => (r.roi ? r.roi.inputUnitVal : null)),
+          marker: {
+            color: "#f59e0b",
+            size: 12,
+            symbol: "diamond",
+            line: { color: "#78350f", width: 1.5 }
+          },
+          customdata: roiRows.map((r) =>
+            r.roi ? `${r.roi.sym}${r.roi.costTotBn.toFixed(2)} bn (${r.roi.costGdpPct.toFixed(2)}% of GDP)` : "N/A"
+          ),
+          hovertemplate: "<b>%{y}</b><br>Cohort Degree Input Cost: <b>%{customdata}</b><extra></extra>"
+        });
+      }
+
+      const annotations = [zeroAnnotation];
+      roiRows.forEach((r) => {
+        if (!r.roi) {
+          annotations.push({
+            x: 0,
+            y: r.c.country_name,
+            xref: "x",
+            yref: "y",
+            text: "  5-yr data only (switch to 5 Years)",
+            xanchor: "left",
+            showarrow: false,
+            font: { size: 11, color: "#64748b" }
+          });
+        } else if (isRev && r.roi.bcr !== null) {
+          annotations.push({
+            x: r.roi.meanUnitVal,
+            y: r.c.country_name,
+            xref: "x",
+            yref: "y",
+            text: `<b>${r.roi.bcr.toFixed(2)}x</b> (P<sub>net</sub>=${r.roi.probNetPos.toFixed(2)})`,
+            yshift: 14,
+            showarrow: false,
+            font: { size: 10.5, color: "#0f172a" }
+          });
+        }
+      });
+
+      const xAxisLabel = isRev
+        ? currentUnit === "PP"
+          ? "Cumulative 40-Year Career Output vs Cohort Input (% of Single-Year GDP)"
+          : `Cumulative 40-Year Career Tax Output vs Cohort Input (${uCfg.label.replace(" / year", " across career")})`
+        : `10-Year Structural Shift (${uCfg.label})`;
+
+      const layout = {
+        margin: { t: 42, r: 40, b: 60, l: 150 },
+        xaxis: {
+          title: xAxisLabel,
+          gridcolor: "#f1f5f9",
+          zeroline: false
+        },
+        yaxis: { automargin: true },
+        shapes: makeZeroShapes(yLabels.length),
+        annotations: annotations,
+        legend: { orientation: "h", y: 1.12, x: 0 },
+        paper_bgcolor: "#ffffff",
+        plot_bgcolor: "#ffffff"
+      };
+
+      Plotly.newPlot(plotDiv, traces, layout, {
+        responsive: true,
+        displayModeBar: false
+      });
+      return;
+    }
+
+    if (subTitleEl) {
+      subTitleEl.textContent = "80% (thick) & 95% (thin) uncertainty ranges | Hover for baseline & national totals";
+    }
 
     if (t1State.horizon === "both") {
       titleEl.textContent = `${meta.label}: 5 Years vs 10 Years After Increasing University Funding`;
@@ -1202,16 +1675,50 @@
   }
 
   // ===========================================================================
-  // TAB 3: Full policy scenarios (Two-Panel Revenue vs Tax Mix, Presets, 5 vs 10y)
+  // TAB 3: Country Policy & Treasury Calculator
   // ===========================================================================
   const t3State = {
     iso3: "IRL",
+    zMeasure: "Z1",
+    yFocus: "tax_gdp",
+    doseUnits: 1.0,
     scenarioPreset: "boost",
     direction: 1,
     horizon: "both",
     drawerOpen: false,
     moderators: {},
     baselineModerators: {}
+  };
+
+  const Z_MEASURE_META = {
+    Z1: {
+      code: "Z1",
+      label: "Z1: Per-Student Spending Ratio (+10 pp of GDP/person)",
+      shortUnit: "+10 pp of GDP/person per student",
+      model5y: "M2a_Direct_10pp_5y",
+      model10y: "M2b_Direct_10pp_10y"
+    },
+    Z2: {
+      code: "Z2",
+      label: "Z2: 5-Year Within-Country Change (+10 pp/student)",
+      shortUnit: "+10 pp 5-year per-student change",
+      model5y: "M3a_Delta10pp_5y",
+      model10y: "M3b_Delta10pp_10y"
+    },
+    Z3: {
+      code: "Z3",
+      label: "Z3: Real PPP Dollars per Student (+25% real spend)",
+      shortUnit: "+25% real PPP dollars per student",
+      model5y: "M3c_RealPPP_5y",
+      model10y: "M3d_RealPPP_10y"
+    },
+    Z4: {
+      code: "Z4",
+      label: "Z4: Total University Budget (+0.25 pp of GDP)",
+      shortUnit: "+0.25 pp of GDP university budget",
+      model5y: "M3e_TertGDP_5y",
+      model10y: "M3f_TertGDP_10y"
+    }
   };
 
   const MODERATOR_SPECS = [
@@ -1352,6 +1859,30 @@
       renderTab3();
     });
 
+    const zSel = document.getElementById("t3-z-select");
+    if (zSel) {
+      zSel.addEventListener("change", () => {
+        t3State.zMeasure = zSel.value || "Z1";
+        renderTab3();
+      });
+    }
+
+    const ySel = document.getElementById("t3-y-select");
+    if (ySel) {
+      ySel.addEventListener("change", () => {
+        t3State.yFocus = ySel.value || "inc_gdp";
+        renderTab3();
+      });
+    }
+
+    const doseSel = document.getElementById("t3-dose-select");
+    if (doseSel) {
+      doseSel.addEventListener("change", () => {
+        t3State.doseUnits = Number(doseSel.value || 1.0);
+        renderTab3();
+      });
+    }
+
     document.querySelectorAll("#t3-scenario-pills .preset-pill").forEach((btn) => {
       btn.addEventListener("click", () => {
         applyTab3ScenarioPreset(btn.getAttribute("data-scen"));
@@ -1421,12 +1952,58 @@
     );
   }
 
+  function getZMeasureAdjustment(outKey, numHorizon) {
+    const zCode = t3State.zMeasure || "Z1";
+    if (zCode === "Z1") return { ratio: 1.0, offset: 0.0 };
+    const globalAte = DATA.global_ate || [];
+    const outIdx = outKey === "tax_gdp" ? 1 : outKey === "inc_gdp" ? 2 : outKey === "inc_share" ? 3 : 4;
+    const zMeta = Z_MEASURE_META[zCode] || Z_MEASURE_META.Z1;
+    const refId = numHorizon === 5 ? "M2a_Direct_10pp_5y" : "M2b_Direct_10pp_10y";
+    const altId = numHorizon === 5 ? zMeta.model5y : zMeta.model10y;
+    const refRow = globalAte.find((r) => r.model_id === refId && Number(r.outcome_index) === outIdx);
+    const altRow = globalAte.find((r) => r.model_id === altId && Number(r.outcome_index) === outIdx);
+    if (!refRow || !altRow) return { ratio: 1.0, offset: 0.0 };
+    return {
+      ratio: 1.0,
+      offset: Number(altRow.ate_mean || 0) - Number(refRow.ate_mean || 0)
+    };
+  }
+
+  function computeAnnualFundingCost(c, zCode, doseUnits) {
+    const u = UNIT_CONFIG[currentUnit] || UNIT_CONFIG.EUR_TOT;
+    const baseCurr = UNIT_CONFIG[u.baseCode] || UNIT_CONFIG.EUR;
+    const gdpPc = Number(c.gdp_per_capita_latest || c.gdp_per_capita_ppp || 25000);
+    const pop = Number(c.population_latest || 5e6);
+    const gdpTotBn = (gdpPc * pop * baseCurr.rate) / 1e9;
+    const rawSpend = Math.max(2.0, Number(c.tert_spend_per_student_gdp_pc || 25.0));
+    const enrol = Math.max(2.0, Number(c.gross_tert_enrolment_pct || 40.0));
+    const baseTertGdpPct = Number.isFinite(Number(c.tert_spend_gdp_pct)) && Number(c.tert_spend_gdp_pct) > 0
+      ? Number(c.tert_spend_gdp_pct)
+      : 0.081 * (rawSpend / 100) * (enrol / 100) * 100;
+
+    let costGdpPct = baseTertGdpPct * ((10.0 * doseUnits) / rawSpend);
+    if (zCode === "Z3") {
+      costGdpPct = baseTertGdpPct * (0.25 * doseUnits);
+    } else if (zCode === "Z4") {
+      costGdpPct = 0.25 * doseUnits;
+    }
+    const costTotBn = gdpTotBn * (costGdpPct / 100);
+    return {
+      sym: baseCurr.symbol,
+      costGdpPct,
+      costTotBn,
+      gdpTotBn
+    };
+  }
+
   function evaluateScenarioForHorizon(c, outKey, numHorizon) {
     const hKey = numHorizon === 5 ? "h5" : "h10";
     const pref = numHorizon === 5 ? "tau5_" : "tau10_";
     const sur = SURROGATES[hKey] && SURROGATES[hKey][outKey];
     const coefs = (sur && sur.coefs) || {};
     const dir = t3State.direction;
+    const dose = Number(t3State.doseUnits || 1.0);
+    const zAdj = getZMeasureAdjustment(outKey, numHorizon);
 
     let baseMean = c[pref + outKey];
     const baseMods = t3State.baselineModerators;
@@ -1463,12 +2040,25 @@
         (curMods.life_expectancy_birth_yrs - baseMods.life_expectancy_birth_yrs);
 
     const halfWidth80PP =
-      c[`${pref}${outKey}_high80`] !== null && c[`${pref}${outKey}_low80`] !== null
+      dose *
+      (c[`${pref}${outKey}_high80`] !== null && c[`${pref}${outKey}_low80`] !== null
         ? Math.abs(c[`${pref}${outKey}_high80`] - c[`${pref}${outKey}_low80`]) / 2
-        : 1.28 * Number((sur && sur.mean_sd) || 0.5);
+        : 1.28 * Number((sur && sur.mean_sd) || 0.5));
 
-    const basePP = dir * baseMean;
-    const simPP = dir * (baseMean + deltaMod);
+    const halfWidth95PP =
+      dose *
+      (c[`${pref}${outKey}_high95`] !== null && c[`${pref}${outKey}_low95`] !== null
+        ? Math.abs(c[`${pref}${outKey}_high95`] - c[`${pref}${outKey}_low95`]) / 2
+        : 1.96 * Number(c[`${pref}${outKey}_sd`] || (sur && sur.mean_sd) || 0.2));
+
+    const sdPP =
+      dose *
+      (c[`${pref}${outKey}_sd`] !== null && Number.isFinite(Number(c[`${pref}${outKey}_sd`]))
+        ? Number(c[`${pref}${outKey}_sd`])
+        : halfWidth95PP / 1.96);
+
+    const basePP = dir * dose * (baseMean + zAdj.offset);
+    const simPP = dir * dose * (baseMean + zAdj.offset + deltaMod);
     const gdpMult =
       baseMods.gdp_pc_ppp > 0 ? Number(curMods.gdp_pc_ppp) / Number(baseMods.gdp_pc_ppp) : 1.0;
 
@@ -1476,12 +2066,25 @@
       basePP,
       simPP,
       halfWidth80PP,
+      halfWidth95PP,
+      sdPP,
       baseVal: convertValue(basePP, c, outKey, 1.0),
       simVal: convertValue(simPP, c, outKey, gdpMult),
       errBaseVal: Math.abs(convertValue(halfWidth80PP, c, outKey, 1.0)),
       errSimVal: Math.abs(convertValue(halfWidth80PP, c, outKey, gdpMult)),
       gdpMult
     };
+  }
+
+  function normCdf(x) {
+    const t = 1 / (1 + 0.2316419 * Math.abs(x));
+    const d = 0.3989423 * Math.exp((-x * x) / 2);
+    const p =
+      d *
+      t *
+      (0.3193815 +
+        t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274))));
+    return x > 0 ? 1 - p : p;
   }
 
   function renderTab3() {
@@ -1498,6 +2101,79 @@
         ? `${spendRatio.toFixed(1)}% GDP/pc (${spendRatio >= thresh ? "Above" : "Below"} peer median ${thresh.toFixed(1)}%)`
         : "80% uncertainty range";
       tagEl.textContent = `Avg spend/student: ${ratioTxt} | Baseline tax: ${Number(c.non_resource_tax_gdp_pct || 0).toFixed(1)}% GDP`;
+    }
+
+    // Populate Assistance for Policy Makers Card (#t3-policy-brief-card)
+    const briefEl = document.getElementById("t3-policy-brief-card");
+    if (briefEl) {
+      const zCode = t3State.zMeasure || "Z1";
+      const yKey = t3State.yFocus || "tax_gdp";
+      const dose = Number(t3State.doseUnits || 1.0);
+      const yMeta = OUTCOME_META[yKey] || OUTCOME_META.tax_gdp;
+      const costInfo = computeAnnualFundingCost(c, zCode, dose);
+      const ev5 = evaluateScenarioForHorizon(c, yKey, 5);
+      const ev10 = evaluateScenarioForHorizon(c, yKey, 10);
+      const ev10Tax = evaluateScenarioForHorizon(c, "tax_gdp", 10);
+      const ev10Inc = evaluateScenarioForHorizon(c, "inc_gdp", 10);
+      const ev10Share = evaluateScenarioForHorizon(c, "inc_share", 10);
+
+      const shareFactor = yMeta.isShareOfTax ? Number(c.non_resource_tax_gdp_pct || 20) / 100 : 1.0;
+      const ret5Bn = costInfo.gdpTotBn * shareFactor * (ev5.simPP / 100);
+      const ret10Bn = costInfo.gdpTotBn * shareFactor * (ev10.simPP / 100);
+      const career8Bn = 8.0 * ret10Bn;
+      const career8Half95Bn = 8.0 * costInfo.gdpTotBn * shareFactor * (ev10.halfWidth95PP / 100);
+      const career8SdBn = Math.max(0.001, 8.0 * costInfo.gdpTotBn * shareFactor * (ev10.sdPP / 100));
+      const careerLow95Bn = career8Bn - career8Half95Bn;
+      const careerHigh95Bn = career8Bn + career8Half95Bn;
+      const bcr = costInfo.costTotBn > 0 ? career8Bn / costInfo.costTotBn : 0;
+      const probNetPos = normCdf((career8Bn - costInfo.costTotBn) / career8SdBn);
+
+      // Always compute both Y1 (Total Tax Full Exchequer Return) and Y2 (Direct Income Tax Floor)
+      const careerTax8Bn = 8.0 * costInfo.gdpTotBn * (ev10Tax.simPP / 100);
+      const careerTaxSdBn = Math.max(0.001, 8.0 * costInfo.gdpTotBn * (ev10Tax.sdPP / 100));
+      const careerTaxHalf95Bn = 8.0 * costInfo.gdpTotBn * (ev10Tax.halfWidth95PP / 100);
+      const bcrTax = costInfo.costTotBn > 0 ? careerTax8Bn / costInfo.costTotBn : 0;
+      const probNetPosTax = normCdf((careerTax8Bn - costInfo.costTotBn) / careerTaxSdBn);
+
+      const careerInc8Bn = 8.0 * costInfo.gdpTotBn * (ev10Inc.simPP / 100);
+      const careerIncSdBn = Math.max(0.001, 8.0 * costInfo.gdpTotBn * (ev10Inc.sdPP / 100));
+      const careerIncHalf95Bn = 8.0 * costInfo.gdpTotBn * (ev10Inc.halfWidth95PP / 100);
+      const bcrInc = costInfo.costTotBn > 0 ? careerInc8Bn / costInfo.costTotBn : 0;
+      const probNetPosInc = normCdf((careerInc8Bn - costInfo.costTotBn) / careerIncSdBn);
+
+      const shareShiftPP = ev10Share.simPP;
+
+      const curSpendTxt = zCode === "Z3"
+        ? `$${Math.round(Number(c.real_tert_spend_per_student_ppp || 8000)).toLocaleString("en-GB")} PPP/student`
+        : zCode === "Z4"
+        ? `${Number(c.tert_spend_gdp_pct || 1.0).toFixed(2)}% of GDP`
+        : `${Number(c.tert_spend_per_student_gdp_pc || 25.0).toFixed(1)}% of GDP/person`;
+
+      const fmtBn = (val) => {
+        const s = val >= 0 ? "+" : "-";
+        const a = Math.abs(val);
+        return a >= 0.1 ? `${s}${costInfo.sym}${a.toFixed(2)} bn` : `${s}${costInfo.sym}${Math.round(a * 1000)} m`;
+      };
+
+      briefEl.innerHTML =
+        `<div style="font-weight:700; color:#0b2545; margin-bottom:0.25rem;">Assistance for Policy Makers: Treasury Return on Investment Brief (${c.country_name} - ${Z_MEASURE_META[zCode].label})</div>` +
+        `<div style="display:flex; flex-wrap:wrap; gap:1.1rem; margin-bottom:0.35rem;">` +
+        `<span><b>Current funding:</b> ${curSpendTxt}</span>` +
+        `<span><b>Cohort degree input (${dose.toFixed(1)}u):</b> <b>${costInfo.sym}${costInfo.costTotBn.toFixed(2)} bn</b> (${costInfo.costGdpPct.toFixed(2)}% GDP)</span>` +
+        `<span><b>+5y / +10y annual flow (${yMeta.shortLabel}):</b> ${fmtBn(ret5Bn)}/yr &rarr; ${fmtBn(ret10Bn)}/yr</span>` +
+        `<span><b>+10y tax mix shift (Y3):</b> ${shareShiftPP >= 0 ? "+" : ""}${shareShiftPP.toFixed(2)} pp</span>` +
+        `</div>` +
+        `<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:0.55rem; margin-bottom:0.4rem;">` +
+        `<div style="background:#ffffff; border:1px solid #cbd5e1; border-left:3px solid #136f63; border-radius:4px; padding:0.4rem 0.6rem;">` +
+        `<b>Full Exchequer 40-Yr Career Output (Y1 Total Tax):</b> <b style="color:#136f63;">${fmtBn(careerTax8Bn)}</b><br/>` +
+        `<span style="font-size:0.78rem; color:#334155;">95% CI [${fmtBn(careerTax8Bn - careerTaxHalf95Bn)}, ${fmtBn(careerTax8Bn + careerTaxHalf95Bn)}] | <b>BCR = ${bcrTax.toFixed(2)}x</b> | <b>P(net &gt; 0) = ${probNetPosTax.toFixed(2)}</b> (includes income, corporate, payroll/PRSI &amp; VAT)</span>` +
+        `</div>` +
+        `<div style="background:#ffffff; border:1px solid #cbd5e1; border-left:3px solid #0b2545; border-radius:4px; padding:0.4rem 0.6rem;">` +
+        `<b>Conservative Floor 40-Yr Output (Y2 Direct Income Tax Only):</b> <b style="color:#0b2545;">${fmtBn(careerInc8Bn)}</b><br/>` +
+        `<span style="font-size:0.78rem; color:#334155;">95% CI [${fmtBn(careerInc8Bn - careerIncHalf95Bn)}, ${fmtBn(careerInc8Bn + careerIncHalf95Bn)}] | <b>BCR = ${bcrInc.toFixed(2)}x</b> | <b>P(net &gt; 0) = ${probNetPosInc.toFixed(2)}</b> (paycheque &amp; corporate profit taxes alone)</span>` +
+        `</div>` +
+        `</div>` +
+        `<div style="color:#136f63; font-weight:600; font-size:0.81rem;">Treasury pitch: &ldquo;Investing ${costInfo.sym}${costInfo.costTotBn.toFixed(2)} bn to educate one cohort of university students in ${c.country_name} returns ${fmtBn(careerInc8Bn)} (${bcrInc.toFixed(2)}x) from direct income and profit taxes alone (Y2), and ${fmtBn(careerTax8Bn)} (${bcrTax.toFixed(2)}x, P(net &gt; 0) = ${probNetPosTax.toFixed(2)}, 95% CI [${fmtBn(careerTax8Bn - careerTaxHalf95Bn)}, ${fmtBn(careerTax8Bn + careerTaxHalf95Bn)}]) in total Exchequer tax revenue (Y1) across their 40-year career.&rdquo;</div>`;
     }
 
     const revOutcomes = [

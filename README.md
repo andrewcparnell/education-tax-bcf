@@ -1,4 +1,4 @@
-# Does Increasing Government Spending on Tertiary Education Improve the Future Tax Take?
+# Does Increasing Government Spending on Tertiary Education Provide a Return on Investment?
 ## A Continuous-Treatment Bayesian Causal Inference Analysis Using Multivariate Bayesian Causal Forests
 
 **Author:** Andrew C. Parnell (School of Mathematics and Statistics, University College Dublin)

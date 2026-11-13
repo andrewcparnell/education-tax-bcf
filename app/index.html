@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>University Funding &amp; Future Tax Returns</title>
+  <title>University Funding: Return on Investment Explorer</title>
   <link rel="stylesheet" href="styles.css" />
   <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 </head>
@@ -12,7 +12,7 @@
   <!-- Clean Top Header -->
   <header class="app-header">
     <div class="header-inner">
-      <h1 class="app-title">University Funding &amp; Future Tax Returns</h1>
+      <h1 class="app-title">University Funding: Return on Investment Explorer</h1>
       <div class="header-actions">
         <div class="unit-switcher">
           <label for="global-unit-select">Units:</label>
@@ -34,9 +34,9 @@
   <!-- 3-Tab Navigation Bar -->
   <nav class="tabs-nav" aria-label="Main navigation">
     <div class="tabs-inner">
-      <button class="tab-btn active" data-tab="tab1" id="btn-tab1" type="button">Future Tax Estimation</button>
-      <button class="tab-btn" data-tab="tab2" id="btn-tab2" type="button">Historical Data</button>
-      <button class="tab-btn" data-tab="tab3" id="btn-tab3" type="button">Full policy scenarios</button>
+      <button class="tab-btn active" data-tab="tab1" id="btn-tab1" type="button">1. Return on Investment (ROI)</button>
+      <button class="tab-btn" data-tab="tab2" id="btn-tab2" type="button">2. Historical Data (1985-2024)</button>
+      <button class="tab-btn" data-tab="tab3" id="btn-tab3" type="button">3. Country Policy &amp; Treasury Calculator</button>
     </div>
   </nav>
 
@@ -44,28 +44,34 @@
   <main class="app-container">
 
     <!-- =================================================================== -->
-    <!-- TAB 1: Future Tax Estimation                                        -->
+    <!-- TAB 1: Return on Investment (ROI) & Future Tax Estimation           -->
     <!-- =================================================================== -->
     <section class="tab-pane active" id="tab1">
       <div class="workspace-grid">
         <aside class="panel-card">
           <div class="control-group">
-            <span class="control-label">Timeframe</span>
+            <span class="control-label">Horizon / ROI View</span>
             <div class="segmented-group" id="t1-horizon-group">
+              <button type="button" class="seg-btn active" data-horizon="career">40-Yr Career ROI</button>
+              <button type="button" class="seg-btn" data-horizon="10">10 Years</button>
               <button type="button" class="seg-btn" data-horizon="5">5 Years</button>
-              <button type="button" class="seg-btn active" data-horizon="10">10 Years</button>
-              <button type="button" class="seg-btn" data-horizon="both">5 vs 10 Years</button>
+              <button type="button" class="seg-btn" data-horizon="both">5 vs 10 Yrs</button>
             </div>
           </div>
 
           <div class="control-group">
-            <label class="control-label" for="t1-outcome-select">Tax Measure</label>
+            <label class="control-label" for="t1-outcome-select">Tax Measure (Y1 to Y4)</label>
             <select id="t1-outcome-select">
-              <option value="inc_gdp" selected>Income &amp; Profit Tax Revenue (% of GDP)</option>
-              <option value="tax_gdp">Total Non-Resource Tax Revenue (% of GDP)</option>
-              <option value="inc_share">Income Tax Share (% of total tax)</option>
-              <option value="goods_share">Goods &amp; Services / VAT Share (% of total tax)</option>
+              <option value="tax_gdp" selected>Y1: Total Non-Resource Tax (Full Exchequer Return)</option>
+              <option value="inc_gdp">Y2: Direct Income &amp; Profit Tax (Conservative Floor)</option>
+              <option value="inc_share">Y3: Direct Income Tax Share (% of total tax)</option>
+              <option value="goods_share">Y4: Goods &amp; Services / VAT Share (% of total tax)</option>
             </select>
+            <div style="margin-top:0.4rem; font-size:0.75rem; line-height:1.38; color:#334155; background:#f8fafc; border-left:3px solid #136f63; padding:0.4rem 0.55rem; border-radius:4px;">
+              <strong>Which measure should I care about?</strong><br/>
+              &bull; <strong>Y1 (Total Tax):</strong> Best for Treasury ROI - captures all tax streams (income, corporate, payroll/PRSI, and VAT on graduate spending).<br/>
+              &bull; <strong>Y2 (Direct Income Tax):</strong> Conservative floor counting only direct income &amp; profit taxes.
+            </div>
           </div>
 
           <div class="control-group">
@@ -79,6 +85,7 @@
               <button type="button" class="preset-pill" data-preset="europe">EU &amp; UK</button>
               <button type="button" class="preset-pill" data-preset="nordic_tuition">Nordic vs Tuition</button>
               <button type="button" class="preset-pill" data-preset="emerging">Emerging</button>
+              <button type="button" class="preset-pill" data-preset="all">All</button>
               <button type="button" class="preset-pill" data-preset="clear">Clear</button>
             </div>
 
@@ -87,12 +94,39 @@
           </div>
         </aside>
 
-        <div class="panel-card">
-          <h3>
-            <span id="t1-main-chart-title">Estimated Effect of a +10 pp Per-Student University Funding Increase on Annual Tax Revenue</span>
-            <span class="country-tag" id="t1-chart-subtitle">80% (thick) &amp; 95% (thin) uncertainty ranges | Hover for baseline &amp; national totals</span>
-          </h3>
-          <div id="t1-forest-plot" class="plot-box-lg"></div>
+        <div>
+          <div class="panel-card" style="margin-bottom:1rem;">
+            <h3>
+              <span id="t1-main-chart-title">40-Year Career Return on Investment per Entering University Cohort (+10 pp Per-Student Funding Increase)</span>
+              <span class="country-tag" id="t1-chart-subtitle">80% (thick) &amp; 95% (thin) credible intervals | Gold diamond = Cohort Degree Input Cost</span>
+            </h3>
+            <div id="t1-roi-summary-banner" style="background:#f8fafc; border:1px solid #cbd5e1; border-left:4px solid #136f63; border-radius:6px; padding:0.7rem 0.95rem; margin-bottom:0.8rem; font-size:0.83rem; line-height:1.45; color:#0f172a;"></div>
+            <div id="t1-forest-plot" class="plot-box-lg"></div>
+          </div>
+
+          <div class="panel-card">
+            <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:0.6rem; margin-bottom:0.65rem;">
+              <h3 style="margin:0;">
+                <span id="t1-roi-scatter-title">Investment Variable vs 40-Year Career Return on Investment (Selected Countries)</span>
+                <span class="country-tag">Points = posterior mean | Vertical bars = 95% credible intervals</span>
+              </h3>
+              <div style="display:flex; flex-wrap:wrap; align-items:center; gap:0.55rem; font-size:0.8rem;">
+                <label for="t1-scatter-x-select" style="font-weight:600; color:#334155;">Horizontal Axis (Investment):</label>
+                <select id="t1-scatter-x-select" style="padding:0.28rem 0.5rem; border:1px solid #cbd5e1; border-radius:5px; font-size:0.8rem;">
+                  <option value="Z1" selected>Z1: Per-Student Spending (% of GDP/person)</option>
+                  <option value="Z3">Z3: Real Per-Student Spending (PPP USD)</option>
+                  <option value="Z4">Z4: Total University Budget (% of GDP)</option>
+                  <option value="input_cost">Cohort Degree Input Cost (+10 pp Boost)</option>
+                </select>
+                <label for="t1-scatter-y-select" style="font-weight:600; color:#334155;">Vertical Axis (ROI):</label>
+                <select id="t1-scatter-y-select" style="padding:0.28rem 0.5rem; border:1px solid #cbd5e1; border-radius:5px; font-size:0.8rem;">
+                  <option value="bcr" selected>40-Year ROI Ratio (Output / Input, x)</option>
+                  <option value="output">40-Year Career Tax Output (Currency / pp)</option>
+                </select>
+              </div>
+            </div>
+            <div id="t1-roi-scatter-plot" class="plot-box"></div>
+          </div>
         </div>
       </div>
     </section>
@@ -186,6 +220,36 @@
           <div class="control-group">
             <label class="control-label" for="t3-country-select">Country</label>
             <select id="t3-country-select"></select>
+          </div>
+
+          <div class="control-group">
+            <label class="control-label" for="t3-z-select">University Funding Measure (Z1 to Z4)</label>
+            <select id="t3-z-select">
+              <option value="Z1" selected>Z1: Per-Student Spending (+10 pp of GDP/person)</option>
+              <option value="Z2">Z2: Within-Country 5-Year Change (+10 pp/student)</option>
+              <option value="Z3">Z3: Real PPP Dollars per Student (+25% real spend)</option>
+              <option value="Z4">Z4: Total University Budget (+0.25 pp of GDP)</option>
+            </select>
+          </div>
+
+          <div class="control-group">
+            <label class="control-label" for="t3-y-select">Primary Tax Outcome for Treasury Brief (Y1 to Y4)</label>
+            <select id="t3-y-select">
+              <option value="tax_gdp" selected>Y1: Total Non-Resource Tax (Full Exchequer Return)</option>
+              <option value="inc_gdp">Y2: Direct Income &amp; Profit Tax (Conservative Floor)</option>
+              <option value="inc_share">Y3: Direct Income Tax Share (% of total tax)</option>
+              <option value="goods_share">Y4: Goods &amp; Services / VAT Share (% of total tax)</option>
+            </select>
+          </div>
+
+          <div class="control-group">
+            <label class="control-label" for="t3-dose-select">Funding Change Size</label>
+            <select id="t3-dose-select">
+              <option value="0.5">0.5 units (+5 pp / +12.5%)</option>
+              <option value="1.0" selected>1.0 unit (+10 pp / +25% standard)</option>
+              <option value="1.5">1.5 units (+15 pp / +37.5%)</option>
+              <option value="2.0">2.0 units (+20 pp / +50%)</option>
+            </select>
           </div>
 
           <div class="control-group">
@@ -289,6 +353,7 @@
             <span id="t3-chart-title">Estimated Tax Impact Across Revenue Streams</span>
             <span class="country-tag" id="t3-baseline-tag">80% uncertainty range</span>
           </h3>
+          <div id="t3-policy-brief-card" style="background:#f8fafc; border:1px solid #cbd5e1; border-left:4px solid #136f63; border-radius:6px; padding:0.75rem 1rem; margin-bottom:0.85rem; font-size:0.86rem; line-height:1.45; color:#0f172a;"></div>
           <div id="t3-scenario-plot" class="plot-box-lg"></div>
         </div>
       </div>
@@ -309,23 +374,23 @@
           Use the <strong>Units</strong> menu in the top-right corner at any time to switch all estimates between <strong>Country Total Currency</strong> in <strong>EUR (&euro; billion / yr)</strong>, <strong>USD ($ billion / yr)</strong>, or <strong>GBP (&pound; billion / yr)</strong> (the default view, showing the estimated annual tax change across the whole country holding population and baseline GDP constant), <strong>Per-Person Currency</strong> (&euro;, $, or &pound; per person per year), or <strong>Percentage points (pp)</strong> of GDP / total tax revenue.
         </p>
 
-        <h3>1. Future Tax Estimation</h3>
+        <h3>1. Return on Investment (ROI)</h3>
         <ul>
-          <li><strong>What it shows:</strong> The estimated change in annual tax revenue 5 or 10 years after a country increases its per-student investment in university education.</li>
-          <li><strong>How to use it:</strong> Pick a timeframe (5 years, 10 years, or 5 vs 10 years side by side), choose a tax measure, and tick any combination of countries on the left (or use peer-group pills such as <em>EU &amp; UK</em> or <em>Nordic vs Tuition</em>).</li>
-          <li><strong>Reading the chart:</strong> The vertical dashed line marks <strong>zero</strong> (no effect). Points to the right of zero indicate an increase in tax revenue, with thick bars showing the 80% uncertainty range and thin bars showing the 95% uncertainty range. Hover over any country to view its current university funding level, peer-group threshold status, baseline tax structure, and national currency total.</li>
+          <li><strong>What it shows:</strong> How the multi-year public cost of educating a single entering cohort of university students (<strong>Cohort Degree Input</strong>, marked by a gold diamond) compares against the cumulative additional tax revenue that cohort generates across a <strong>40-year working career</strong> (or the single-year annual change after 5 or 10 years).</li>
+          <li><strong>Why Cohort Input = 1 Year of System Cost:</strong> Because a university system holds all <em>D</em> year-groups of students simultaneously in any calendar year (e.g., 1st-, 2nd-, 3rd-, and 4th-year students), a single entering cohort makes up <em>1/D</em> of the student body and studies for <em>D</em> years. Its total multi-year degree cost therefore equals one year of the system-wide +10 pp budget boost, while across a 40-year working career (eight 5-year waves) that cohort generates <strong>8 &times; the Year-10 annual tax flow</strong>.</li>
+          <li><strong>Should I look at Y1 or Y2?</strong> Focus on <strong>Y1 (Total Non-Resource Tax)</strong> for the bottom-line Exchequer return (capturing income tax, corporation tax, employer/employee payroll &amp; social insurance, and VAT on graduate spending). Use <strong>Y2 (Direct Income &amp; Profit Tax)</strong> as the conservative floor from paycheques and corporate profits alone, and <strong>Y3</strong> to see how the tax mix shifts toward progressive direct taxation.</li>
         </ul>
 
-        <h3>2. Historical Data</h3>
+        <h3>2. Historical Data (1985-2024)</h3>
         <ul>
           <li><strong>What it shows:</strong> How university spending (measured as % of GDP per person, real PPP dollars per student, university budget % of GDP, or enrolment %) and tax revenues have actually moved across countries from 1990 to 2024.</li>
           <li><strong>How to use it:</strong> Press <strong>Play</strong> to animate the progression across five-year periods, or drag the time slider manually. Click any bubble directly on the scatter plot (or use presets such as <em>Big Movers</em> or <em>Denominator Trap</em>) to highlight a country's historical path on both charts.</li>
         </ul>
 
-        <h3>3. Full policy scenarios</h3>
+        <h3>3. Country Policy &amp; Treasury Calculator</h3>
         <ul>
-          <li><strong>What it shows:</strong> How the estimated tax impact for a single country splits between <strong>Tax Revenue Mobilisation</strong> (left panel: Income Tax and Total Tax per person) and <strong>Tax Mix Shift</strong> (right panel: Income Tax Share vs Goods/VAT Share of total tax).</li>
-          <li><strong>How to use it:</strong> Select a country and click a one-click policy scenario (such as <em>Boost Per-Student</em>, <em>Funded Expansion</em>, <em>Unfunded Crowding</em>, or <em>Budget Cut</em>), or open <strong>Adjust other country factors</strong> to customise individual economic and demographic sliders.</li>
+          <li><strong>What it shows:</strong> A customisable country-by-country <strong>Treasury Return on Investment Brief</strong> (with 95% credible intervals, benefit-cost ratios, and probability of net positive return for both <strong>Y1 Full Exchequer Return</strong> and <strong>Y2 Direct Income-Tax Floor</strong>) alongside bar charts of <strong>Tax Revenue Mobilisation</strong> and <strong>Tax Mix Shift</strong>.</li>
+          <li><strong>How to use it:</strong> Select any country, choose a funding measure (<strong>Z1 to Z4</strong>), funding change size, and one-click policy scenario (such as <em>Boost Per-Student</em>, <em>Funded Expansion</em>, <em>Unfunded Crowding</em>, or <em>Budget Cut</em>), or open <strong>Adjust other country factors</strong> to test counterfactual economic and demographic conditions.</li>
         </ul>
 
         <button type="button" class="back-btn" id="btn-close-help">&larr; Back to Explorer</button>

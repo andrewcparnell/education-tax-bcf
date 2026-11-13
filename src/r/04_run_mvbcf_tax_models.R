@@ -1142,6 +1142,61 @@ fit_dml_10y <- function(d_in, y_cols, z_col, extra_con = mediators_10y) {
 }
 bench_dml <- fit_dml_10y(df_common_10y, y10_cols, "Z_cont_10pp")
 
+# Benchmark 5: Frequentist Nonparametric Orthogonal Causal Forest (R-Learner; Athey et al. 2019; Nie & Wager 2021)
+fit_causal_forest_10y <- function(d_in, y_cols, z_col, extra_con = mediators_10y) {
+  keep <- complete.cases(d_in[, c(y_cols, z_col)])
+  d <- d_in[keep, , drop = FALSE]
+  use_con <- unique(c(base_con_vars, extra_con))
+  X_mat <- prep_matrix_oof(d, use_con)
+  W_df  <- as.data.frame(prep_matrix_oof(d, base_mod_vars))
+  Z <- as.numeric(d[[z_col]])
+  folds <- sort(unique(d$country_fold))
+  z_hat_cv <- estimate_rf_z_hat(d, Z, base_con_vars, country_cv = TRUE, seed = 20261103)
+  z_tilde  <- Z - z_hat_cv
+  clusters <- d$iso3
+  u_clus <- unique(clusters)
+  G <- length(u_clus)
+  rows <- list()
+  for (j in 1:4) {
+    Y_j <- as.numeric(d[[y_cols[j]]])
+    y_tilde <- numeric(nrow(d))
+    for (f in folds) {
+      tr <- which(d$country_fold != f)
+      te <- which(d$country_fold == f)
+      rf_y <- ranger(Y_target ~ ., data = cbind(as.data.frame(X_mat[tr, , drop = FALSE]), Y_target = Y_j[tr]),
+                     num.trees = 500, min.node.size = 5, seed = 20261103 + 10 * j + f)
+      y_tilde[te] <- Y_j[te] - predict(rf_y, data = as.data.frame(X_mat[te, , drop = FALSE]))$predictions
+    }
+    valid_w <- abs(z_tilde) >= 0.10
+    pseudo_tau <- y_tilde[valid_w] / z_tilde[valid_w]
+    pseudo_tau <- pmin(pmax(pseudo_tau, quantile(pseudo_tau, 0.05)), quantile(pseudo_tau, 0.95))
+    rf_tau <- ranger(tau_target ~ ., data = cbind(W_df[valid_w, , drop = FALSE], tau_target = pseudo_tau),
+                     case.weights = z_tilde[valid_w]^2, num.trees = 500, min.node.size = 10, seed = 20261103 + 100 * j)
+    tau_hat_i <- predict(rf_tau, data = W_df)$predictions
+    ate_hat <- mean(tau_hat_i)
+    psi_i <- tau_hat_i + (z_tilde / mean(z_tilde^2)) * (y_tilde - tau_hat_i * z_tilde)
+    c_sums <- vapply(u_clus, function(cl) sum(psi_i[clusters == cl] - mean(psi_i)), numeric(1))
+    se_cl <- sqrt((G / (G - 1)) * sum(c_sums^2) / (nrow(d)^2))
+    p_pos <- 1 - pnorm(0, mean = ate_hat, sd = se_cl)
+    rows[[j]] <- tibble(
+      model_id = "B7_Causal_Forest_RLearner_10y",
+      model_label = "Benchmark 5: Frequentist Orthogonal Causal Forest (R-Learner, Clustered SE)",
+      horizon = "+10 years (t+2)",
+      n_obs = nrow(d),
+      n_countries = G,
+      outcome_index = j,
+      outcome = outcome_labels[j],
+      ate_mean = round(ate_hat, 3),
+      ate_sd = round(se_cl, 3),
+      ate_cri95_low = round(ate_hat - 1.96 * se_cl, 3),
+      ate_cri95_high = round(ate_hat + 1.96 * se_cl, 3),
+      prob_positive = round(p_pos, 3)
+    )
+  }
+  bind_rows(rows)
+}
+bench_cf <- fit_causal_forest_10y(df_common_10y, y10_cols, "Z_cont_10pp")
+
 table_benchmarks <- bind_rows(
   summarise_fit(m2_A_10y, "M2b_Direct_10pp_10y", "Primary: Joint Multivariate BCF Scaling A (mvbcf, D=4 + RF z_hat)", "+10 years (t+2)") %>%
     select(model_id, model_label, horizon, n_obs, n_countries, outcome_index, outcome, ate_mean, ate_sd, ate_cri95_low, ate_cri95_high, prob_positive),
@@ -1154,7 +1209,8 @@ table_benchmarks <- bind_rows(
   bench_bart,
   bench_lp,
   bench_twfe,
-  bench_dml
+  bench_dml,
+  bench_cf
 )
 save_both_tabs(table_benchmarks, "table_method_benchmarks.csv")
 cat("\n=== Causal Method Benchmarks & Ablation Table (+10y Direct Fiscal Effect) ===\n")
@@ -1300,6 +1356,14 @@ rob_binary_10y <- fit_mvbcf_spec(df, y10_cols, "Z_regime_inc", extra_con = media
 # R15: Identical Covariates in Baseline and Treatment Forests (W = X, all 19 baseline variables)
 rob_same_xw_10y <- fit_mvbcf_spec(df, y10_cols, "Z_cont_10pp", extra_con = mediators_10y, mod_cols = base_con_vars)
 
+# R16: Zero-Centred Continuous Treatment Scaling (Z_1 - 1.5 in [-1.5, +1.5])
+df$Z_cont_10pp_centred <- df$Z_cont_10pp - 1.5
+rob_zero_centred_10y <- fit_mvbcf_spec(df, y10_cols, "Z_cont_10pp_centred", extra_con = mediators_10y)
+
+# R17: Aggregate Budget Share (Z_4) on Common N = 283 Sample of Z_1 and Z_3
+df_common_z4_10y <- df %>% filter(complete.cases(across(all_of(c(y10_cols, "Z_cont_10pp", "Z_cont_budget_gdp_025pp")))))
+rob_common_z4_10y <- fit_mvbcf_spec(df_common_z4_10y, y10_cols, "Z_cont_budget_gdp_025pp", extra_con = mediators_10y)
+
 table4_robustness <- bind_rows(
   summarise_fit(rob_pure_wdi,       "R1_Pure_WDI_Tax_10y",      "Pure Unadjusted WDI Tax/GDP (+10y)",                    "+10 years (t+2)"),
   summarise_fit(rob_nonoverlap,     "R2_NonOverlap_10y",        "Non-Overlapping Decadal Waves (+10y)",                  "+10 years (t+2)"),
@@ -1316,7 +1380,9 @@ table4_robustness <- bind_rows(
   summarise_fit(rob_precovid_10y,   "R12_PreCOVID_Sample_10y",  "Pre-COVID Sample Excluding 2020-2024 Outcome Wave (+10y)", "+10 years (t+2)"),
   summarise_fit(rob_train_only_10y, "R13_TrainingSet_Only_10y", "Strictly 80% Training Countries Only (Folds 1-4, +10y)","+10 years (t+2)"),
   summarise_fit(rob_binary_10y,     "R14_Binary_Regime_10y",    "Legacy Binary Median-Cutoff Benchmark (Z in {0,1}, +10y)", "+10 years (t+2)"),
-  summarise_fit(rob_same_xw_10y,    "R15_Same_X_and_W_10y",     "Identical Covariates in Baseline and Treatment Forests (W = X, +10y)", "+10 years (t+2)")
+  summarise_fit(rob_same_xw_10y,    "R15_Same_X_and_W_10y",     "Identical Covariates in Baseline and Treatment Forests (W = X, +10y)", "+10 years (t+2)"),
+  summarise_fit(rob_zero_centred_10y, "R16_ZeroCentred_Z1_10y", "Zero-Centred Treatment Scaling (Z1 - 1.5 in [-1.5, +1.5], +10y)", "+10 years (t+2)"),
+  summarise_fit(rob_common_z4_10y,  "R17_CommonSample_Z4_10y",  "Aggregate Budget Share (Z4) on Common N=283 Sample (+10y)", "+10 years (t+2)")
 )
 
 save_both_tabs(table4_robustness, "table4_robustness_checks.csv")

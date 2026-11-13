@@ -57,7 +57,8 @@ req_tables <- c(
   "tableA1_convergence_and_fit_diagnostics.csv",
   "tableA2_compute_and_energy.csv",
   "tableA3_propensity_overlap_and_balance.csv",
-  "tableA4_latest_z0_countries_costs_and_returns.csv"
+  "tableA4_latest_z0_countries_costs_and_returns.csv",
+  "table_policy_maker_assistance_2024.csv"
 )
 
 for (tb in req_tables) {
@@ -77,7 +78,8 @@ req_figs <- c(
   "fig5_longitudinal_country_trajectories.pdf",
   "fig6_scaling_fit_and_holdout_validation.pdf",
   "figA1_mcmc_convergence_traces.pdf",
-  "figA2_scaling_a_vs_b_comparison.pdf"
+  "figA2_scaling_a_vs_b_comparison.pdf",
+  "figA3_policy_maker_roi_scatter.pdf"
 )
 
 for (fg in req_figs) {

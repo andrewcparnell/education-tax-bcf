@@ -300,14 +300,14 @@ panel_df <- panel_df %>%
                              (tert_spend_per_student_winsor - med_spend_winsor) / 10.0, NA_real_),
     Z_cont_log25pct_raw = ifelse(!is.na(log_tert_spend_winsor) & !is.na(med_log_spend_winsor),
                                  (log_tert_spend_winsor - med_log_spend_winsor) / log(1.25), NA_real_),
-    # Scaling A (Z_cont_10pp): Non-negative continuous dose in [0, 3] (+10 pp of GDP/pc per unit,
-    # winsorised at [-1.5, +1.5] around training income-group median and anchored at +1.5 so Z >= 0)
+    # Scaling A (Z_cont_10pp): Zero-centred continuous treatment in [-1.5, +1.5] (+10 pp of GDP/pc per unit,
+    # winsorised at [-1.5, +1.5] around training income-group median so Z = 0 at the median)
     Z_cont_10pp = ifelse(!is.na(Z_cont_10pp_raw),
-                         pmin(pmax(Z_cont_10pp_raw, -1.5), 1.5) + 1.5, NA_real_),
-    # Scaling B (Z_cont_log25pct): Non-negative continuous dose in [0, 3] (+25% relative increase per unit,
-    # winsorised at [-1.5, +1.5] around training income-group log median and anchored at +1.5 so Z >= 0)
+                         pmin(pmax(Z_cont_10pp_raw, -1.5), 1.5), NA_real_),
+    # Scaling B (Z_cont_log25pct): Zero-centred continuous treatment in [-1.5, +1.5] (+25% relative increase per unit,
+    # winsorised at [-1.5, +1.5] around training income-group log median so Z = 0 at the median)
     Z_cont_log25pct = ifelse(!is.na(Z_cont_log25pct_raw),
-                             pmin(pmax(Z_cont_log25pct_raw, -1.5), 1.5) + 1.5, NA_real_),
+                             pmin(pmax(Z_cont_log25pct_raw, -1.5), 1.5), NA_real_),
 
     # Tertiary Treatment 1: Per-Student Spending Ratio (% of GDP per person) Changes & Binary Reference
     prev_sp_winsor = lag(tert_spend_per_student_winsor, 1L),
@@ -316,7 +316,7 @@ panel_df <- panel_df %>%
     tert_spend_abs_change = ifelse(!is.na(tert_spend_per_student_winsor) & !is.na(prev_sp_winsor) & prev_sp_winsor > 0,
                                    tert_spend_per_student_winsor - prev_sp_winsor, NA_real_),
     Z_cont_delta_10pp = ifelse(!is.na(tert_spend_abs_change),
-                               pmin(pmax(tert_spend_abs_change / 10.0, -1.5), 1.5) + 1.5, NA_real_),
+                               pmin(pmax(tert_spend_abs_change / 10.0, -1.5), 1.5), NA_real_),
     Z_expansion_obs = ifelse(!is.na(tert_spend_abs_change) & !is.na(tert_spend_rel_change_pct),
                              ifelse(tert_spend_abs_change >= 2.5 & tert_spend_rel_change_pct >= 2.5, 1L, 0L), NA_integer_),
     Z_regime_inc = ifelse(!is.na(tert_spend_raw) & !is.na(med_spend_raw),
@@ -326,7 +326,7 @@ panel_df <- panel_df %>%
 
     # Tertiary Treatment 2: Real 2021 PPP Dollars per Tertiary Student (no GDP denominator)
     Z_cont_real_ppp_log25pct = ifelse(!is.na(log_real_tert_spend_per_student) & !is.na(med_real_spend),
-                                      pmin(pmax((log_real_tert_spend_per_student - med_real_spend) / log(1.25), -1.5), 1.5) + 1.5, NA_real_),
+                                      pmin(pmax((log_real_tert_spend_per_student - med_real_spend) / log(1.25), -1.5), 1.5), NA_real_),
     prev_log_rsp = lag(log_real_tert_spend_per_student, 1L),
     d_log_real_spend_stu_pct = ifelse(!is.na(log_real_tert_spend_per_student) & !is.na(prev_log_rsp),
                                       (log_real_tert_spend_per_student - prev_log_rsp) * 100.0, NA_real_),
@@ -337,7 +337,7 @@ panel_df <- panel_df %>%
 
     # Tertiary Treatment 3: Public Tertiary Budget % of GDP (no student headcount denominator)
     Z_cont_budget_gdp_025pp = ifelse(!is.na(tert_spend_gdp_pct) & !is.na(med_tert_gdp),
-                                     pmin(pmax((tert_spend_gdp_pct - med_tert_gdp) / 0.25, -1.5), 1.5) + 1.5, NA_real_),
+                                     pmin(pmax((tert_spend_gdp_pct - med_tert_gdp) / 0.25, -1.5), 1.5), NA_real_),
     prev_bgdp = lag(tert_spend_gdp_pct, 1L),
     d_tert_spend_gdp_pp = ifelse(!is.na(tert_spend_gdp_pct) & !is.na(prev_bgdp),
                                  tert_spend_gdp_pct - prev_bgdp, NA_real_),
