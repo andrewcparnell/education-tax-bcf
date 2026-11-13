@@ -1,3 +1,4 @@
+\pdfoutput=1
 \documentclass[11pt,a4paper]{article}
 
 \usepackage[utf8]{inputenc}
@@ -9,6 +10,7 @@
 \usepackage{booktabs}
 \usepackage{array}
 \usepackage{graphicx}
+\graphicspath{{./}{../outputs/figures/}}
 \usepackage{float}
 \providecommand{\FloatBarrier}{}
 \usepackage[table]{xcolor}
@@ -67,7 +69,7 @@ A third obstacle is that university investments are continuous policy choices th
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=\textwidth]{../outputs/figures/fig1_structural_schematic.pdf}
+  \includegraphics[width=\textwidth]{fig1_structural_schematic.pdf}
   \caption{Overview of the study design across 121 countries from 1985 to 2024. Box 1 shows the four continuous university funding measures ($Z_1$ to $Z_4$, tested in turn in separate models), Box 2A shows the 19 pre-treatment country covariates ($X_1$ to $X_{19}$), predicted funding $\hat{z}(X)$, and the eight treatment-effect moderators ($W \subset X$) that modify the direct causal slope $\tau(W_i)$, Box 2B shows the four follow-up macroeconomic growth mediators ($M_1$ to $M_4$), and Box 3 shows the four percentage-point tax revenue changes ($Y_1$ to $Y_4$, modelled jointly in every run) over $+5$ and $+10$ years.}
   \label{fig:schematic}
 \end{figure}
@@ -135,7 +137,7 @@ Because both GDP per person and student headcount appear in the denominator, cou
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=0.96\textwidth]{../outputs/figures/fig0_panel_data_overview.pdf}
+  \includegraphics[width=0.96\textwidth]{fig0_panel_data_overview.pdf}
   \caption{Observed distributions of (A) the UNESCO per-student spending ratio (\% of GDP per person, used for $Z_1$ and winsorised at 150\% for display), (B) real spending per university student in 2021 PPP dollars (used for $Z_3$), (C) gross tertiary enrolment ratio (\%), and (D) baseline direct income and profit tax share (\% of revenue, $Y_3$) across the four World Bank income groups. Horizontal dashed lines mark the global median (or mean in Panel D).}
   \label{fig:data_overview}
 \end{figure}
@@ -202,7 +204,7 @@ We begin by examining our primary question using funding measure $Z_1$. When a c
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=\textwidth]{../outputs/figures/fig2_total_vs_direct_tax_posteriors.pdf}
+  \includegraphics[width=\textwidth]{fig2_total_vs_direct_tax_posteriors.pdf}
   \caption{Posterior mean treatment slopes (in percentage points, pp, per $+10$ pp increase in per-student university spending $Z_1$) across the four jointly modelled tax outcomes ($Y_1$ to $Y_4$) at $+5$ years ($N = 371$, blue) and $+10$ years ($N = 283$, green). Thick horizontal bars show 80\% Bayesian posterior credible intervals, thin horizontal lines show 95\% credible intervals, and $P = \Pr(\tau > 0 \mid \text{data})$ denotes the posterior probability that the causal slope is greater than zero given the observed data.}
   \label{fig:posteriors}
 \end{figure}
@@ -219,7 +221,7 @@ Whilst Figure~\ref{fig:posteriors} compared the $+5$-year and $+10$-year time ho
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=\textwidth]{../outputs/figures/fig3_denominator_unbundling_horserace.pdf}
+  \includegraphics[width=\textwidth]{fig3_denominator_unbundling_horserace.pdf}
   \caption{Comparison of $+10$-year posterior mean slopes (in percentage points, pp) across the four continuous university funding measures ($Z_1$ to $Z_4$, estimated in separate models) for total non-resource tax/GDP ($Y_1$), direct income tax/GDP ($Y_2$), and the direct income tax share of revenue ($Y_3$). Thick horizontal bars show 80\% Bayesian credible intervals, thin lines show 95\% credible intervals, and $P = \Pr(\tau > 0 \mid \text{data})$ denotes the posterior probability of a positive effect. Protecting real resources per student ($Z_1$, $Z_2$, and $Z_3$) raises 10-year direct income tax revenue, whereas expanding the aggregate budget without accounting for student numbers ($Z_4$) yields near-zero tax-to-GDP gains.}
   \label{fig:horserace}
 \end{figure}
@@ -233,7 +235,7 @@ How do the causal slopes per $+10$ pp of per-student funding ($Z_1$) vary across
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=\textwidth]{../outputs/figures/fig4_enrolment_and_oecd_moderation.pdf}
+  \includegraphics[width=\textwidth]{fig4_enrolment_and_oecd_moderation.pdf}
   \caption{Subgroup $+10$-year posterior mean slopes (in percentage points, pp per $+10$ pp per-student funding increase $Z_1$) across starting university enrolment tiers and World Bank income groups for total non-resource tax/GDP ($Y_1$), direct income tax/GDP ($Y_2$), and the direct income tax share ($Y_3$). Horizontal bars show 95\% Bayesian credible intervals, and $P = \Pr(\tau > 0 \mid \text{data})$ gives the posterior probability of a positive effect.}
   \label{fig:moderation}
 \end{figure}
@@ -245,7 +247,7 @@ To show how these effects evolve from the initial $+5$-year window to the $+10$-
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=\textwidth]{../outputs/figures/fig5_longitudinal_country_trajectories.pdf}
+  \includegraphics[width=\textwidth]{fig5_longitudinal_country_trajectories.pdf}
   \caption{Five-year ($N = 371$) and 10-year ($N = 283$) cohort maturation trajectories of the causal slopes per $+10$ pp university spending increase ($Z_1$) across World Bank income groups for (A) total non-resource tax revenue as a percentage of GDP ($Y_1$, pp) and (B) the direct income and profit tax share of revenue ($Y_3$, pp). Coloured lines show income-group mean trajectories (with the callout in Panel A noting that 243 of 371 country-waves, or 65.5\%, are negative at $+5$ years due to student lock-in), the dotted line marks the global posterior mean, and the shaded bands show the global 80\% (dark grey) and 95\% (light grey) posterior credible fan.}
   \label{fig:trajectories}
 \end{figure}
@@ -269,7 +271,7 @@ To test how well the model predicts fiscal changes in unseen countries, Figure~\
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=\textwidth]{../outputs/figures/fig6_scaling_fit_and_holdout_validation.pdf}
+  \includegraphics[width=\textwidth]{fig6_scaling_fit_and_holdout_validation.pdf}
   \caption{Out-of-sample 5-fold country-blocked cross-validation error across all 112 countries at the $+10$-year horizon ($N = 283$), comparing continuous MV-BCF ($Z_1$) against single-forest BART, random forests, historical training means, ridge regression ($L_2$), zero-change persistence, and linear local projections across $Y_1$ (total non-resource tax/GDP), $Y_2$ (direct income tax/GDP), and $Y_3$ (direct income tax share of revenue). Horizontal bars show mean out-of-sample Continuous Ranked Probability Score (CRPS, pp, lower is better) and text labels give CRPS and Root Mean Squared Error (RMSE, pp).}
   \label{fig:holdout}
 \end{figure}
@@ -793,7 +795,7 @@ Table~\ref{tab:mcmc} and Figure~\ref{fig:traces} present the post-burn-in MCMC c
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=\textwidth]{../outputs/figures/figA1_mcmc_convergence_traces.pdf}
+  \includegraphics[width=\textwidth]{figA1_mcmc_convergence_traces.pdf}
   \caption{Post-burn-in MCMC trace plots (1,250 retained draws) across all four tax outcomes ($Y_1$ to $Y_4$) from the $+5\text{y}$ and $+10\text{y}$ continuous-treatment Multivariate Bayesian Causal Forest sampler under both Linear Ratio Scaling A ($Z_1$, $+10$ pp) and Relative Logarithmic Scaling B ($+25\%$ log).}
   \label{fig:traces}
 \end{figure}
@@ -855,7 +857,7 @@ As discussed in Section~\ref{sec:unesco_trap}, the UNESCO per-student university
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=\textwidth]{../outputs/figures/figA2_scaling_a_vs_b_comparison.pdf}
+  \includegraphics[width=\textwidth]{figA2_scaling_a_vs_b_comparison.pdf}
   \caption{Head-to-head comparison of Linear Ratio Scaling A ($Z_1$, per $+10$ pp of GDP per person per student) vs Relative Logarithmic Scaling B (per $+25\%$ relative per-student increase): (A) $+5\text{y}$ and $+10\text{y}$ posterior slopes with 80\% and 95\% CIs, (B) standardised $+10\text{y}$ posterior residuals across $Z \in [-1.5, +1.5]$ with LOESS smooths for both scalings, and (C) observed (horizontal axis) vs out-of-sample predicted (vertical axis, with vertical 80\% predictive interval bars) 10-year changes in the direct income tax share ($Y_3$) across the 22 unseen holdout countries in Fold 5.}
   \label{fig:scaling_ab}
 \end{figure}
@@ -870,7 +872,7 @@ To supplement the cohort return-on-investment analysis in Section~\ref{sec:roi},
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=\textwidth]{../outputs/figures/figA3_policy_maker_roi_scatter.pdf}
+  \includegraphics[width=\textwidth]{figA3_policy_maker_roi_scatter.pdf}
   \caption{Current per-student university spending (\% of GDP per person, $Z_1$ base, horizontal axis) vs estimated 40-year career Return on Investment ratio ($\text{ROI} = \text{40-Year Career Tax Output} / \text{Cohort Degree Input}$, vertical axis, with points showing posterior means and vertical bars showing 95\% credible intervals) for (A) Total Non-Resource Tax ($Y_1$, full Exchequer return) and (B) Direct Income and Profit Tax ($Y_2$, conservative floor). The horizontal dashed line marks break-even ($\text{ROI} = 1.0\times$, where 40-year career tax output equals the cohort degree input cost), and the dotted line marks zero return ($0.0\times$). To keep the axes legible, four sub-Saharan African countries with UNESCO ratios above $60\%$ due to $<5\%$ tertiary enrolment (\texttt{BFA}, \texttt{CIV}, \texttt{RWA}, \texttt{TGO}) and four city-state or high-variance cases (\texttt{SGP}, \texttt{MAC}, \texttt{LUX}, \texttt{MDA}, \texttt{RUS}) are omitted from the plot but included in \texttt{outputs/tables/table\_policy\_maker\_assistance\_2024.csv} and the interactive web application.}
   \label{fig:roi_scatter}
 \end{figure}

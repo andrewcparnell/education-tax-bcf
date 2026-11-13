@@ -17,7 +17,6 @@ outputs/models/*.rds
 
 # Quarto / Typst / LaTeX build artifacts
 *.aux
-*.bbl
 *.blg
 *.fdb_latexmk
 *.fls
@@ -29,3 +28,5 @@ outputs/models/*.rds
 **/*.quarto_ipynb
 eda/*.html
 eda/*_files/
+arxiv_upload/
+arxiv_upload.zip
