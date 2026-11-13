@@ -29,17 +29,14 @@ if (!dir.exists(file.path(repo_root, "src")) && dir.exists(file.path(dirname(dir
 proc_dir    <- file.path(repo_root, "data", "processed")
 out_tab_dir <- file.path(repo_root, "outputs", "tables")
 out_fig_dir <- file.path(repo_root, "outputs", "figures")
-pap_fig_dir <- file.path(repo_root, "paper", "figures")
 
-for (d in c(out_tab_dir, out_fig_dir, pap_fig_dir)) {
+for (d in c(out_tab_dir, out_fig_dir)) {
   dir.create(d, recursive = TRUE, showWarnings = FALSE)
 }
 
 save_pub_fig <- function(p, fname_base, width, height) {
-  for (dir_path in c(out_fig_dir, pap_fig_dir)) {
-    ggsave(file.path(dir_path, paste0(fname_base, ".png")), p, width = width, height = height, dpi = 300)
-    ggsave(file.path(dir_path, paste0(fname_base, ".pdf")), p, width = width, height = height)
-  }
+  ggsave(file.path(out_fig_dir, paste0(fname_base, ".png")), p, width = width, height = height, dpi = 300)
+  ggsave(file.path(out_fig_dir, paste0(fname_base, ".pdf")), p, width = width, height = height)
 }
 
 theme_pub <- function(base_size = 12) {

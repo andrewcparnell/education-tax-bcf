@@ -5,8 +5,8 @@ authors:
     given-names: "Andrew C."
     affiliation: "School of Mathematics and Statistics, University College Dublin"
     email: "andrew.parnell1@ucd.ie"
-title: "Does Increasing Government Spending on Tertiary Education Improve the Future Tax Take? A Bayesian Causal Inference Analysis"
+title: "Does Increasing Government Spending on Tertiary Education Provide a Return on Investment? A Bayesian Causal Inference Analysis"
 version: 2.0.0
-date-released: 2026-11-08
+date-released: 2026-11-13
 license: MIT
 repository-code: "https://github.com/andrewcparnell/education-tax-bcf"

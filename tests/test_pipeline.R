@@ -68,7 +68,7 @@ for (tb in req_tables) {
   stopifnot(nrow(tb_df) > 0)
 }
 
-# 4. Verify all publication figures exist in outputs/figures/ and paper/figures/
+# 4. Verify all publication figures exist in outputs/figures/
 req_figs <- c(
   "fig1_structural_schematic.pdf",
   "fig0_panel_data_overview.pdf",
@@ -83,8 +83,6 @@ req_figs <- c(
 )
 
 for (fg in req_figs) {
-  fg_path <- file.path(repo_root, "paper", "figures", fg)
-  stopifnot(file.exists(fg_path))
   out_fg_path <- file.path(repo_root, "outputs", "figures", fg)
   stopifnot(file.exists(out_fg_path))
 }

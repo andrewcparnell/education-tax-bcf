@@ -15,9 +15,6 @@ format:
         #show table: set text(size: 8.8pt, hyphenate: false)
         #show table.cell: set par(justify: false, leading: 0.50em)
         #set table(inset: (x: 4.5pt, y: 4.5pt))
-  html:
-    toc: true
-    number-sections: true
 execute:
   echo: false
   warning: false

@@ -27,3 +27,5 @@ outputs/models/*.rds
 *.typ
 **/.quarto/
 **/*.quarto_ipynb
+eda/*.html
+eda/*_files/
