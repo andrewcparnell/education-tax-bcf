@@ -3,6 +3,8 @@
 
 **Author:** Andrew C. Parnell (School of Mathematics and Statistics, University College Dublin)
 
+**[Read the Paper (PDF)](paper/paper.pdf)** | **[Standalone Markdown (`paper.md`)](paper/paper.md)** | **[70-Country Policy-Maker ROI Table (`CSV`)](outputs/tables/table_policy_maker_assistance_2024.csv)**
+
 ### Overview
 This repository contains the end-to-end R and C++ data pipeline, exploratory data analysis, continuous-treatment Multivariate Bayesian Causal Forest implementation (`mvbcf`), unseen-country holdout validation, publication figures, manuscript, and interactive policy web application investigating whether increased public investment in tertiary (university) education provides a positive fiscal return on investment at the $+5$-year, $+10$-year, and 40-year cohort career horizons once mediating macroeconomic variables are separated out.
 
