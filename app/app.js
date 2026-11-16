@@ -158,6 +158,14 @@
     return `${sign}${sym}${Math.round(Math.abs(n)).toLocaleString("en-GB")} / person`;
   }
 
+  function formatProbVal(p, withEq) {
+    if (p === null || p === undefined || !Number.isFinite(Number(p))) return "N/A";
+    const v = Number(p);
+    if (v > 0.99) return withEq ? " > 0.99" : "> 0.99";
+    if (v < 0.01) return withEq ? " < 0.01" : "< 0.01";
+    return (withEq ? " = " : "") + v.toFixed(2);
+  }
+
   function formatEffectValue(val, forcePP) {
     if (val === null || val === undefined || !Number.isFinite(Number(val))) return "N/A";
     const n = Number(val);
@@ -596,7 +604,7 @@
           yMeanStr,
           yLowStr,
           yHighStr,
-          p.roi.probNetPos.toFixed(2),
+          formatProbVal(p.roi.probNetPos, false),
           p.c.income_group || ""
         ];
       }),
@@ -717,8 +725,8 @@
           return (
             `<span style="display:inline-block; background:#ffffff; border:1px solid #cbd5e1; border-radius:5px; padding:0.25rem 0.55rem; margin:0.18rem 0.3rem 0.18rem 0; font-size:0.78rem;">` +
             `<b>${c.country_name}:</b> Input <b>${roiY1.sym}${roiY1.costTotBn.toFixed(2)}B</b> &rarr; ` +
-            `40y Total Tax (Y1) <b style="color:#136f63;">${fmtBn(roiY1.sym, roiY1.careerBnMean)}</b> (${roiY1.bcr.toFixed(2)}x, P<sub>net</sub>=${roiY1.probNetPos.toFixed(2)}) | ` +
-            `Inc. Tax Floor (Y2) <b style="color:#0b2545;">${fmtBn(roiY2.sym, roiY2.careerBnMean)}</b> (${roiY2.bcr.toFixed(2)}x, P<sub>net</sub>=${roiY2.probNetPos.toFixed(2)})` +
+            `40y Total Tax (Y1) <b style="color:#136f63;">${fmtBn(roiY1.sym, roiY1.careerBnMean)}</b> (${roiY1.bcr.toFixed(2)}x, P<sub>net</sub>${formatProbVal(roiY1.probNetPos, true)}) | ` +
+            `Inc. Tax Floor (Y2) <b style="color:#0b2545;">${fmtBn(roiY2.sym, roiY2.careerBnMean)}</b> (${roiY2.bcr.toFixed(2)}x, P<sub>net</sub>${formatProbVal(roiY2.probNetPos, true)})` +
             `</span>`
           );
         })
@@ -821,8 +829,8 @@
             ? `${sym}${r.roi.costTotBn.toFixed(2)} bn (${r.roi.costGdpPct.toFixed(2)}% of GDP)`
             : `${sym}${r.roi.costTotBn.toFixed(2)} bn cohort input`;
           const bcrStr = isRev && r.roi.bcr !== null
-            ? `${r.roi.bcr.toFixed(2)}x cohort input | P(net return > 0) = ${r.roi.probNetPos.toFixed(2)}`
-            : `Posterior P(effect > 0) = ${r.roi.probNetPos.toFixed(2)}`;
+            ? `${r.roi.bcr.toFixed(2)}x cohort input | P(net return > 0) ${formatProbVal(r.roi.probNetPos, true)}`
+            : `Posterior P(effect > 0) ${formatProbVal(r.roi.probNetPos, true)}`;
           return [outStr, ci95Str, inStr, bcrStr, formatCountryContextLines(r.c)];
         }),
         hovertemplate:
@@ -875,7 +883,7 @@
             y: r.c.country_name,
             xref: "x",
             yref: "y",
-            text: `<b>${r.roi.bcr.toFixed(2)}x</b> (P<sub>net</sub>=${r.roi.probNetPos.toFixed(2)})`,
+            text: `<b>${r.roi.bcr.toFixed(2)}x</b> (P<sub>net</sub>${formatProbVal(r.roi.probNetPos, true)})`,
             yshift: 14,
             showarrow: false,
             font: { size: 10.5, color: "#0f172a" }
@@ -2166,14 +2174,14 @@
         `<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:0.55rem; margin-bottom:0.4rem;">` +
         `<div style="background:#ffffff; border:1px solid #cbd5e1; border-left:3px solid #136f63; border-radius:4px; padding:0.4rem 0.6rem;">` +
         `<b>Full Exchequer 40-Yr Career Output (Y1 Total Tax):</b> <b style="color:#136f63;">${fmtBn(careerTax8Bn)}</b><br/>` +
-        `<span style="font-size:0.78rem; color:#334155;">95% CI [${fmtBn(careerTax8Bn - careerTaxHalf95Bn)}, ${fmtBn(careerTax8Bn + careerTaxHalf95Bn)}] | <b>BCR = ${bcrTax.toFixed(2)}x</b> | <b>P(net &gt; 0) = ${probNetPosTax.toFixed(2)}</b> (includes income, corporate, payroll/PRSI &amp; VAT)</span>` +
+        `<span style="font-size:0.78rem; color:#334155;">95% CI [${fmtBn(careerTax8Bn - careerTaxHalf95Bn)}, ${fmtBn(careerTax8Bn + careerTaxHalf95Bn)}] | <b>BCR = ${bcrTax.toFixed(2)}x</b> | <b>P(net &gt; 0)${formatProbVal(probNetPosTax, true)}</b> (includes income, corporate, payroll/PRSI &amp; VAT)</span>` +
         `</div>` +
         `<div style="background:#ffffff; border:1px solid #cbd5e1; border-left:3px solid #0b2545; border-radius:4px; padding:0.4rem 0.6rem;">` +
         `<b>Conservative Floor 40-Yr Output (Y2 Direct Income Tax Only):</b> <b style="color:#0b2545;">${fmtBn(careerInc8Bn)}</b><br/>` +
-        `<span style="font-size:0.78rem; color:#334155;">95% CI [${fmtBn(careerInc8Bn - careerIncHalf95Bn)}, ${fmtBn(careerInc8Bn + careerIncHalf95Bn)}] | <b>BCR = ${bcrInc.toFixed(2)}x</b> | <b>P(net &gt; 0) = ${probNetPosInc.toFixed(2)}</b> (paycheque &amp; corporate profit taxes alone)</span>` +
+        `<span style="font-size:0.78rem; color:#334155;">95% CI [${fmtBn(careerInc8Bn - careerIncHalf95Bn)}, ${fmtBn(careerInc8Bn + careerIncHalf95Bn)}] | <b>BCR = ${bcrInc.toFixed(2)}x</b> | <b>P(net &gt; 0)${formatProbVal(probNetPosInc, true)}</b> (paycheque &amp; corporate profit taxes alone)</span>` +
         `</div>` +
         `</div>` +
-        `<div style="color:#136f63; font-weight:600; font-size:0.81rem;">Treasury pitch: &ldquo;Investing ${costInfo.sym}${costInfo.costTotBn.toFixed(2)} bn to educate one cohort of university students in ${c.country_name} returns ${fmtBn(careerInc8Bn)} (${bcrInc.toFixed(2)}x) from direct income and profit taxes alone (Y2), and ${fmtBn(careerTax8Bn)} (${bcrTax.toFixed(2)}x, P(net &gt; 0) = ${probNetPosTax.toFixed(2)}, 95% CI [${fmtBn(careerTax8Bn - careerTaxHalf95Bn)}, ${fmtBn(careerTax8Bn + careerTaxHalf95Bn)}]) in total Exchequer tax revenue (Y1) across their 40-year career.&rdquo;</div>`;
+        `<div style="color:#136f63; font-weight:600; font-size:0.81rem;">Treasury pitch: &ldquo;Investing ${costInfo.sym}${costInfo.costTotBn.toFixed(2)} bn to educate one cohort of university students in ${c.country_name} returns ${fmtBn(careerInc8Bn)} (${bcrInc.toFixed(2)}x) from direct income and profit taxes alone (Y2), and ${fmtBn(careerTax8Bn)} (${bcrTax.toFixed(2)}x, P(net &gt; 0)${formatProbVal(probNetPosTax, true)}, 95% CI [${fmtBn(careerTax8Bn - careerTaxHalf95Bn)}, ${fmtBn(careerTax8Bn + careerTaxHalf95Bn)}]) in total Exchequer tax revenue (Y1) across their 40-year career.&rdquo;</div>`;
     }
 
     const revOutcomes = [

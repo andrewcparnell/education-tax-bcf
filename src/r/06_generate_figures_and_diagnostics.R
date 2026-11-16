@@ -358,7 +358,15 @@ p_fig3 <- ggplot(fig3_df, aes(x = ate_mean, y = exposure_label, colour = outcome
   geom_errorbar(aes(xmin = ate_cri80_low, xmax = ate_cri80_high), width = 0.0, linewidth = 1.9, orientation = "y") +
   geom_point(size = 3.2) +
   geom_text(
-    aes(label = sprintf("%+.2f pp (P = %.2f)", ate_mean, round(prob_positive + 1e-9, 2))),
+    aes(label = ifelse(
+      prob_positive > 0.99,
+      sprintf("%+.2f pp (P > 0.99)", ate_mean),
+      ifelse(
+        prob_positive < 0.01,
+        sprintf("%+.2f pp (P < 0.01)", ate_mean),
+        sprintf("%+.2f pp (P = %.2f)", ate_mean, round(prob_positive + 1e-9, 2))
+      )
+    )),
     vjust = -0.85, size = 2.95, fontface = "bold", show.legend = FALSE
   ) +
   facet_wrap(~ outcome_clean, ncol = 3, scales = "free_x", labeller = label_parsed) +
