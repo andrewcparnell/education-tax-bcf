@@ -678,9 +678,10 @@ cat("Generating Figure 6: Out-of-Sample Country Cross-Validation...\n")
 cv_tab_main <- read_csv(file.path(out_tab_dir, "table_holdout_country_validation.csv"), show_col_types = FALSE) %>%
   filter(
     split_type == "5-Fold Country-Blocked CV (All 112 Countries, +10y)",
-    outcome_code %in% c("tax_gdp_pp", "inc_tax_gdp_pp", "inc_tax_share_pp"),
+    outcome_code %in% c("tax_gdp_pp", "inc_tax_gdp_pp", "inc_tax_share_pp", "goods_tax_share_pp"),
     model %in% c(
       "1. MV-BCF Scaling A (Z_cont_10pp)",
+      "9. MV-BCF Prognostic-Only (tau = 0)",
       "3. Single-Forest BART",
       "4. Random Forest (ranger)",
       "5. Ridge Regression (L2)",
@@ -692,17 +693,19 @@ cv_tab_main <- read_csv(file.path(out_tab_dir, "table_holdout_country_validation
   mutate(
     outcome_short = factor(
       outcome_code,
-      levels = c("tax_gdp_pp", "inc_tax_gdp_pp", "inc_tax_share_pp"),
+      levels = c("tax_gdp_pp", "inc_tax_gdp_pp", "inc_tax_share_pp", "goods_tax_share_pp"),
       labels = c(
         'bold(Y[1] * ": Non-Resource Tax / GDP")',
         'bold(Y[2] * ": Direct Income Tax / GDP")',
-        'bold(Y[3] * ": Direct Income Tax Share")'
+        'bold(Y[3] * ": Direct Income Tax Share")',
+        'bold(Y[4] * ": Goods & Services Tax Share")'
       )
     ),
     model_short = factor(
       model,
       levels = rev(c(
         "1. MV-BCF Scaling A (Z_cont_10pp)",
+        "9. MV-BCF Prognostic-Only (tau = 0)",
         "3. Single-Forest BART",
         "4. Random Forest (ranger)",
         "7. Historical Training Mean",
@@ -711,37 +714,50 @@ cv_tab_main <- read_csv(file.path(out_tab_dir, "table_holdout_country_validation
         "6. Linear Local Projections (OLS)"
       ))
     ),
-    is_mvbcf = ifelse(grepl("MV-BCF", model), "Continuous MV-BCF", "Benchmark Baseline")
+    is_mvbcf = case_when(
+      model == "1. MV-BCF Scaling A (Z_cont_10pp)" ~ "Full MV-BCF (with tau)",
+      model == "9. MV-BCF Prognostic-Only (tau = 0)" ~ "MV-BCF Prognostic-Only (tau = 0)",
+      TRUE ~ "Benchmark Baseline"
+    )
   )
 
 p_fig6 <- ggplot(cv_tab_main, aes(x = crps, y = model_short, fill = is_mvbcf)) +
-  geom_col(width = 0.65, alpha = 0.88) +
-  geom_text(aes(label = sprintf("%.2f (RMSE %.2f)", crps, rmse)), hjust = -0.05, size = 2.75, fontface = "bold", colour = "#102a43") +
-  facet_wrap(~ outcome_short, ncol = 3, scales = "free_x", labeller = label_parsed) +
+  geom_col(width = 0.66, alpha = 0.90) +
+  geom_text(
+    aes(label = sprintf("%.2f (RMSE %.2f, R2 %+.2f)", crps, rmse, r2_oos_vs_mean)),
+    hjust = -0.04, size = 2.75, fontface = "bold", colour = "#102a43"
+  ) +
+  facet_wrap(~ outcome_short, ncol = 2, scales = "free_x", labeller = label_parsed) +
   scale_y_discrete(
     labels = c(
-      "6. Linear Local Projections (OLS)" = "Linear Local Projections",
+      "6. Linear Local Projections (OLS)" = "Linear Local Projections (OLS)",
       "8. Zero-Change Baseline (Delta Y = 0)" = "Zero-Change Persistence",
       "5. Ridge Regression (L2)" = expression("Ridge Regression (" * L[2] * ")"),
       "7. Historical Training Mean" = "Historical Training Mean",
       "4. Random Forest (ranger)" = "Random Forest (ranger)",
       "3. Single-Forest BART" = "Single-Forest BART",
-      "1. MV-BCF Scaling A (Z_cont_10pp)" = expression(bold("MV-BCF (" * Z[1] * ", +10 pp)"))
+      "9. MV-BCF Prognostic-Only (tau = 0)" = expression("MV-BCF (" * tau == 0 * ", Prognostic Only)"),
+      "1. MV-BCF Scaling A (Z_cont_10pp)" = expression(bold("MV-BCF (" * Z[1] * ", Full Model)"))
     )
   ) +
-  scale_x_continuous(expand = expansion(mult = c(0, 0.78))) +
+  scale_x_continuous(expand = expansion(mult = c(0, 0.86))) +
   scale_fill_manual(
     name = "Model Family:",
-    values = c("Continuous MV-BCF" = "#2b8a3e", "Benchmark Baseline" = "#94a3b8")
+    values = c(
+      "Full MV-BCF (with tau)" = "#2b8a3e",
+      "MV-BCF Prognostic-Only (tau = 0)" = "#1b6ca8",
+      "Benchmark Baseline" = "#94a3b8"
+    )
   ) +
   labs(
-    title = "Out-of-Sample Forecast Error Across 5-Fold Country-Blocked Cross-Validation (112 Countries)",
-    x = "Out-of-Sample Continuous Ranked Probability Score (CRPS, lower is better)",
+    title = "Out-of-Sample Forecast Error & Predictive Skill Across 5-Fold Country-Blocked CV (112 Countries)",
+    subtitle = "Bars show Continuous Ranked Probability Score (CRPS, pp, lower is better); labels give CRPS, RMSE, and Out-of-Sample R2 vs Historical Mean",
+    x = "Out-of-Sample Continuous Ranked Probability Score (CRPS, pp, lower is better)",
     y = NULL
   ) +
-  theme_pub(11)
+  theme_pub(10.8)
 
-save_pub_fig(p_fig6, "fig6_scaling_fit_and_holdout_validation", 11.4, 4.6)
+save_pub_fig(p_fig6, "fig6_scaling_fit_and_holdout_validation", 12.0, 7.6)
 
 # ==============================================================================
 # Appendix Figure A2: Head-to-Head Comparison of Scaling A (+10 pp Ratio)
@@ -839,7 +855,11 @@ holdout_preds_ab <- read_csv(file.path(out_tab_dir, "table_country_holdout_predi
     outcome_code == "inc_tax_share_pp"
   ) %>%
   mutate(
-    scaling_short = ifelse(grepl("Scaling A", model), "Scaling A (+10 pp Ratio, CRPS = 3.24)", "Scaling B (+25% Relative Log, CRPS = 3.15)"),
+    scaling_short = ifelse(
+      grepl("Scaling A", model),
+      "Scaling A (+10 pp Ratio)\nR2_oos = +0.14 | Cal. Slope = 0.83 [0.29, 1.37], r = 0.38",
+      "Scaling B (+25% Log-Relative)\nR2_oos = +0.16 | Cal. Slope = 1.01 [0.41, 1.61], r = 0.42"
+    ),
     y_pred_low80 = y_pred - 1.2816 * pred_sd,
     y_pred_high80 = y_pred + 1.2816 * pred_sd
   ) %>%
@@ -862,7 +882,10 @@ p_figA2_c <- ggplot(holdout_preds_ab, aes(x = y_obs, y = y_pred, colour = scalin
   ) +
   facet_wrap(~ scaling_short, ncol = 2) +
   scale_colour_manual(
-    values = c("Scaling A (+10 pp Ratio, CRPS = 3.24)" = "#1b6ca8", "Scaling B (+25% Relative Log, CRPS = 3.15)" = "#2b8a3e"),
+    values = c(
+      "Scaling A (+10 pp Ratio)\nR2_oos = +0.14 | Cal. Slope = 0.83 [0.29, 1.37], r = 0.38" = "#1b6ca8",
+      "Scaling B (+25% Log-Relative)\nR2_oos = +0.16 | Cal. Slope = 1.01 [0.41, 1.61], r = 0.42" = "#2b8a3e"
+    ),
     guide = "none"
   ) +
   labs(

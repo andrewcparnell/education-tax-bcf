@@ -1,0 +1,9 @@
+horizon,n_obs,n_chains,n_iter_per_chain,n_retained_total,outcome_index,outcome,outcome_code,ate_mean_4chain,ate_sd_4chain,ci95_low_4chain,ci95_high_4chain,prob_pos_4chain,rhat_4chain,ess_4chain,mcse_mean_4chain,mcse_prob_4chain
++5y (N=371),371,4,3000,8000,1,Non-Resource Tax / GDP (pp),tax_gdp_pp,-0.03,0.124,-0.272,0.216,0.4,1.005,1932,0.0028,0.011
++5y (N=371),371,4,3000,8000,2,Direct Income & Profit Tax / GDP (pp),inc_tax_gdp_pp,0.075,0.066,-0.055,0.202,0.868,1.003,1889,0.0015,0.008
++5y (N=371),371,4,3000,8000,3,Direct Income & Profit Share of Revenue (pp),inc_tax_share_pp,0.445,0.273,-0.084,0.979,0.95,1.004,1855,0.0063,0.005
++5y (N=371),371,4,3000,8000,4,Goods & Services Tax Share of Revenue (pp),goods_tax_share_pp,0.054,0.291,-0.505,0.625,0.57,1.003,1132,0.0087,0.015
++10y (N=283),283,4,3000,8000,1,Non-Resource Tax / GDP (pp),tax_gdp_pp,0.31,0.203,-0.085,0.706,0.936,1.004,783,0.0073,0.009
++10y (N=283),283,4,3000,8000,2,Direct Income & Profit Tax / GDP (pp),inc_tax_gdp_pp,0.152,0.106,-0.053,0.359,0.927,1.001,1515,0.0027,0.007
++10y (N=283),283,4,3000,8000,3,Direct Income & Profit Share of Revenue (pp),inc_tax_share_pp,0.71,0.408,-0.065,1.506,0.962,1.008,1197,0.0118,0.006
++10y (N=283),283,4,3000,8000,4,Goods & Services Tax Share of Revenue (pp),goods_tax_share_pp,-0.433,0.412,-1.234,0.384,0.147,1.002,767,0.0149,0.013

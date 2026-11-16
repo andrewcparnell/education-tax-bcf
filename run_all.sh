@@ -41,6 +41,7 @@ fi
 
 echo "[4/9] Running Step 04: Fitting Continuous Multivariate BCF (mvbcf), CV, holdout & benchmarks..."
 Rscript src/r/04_run_mvbcf_tax_models.R
+Rscript src/r/07_extended_referee_diagnostics.R
 
 echo "[5/9] Running Step 05: Generating publication figures, residual & holdout diagnostics..."
 Rscript src/r/06_generate_figures_and_diagnostics.R

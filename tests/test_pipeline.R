@@ -58,6 +58,8 @@ req_tables <- c(
   "tableA2_compute_and_energy.csv",
   "tableA3_propensity_overlap_and_balance.csv",
   "tableA4_latest_z0_countries_costs_and_returns.csv",
+  "tableA5_multichain_mcmc_diagnostics.csv",
+  "tableA6_extended_residual_diagnostics.csv",
   "table_policy_maker_assistance_2024.csv"
 )
 
