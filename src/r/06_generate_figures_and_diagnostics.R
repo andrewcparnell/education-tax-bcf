@@ -1298,6 +1298,7 @@ tab_policy_2024 <- w8_2024 %>%
       cohort_factor * (current_spend_raw / 100) * (enrol_2024_pct / 100) * 100
     ),
     gdp_2024_eur_bn = round(0.92 * (gdp_2024_ppp_usd * pop_2024) / 1e9, 2),
+    enrol_2024_pct = round(enrol_2024_pct, 1),
     current_spend_pct_gdp_pc = round(current_spend_pct_gdp_pc, 1),
     current_spend_ppp_usd = round(current_spend_ppp_usd, 0),
     current_budget_gdp_pct = round(base_tert_gdp_pct, 2),
@@ -1345,7 +1346,7 @@ tab_policy_2024 <- w8_2024 %>%
   arrange(desc(gdp_2024_eur_bn)) %>%
   select(
     iso3, country_name, income_group, is_oecd,
-    gdp_2024_eur_bn, current_spend_pct_gdp_pc, current_spend_ppp_usd, current_budget_gdp_pct, z1_centred,
+    gdp_2024_eur_bn, enrol_2024_pct, current_spend_pct_gdp_pc, current_spend_ppp_usd, current_budget_gdp_pct, z1_centred,
     cost_plus10pp_gdp_pct, cost_plus10pp_eur_bn,
     ret5_y1_tax_eur_bn, ret5_y2_inc_eur_bn, ret5_y3_share_pp,
     ret10_y1_tax_eur_bn, ret10_y2_inc_eur_bn, ret10_y3_share_pp, ret10_y3_low95_pp, ret10_y3_high95_pp, prob_pos_y3,
@@ -1359,75 +1360,104 @@ write_csv(tab_policy_2024, file.path(out_tab_dir, "table_policy_maker_assistance
 cat(sprintf("Saved Policy Maker Assistance 2024 table (%d countries with 2020-2024 figures)\n", nrow(tab_policy_2024)))
 
 # ==============================================================================
-# Appendix Figure A3: Investment Variable vs 40-Year Career ROI Scatter (95% CI)
+# Appendix Figure A3: Gross Tertiary Enrolment vs 40-Year Career ROI Scatter (95% CI)
 # ==============================================================================
-cat("Generating Appendix Figure A3: Investment Variable vs 40-Year Career ROI Scatter...\n")
+cat("Generating Appendix Figure A3: Gross Tertiary Enrolment vs 40-Year Career ROI Scatter...\n")
 
 roi_plot_df <- tab_policy_2024 %>%
   filter(
-    current_spend_pct_gdp_pc <= 60,
+    enrol_2024_pct >= 12,
+    enrol_2024_pct <= 112,
+    career_bcr_8cohort_tax >= -5,
+    career_bcr_8cohort_tax <= 18,
     !iso3 %in% c("SGP", "MAC", "MDA", "LUX", "RUS")
   ) %>%
   mutate(
-    group_label = ifelse(is_oecd == 1, "OECD High-Income Democracies", "Non-OECD & Emerging Economies"),
+    group_label = case_when(
+      iso3 == "IRL" ~ "Ireland",
+      is_oecd == 1 ~ "OECD High-Income Democracies",
+      TRUE ~ "Non-OECD & Emerging Economies"
+    ),
     label_flag = iso3 %in% c(
       "IRL", "GBR", "USA", "DEU", "FRA", "SWE", "NOR", "AUT", "ESP", "ITA",
       "POL", "CAN", "AUS", "NZL", "KOR", "CHE", "CHL", "MEX", "BRA", "ZAF",
-      "TUR", "COL", "ARG", "BGD", "GRC", "CZE", "PRT", "NLD"
+      "COL", "ARG", "BGD", "CZE", "PRT", "NLD", "BLR", "MYS"
     )
   )
 
-p_figA3_a <- ggplot(roi_plot_df, aes(x = current_spend_pct_gdp_pc, y = career_bcr_8cohort_tax, colour = group_label)) +
+p_figA3_a <- ggplot(roi_plot_df, aes(x = enrol_2024_pct, y = career_bcr_8cohort_tax, colour = group_label)) +
   geom_hline(yintercept = 1.0, linetype = "dashed", colour = "#0b2545", linewidth = 0.75) +
   geom_hline(yintercept = 0.0, linetype = "dotted", colour = "#be123c", linewidth = 0.65) +
+  geom_smooth(
+    aes(x = enrol_2024_pct, y = career_bcr_8cohort_tax),
+    inherit.aes = FALSE, method = "lm", formula = y ~ log(x),
+    se = FALSE, colour = "#0f2537", linewidth = 1.0, linetype = "solid"
+  ) +
   geom_errorbar(
     aes(ymin = career_bcr_8cohort_tax_low95, ymax = career_bcr_8cohort_tax_high95),
-    width = 0.45, alpha = 0.36, linewidth = 0.55
+    width = 0.85, alpha = 0.30, linewidth = 0.50
   ) +
-  geom_point(size = 2.6, alpha = 0.92) +
+  geom_point(aes(size = ifelse(iso3 == "IRL", 3.8, 2.7)), alpha = 0.95) +
+  scale_size_identity() +
   ggrepel::geom_text_repel(
     data = roi_plot_df %>% filter(label_flag),
     aes(label = iso3),
-    size = 2.65, fontface = "bold", colour = "#0f2537",
-    box.padding = 0.32, point.padding = 0.22, max.overlaps = 30, seed = 42, show.legend = FALSE
+    size = 2.8, fontface = "bold", colour = "#0f2537",
+    box.padding = 0.30, point.padding = 0.22, max.overlaps = 32, seed = 42, show.legend = FALSE
   ) +
-  coord_cartesian(ylim = c(-16, 38)) +
+  coord_cartesian(ylim = c(-11, 26)) +
+  scale_x_continuous(breaks = seq(20, 110, by = 15), labels = function(x) paste0(x, "%")) +
   scale_colour_manual(
-    values = c("OECD High-Income Democracies" = "#1b6ca8", "Non-OECD & Emerging Economies" = "#2b8a3e"),
-    name = "Economy Group"
+    values = c(
+      "Ireland" = "#d9480f",
+      "OECD High-Income Democracies" = "#1b6ca8",
+      "Non-OECD & Emerging Economies" = "#2b8a3e"
+    ),
+    name = "Country Group:"
   ) +
   labs(
-    title = "A. Full Exchequer Return (Y1: Total Non-Resource Tax): 40-Year Career ROI vs Current Per-Student Spending",
-    subtitle = "Points = posterior mean 40-year career ROI (Output / Input); vertical bars = 95% CIs | Dashed line = Break-Even (1.0x)",
-    x = "Current Per-Student University Spending (% of GDP per Person, Z1 Base)",
+    title = "A. Full Exchequer Return (Y1: Total Non-Resource Tax): 40-Year Career ROI vs Current Tertiary Enrolment",
+    subtitle = "Diminishing returns as university participation expands (Spearman rho = -0.78) | Points = mean ROI, vertical bars = 95% CIs, dashed line = Break-Even (1.0x)",
+    x = "Current Share of Young Adults in Tertiary Education (Gross Tertiary Enrolment, %)",
     y = "40-Year Career ROI Ratio (40y Total Tax Y1 / Cohort Input)"
   ) +
   theme_pub(10.5) +
   theme(legend.position = "top")
 
-p_figA3_b <- ggplot(roi_plot_df, aes(x = current_spend_pct_gdp_pc, y = career_bcr_8cohort, colour = group_label)) +
+p_figA3_b <- ggplot(roi_plot_df, aes(x = enrol_2024_pct, y = career_bcr_8cohort, colour = group_label)) +
   geom_hline(yintercept = 1.0, linetype = "dashed", colour = "#0b2545", linewidth = 0.75) +
   geom_hline(yintercept = 0.0, linetype = "dotted", colour = "#be123c", linewidth = 0.65) +
+  geom_smooth(
+    aes(x = enrol_2024_pct, y = career_bcr_8cohort),
+    inherit.aes = FALSE, method = "lm", formula = y ~ log(x),
+    se = FALSE, colour = "#0f2537", linewidth = 1.0, linetype = "solid"
+  ) +
   geom_errorbar(
     aes(ymin = career_bcr_8cohort_low95, ymax = career_bcr_8cohort_high95),
-    width = 0.45, alpha = 0.36, linewidth = 0.55
+    width = 0.85, alpha = 0.30, linewidth = 0.50
   ) +
-  geom_point(size = 2.6, alpha = 0.92) +
+  geom_point(aes(size = ifelse(iso3 == "IRL", 3.8, 2.7)), alpha = 0.95) +
+  scale_size_identity() +
   ggrepel::geom_text_repel(
     data = roi_plot_df %>% filter(label_flag),
     aes(label = iso3),
-    size = 2.65, fontface = "bold", colour = "#0f2537",
-    box.padding = 0.32, point.padding = 0.22, max.overlaps = 30, seed = 42, show.legend = FALSE
+    size = 2.8, fontface = "bold", colour = "#0f2537",
+    box.padding = 0.30, point.padding = 0.22, max.overlaps = 32, seed = 42, show.legend = FALSE
   ) +
-  coord_cartesian(ylim = c(-10, 21)) +
+  coord_cartesian(ylim = c(-6, 15)) +
+  scale_x_continuous(breaks = seq(20, 110, by = 15), labels = function(x) paste0(x, "%")) +
   scale_colour_manual(
-    values = c("OECD High-Income Democracies" = "#1b6ca8", "Non-OECD & Emerging Economies" = "#2b8a3e"),
+    values = c(
+      "Ireland" = "#d9480f",
+      "OECD High-Income Democracies" = "#1b6ca8",
+      "Non-OECD & Emerging Economies" = "#2b8a3e"
+    ),
     guide = "none"
   ) +
   labs(
-    title = "B. Conservative Floor (Y2: Direct Income & Profit Tax Only): 40-Year Career ROI vs Current Per-Student Spending",
-    subtitle = "Points = posterior mean 40-year career ROI (Output / Input); vertical bars = 95% CIs | Dashed line = Break-Even (1.0x)",
-    x = "Current Per-Student University Spending (% of GDP per Person, Z1 Base)",
+    title = "B. Conservative Floor (Y2: Direct Income & Profit Tax Only): 40-Year Career ROI vs Current Tertiary Enrolment",
+    subtitle = "Points = posterior mean 40-year career ROI (Output / Input); vertical bars = 95% CIs, curve = log-enrolment trend | Dashed line = Break-Even (1.0x)",
+    x = "Current Share of Young Adults in Tertiary Education (Gross Tertiary Enrolment, %)",
     y = "40-Year Career ROI Ratio (40y Direct Tax Y2 / Cohort Input)"
   ) +
   theme_pub(10.5)

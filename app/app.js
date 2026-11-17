@@ -317,7 +317,7 @@
   const t1State = {
     horizon: "career",
     outcome: "tax_gdp",
-    scatterX: "Z1",
+    scatterX: "enrolment",
     scatterY: "bcr",
     selectedIsos: ["IRL", "GBR", "NOR", "AUT", "CHL", "ZAF"],
     searchQuery: ""
@@ -515,10 +515,15 @@
     const outKey = t1State.outcome;
     const meta = OUTCOME_META[outKey] || OUTCOME_META.tax_gdp;
     const uCfg = UNIT_CONFIG[currentUnit] || UNIT_CONFIG.EUR_TOT;
-    const xKey = t1State.scatterX || "Z1";
+    const xKey = t1State.scatterX || "enrolment";
     const useBcr = (t1State.scatterY || "bcr") === "bcr" && !meta.isShareOfTax;
 
     const xAxisMeta = {
+      enrolment: {
+        label: "Current Share of Young Adults in Tertiary Education (Gross Tertiary Enrolment, %)",
+        getVal: (c) => Number(c.gross_tert_enrolment_pct),
+        fmt: (v) => `${Number(v).toFixed(1)}% tertiary enrolment`
+      },
       Z1: {
         label: "Current Per-Student University Spending (% of GDP per Person, Z1 Base)",
         getVal: (c) => Number(c.tert_spend_per_student_gdp_pc),
