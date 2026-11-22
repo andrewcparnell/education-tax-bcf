@@ -16,6 +16,17 @@ df_5y   <- read.csv("data/processed/panel_5y_with_icates.csv", stringsAsFactors 
 df_10y  <- read.csv("data/processed/panel_10y_with_icates.csv", stringsAsFactors = FALSE)
 tab_ate <- read.csv("outputs/tables/table1_mvbcf_ate_posteriors.csv", stringsAsFactors = FALSE)
 tab_sub <- read.csv("outputs/tables/table3_subgroup_cates.csv", stringsAsFactors = FALSE)
+tab_pol <- if (file.exists("outputs/tables/table_policy_maker_assistance_2024.csv")) {
+  read.csv("outputs/tables/table_policy_maker_assistance_2024.csv", stringsAsFactors = FALSE)
+} else {
+  data.frame(iso3 = character(0), stringsAsFactors = FALSE)
+}
+
+last_finite <- function(x) {
+  x <- x[is.finite(x)]
+  if (length(x) == 0) return(NA_real_)
+  round(tail(x, 1), 3)
+}
 
 # ------------------------------------------------------------------------------
 # 1. Country-Level Continuous CATE Slopes (+5y and +10y) + Baseline Moderators
@@ -35,6 +46,8 @@ country_rows <- lapply(all_isos, function(iso) {
   subf  <- subf[order(subf$wave_start_year), , drop = FALSE]
 
   ref <- if (nrow(sub10) > 0) sub10[nrow(sub10), ] else if (nrow(sub5) > 0) sub5[nrow(sub5), ] else subf[nrow(subf), ]
+  pol <- tab_pol[tab_pol$iso3 == iso, , drop = FALSE]
+  has_pol <- nrow(pol) > 0
 
   data.frame(
     iso3 = iso,
@@ -45,67 +58,80 @@ country_rows <- lapply(all_isos, function(iso) {
     oecd_finance_regime = ifelse(is.na(ref$oecd_finance_regime[1]), "Non-OECD", ref$oecd_finance_regime[1]),
     n_waves_5y = nrow(sub5),
     n_waves_10y = nrow(sub10),
-    # Baseline context (country average across estimation waves)
-    tert_spend_per_student_gdp_pc = mean_na(subf$tert_spend_per_student_winsor),
+    in_policy_2024 = has_pol,
+    # Latest 2020-2024 baseline context (falls back to latest available wave if not in 70-country 2024 table)
+    tert_spend_per_student_gdp_pc = if (has_pol) round(pol$current_spend_pct_gdp_pc[1], 2) else last_finite(subf$tert_spend_per_student_winsor),
     z_cont_10pp = mean_na(subf$Z_cont_10pp),
     z_cont_log25pct = mean_na(subf$Z_cont_log25pct),
-    real_tert_spend_per_student_ppp = mean_na(subf$real_tert_spend_per_student_ppp),
-    tert_spend_gdp_pct = mean_na(subf$tert_spend_gdp_pct),
-    gross_tert_enrolment_pct = mean_na(subf$gross_tert_enrolment_pct),
-    gross_seco_enrolment_pct = mean_na(subf$gross_seco_enrolment_pct),
+    real_tert_spend_per_student_ppp = if (has_pol) round(pol$current_spend_ppp_usd[1], 0) else last_finite(subf$real_tert_spend_per_student_ppp),
+    tert_spend_gdp_pct = if (has_pol) round(pol$current_budget_gdp_pct[1], 3) else last_finite(subf$tert_spend_gdp_pct),
+    gross_tert_enrolment_pct = if (has_pol) round(pol$enrol_2024_pct[1], 2) else last_finite(subf$gross_tert_enrolment_pct),
+    gross_seco_enrolment_pct = last_finite(subf$gross_seco_enrolment_pct),
     gdp_per_capita_ppp = mean_na(subf$gdp_per_capita_ppp_const2021),
-    gdp_per_capita_latest = mean_na(tail(na.omit(subf$gdp_per_capita_ppp_const2021), 1)),
-    population_latest = mean_na(tail(na.omit(subf$population_total), 1)),
-    log_gdp_pc_ppp = mean_na(subf$log_gdp_pc_ppp),
-    working_age_pop_pct = mean_na(subf$working_age_pop_15_64_pct),
-    non_resource_tax_gdp_pct = mean_na(subf$non_resource_tax_gdp_pct),
-    inc_tax_gdp_pct = mean_na(subf$inc_tax_gdp_pct),
-    inc_tax_share_pct = mean_na(subf$income_profit_tax_share_rev_pct),
-    goods_tax_share_pct = mean_na(subf$goods_services_tax_share_rev_pct),
-    gini_disp = mean_na(subf$gini_disp_harmonised),
-    life_expectancy_yrs = mean_na(subf$life_expectancy_birth_yrs),
+    gdp_per_capita_latest = last_finite(subf$gdp_per_capita_ppp_const2021),
+    population_latest = last_finite(subf$population_total),
+    gdp_2024_eur_bn = if (has_pol) round(pol$gdp_2024_eur_bn[1], 3) else NA_real_,
+    cost_plus10pp_gdp_pct = if (has_pol) round(pol$cost_plus10pp_gdp_pct[1], 4) else NA_real_,
+    log_gdp_pc_ppp = last_finite(subf$log_gdp_pc_ppp),
+    working_age_pop_pct = last_finite(subf$working_age_pop_15_64_pct),
+    non_resource_tax_gdp_pct = last_finite(subf$non_resource_tax_gdp_pct),
+    inc_tax_gdp_pct = last_finite(subf$inc_tax_gdp_pct),
+    inc_tax_share_pct = last_finite(subf$income_profit_tax_share_rev_pct),
+    goods_tax_share_pct = last_finite(subf$goods_services_tax_share_rev_pct),
+    gini_disp = last_finite(subf$gini_disp_harmonised),
+    life_expectancy_yrs = last_finite(subf$life_expectancy_birth_yrs),
     # +5y Continuous Slopes per +10 pp (Model M2a, Scaling A)
     tau5_tax_gdp = mean_na(sub5$m2_5y_tau_tax_gdp_pp),
+    tau5_tax_gdp_sd = mean_na(sub5$m2_5y_tau_sd_tax_gdp_pp),
     tau5_tax_gdp_low80 = mean_na(sub5$m2_5y_tau_low80_tax_gdp_pp),
     tau5_tax_gdp_high80 = mean_na(sub5$m2_5y_tau_high80_tax_gdp_pp),
     tau5_tax_gdp_low95 = mean_na(sub5$m2_5y_tau_low95_tax_gdp_pp),
     tau5_tax_gdp_high95 = mean_na(sub5$m2_5y_tau_high95_tax_gdp_pp),
     tau5_inc_gdp = mean_na(sub5$m2_5y_tau_inc_tax_gdp_pp),
+    tau5_inc_gdp_sd = mean_na(sub5$m2_5y_tau_sd_inc_tax_gdp_pp),
     tau5_inc_gdp_low80 = mean_na(sub5$m2_5y_tau_low80_inc_tax_gdp_pp),
     tau5_inc_gdp_high80 = mean_na(sub5$m2_5y_tau_high80_inc_tax_gdp_pp),
     tau5_inc_gdp_low95 = mean_na(sub5$m2_5y_tau_low95_inc_tax_gdp_pp),
     tau5_inc_gdp_high95 = mean_na(sub5$m2_5y_tau_high95_inc_tax_gdp_pp),
     tau5_inc_share = mean_na(sub5$m2_5y_tau_inc_tax_share_pp),
+    tau5_inc_share_sd = mean_na(sub5$m2_5y_tau_sd_inc_tax_share_pp),
     tau5_inc_share_low80 = mean_na(sub5$m2_5y_tau_low80_inc_tax_share_pp),
     tau5_inc_share_high80 = mean_na(sub5$m2_5y_tau_high80_inc_tax_share_pp),
     tau5_inc_share_low95 = mean_na(sub5$m2_5y_tau_low95_inc_tax_share_pp),
     tau5_inc_share_high95 = mean_na(sub5$m2_5y_tau_high95_inc_tax_share_pp),
     tau5_goods_share = mean_na(sub5$m2_5y_tau_goods_tax_share_pp),
+    tau5_goods_share_sd = mean_na(sub5$m2_5y_tau_sd_goods_tax_share_pp),
     tau5_goods_share_low80 = mean_na(sub5$m2_5y_tau_low80_goods_tax_share_pp),
     tau5_goods_share_high80 = mean_na(sub5$m2_5y_tau_high80_goods_tax_share_pp),
     tau5_goods_share_low95 = mean_na(sub5$m2_5y_tau_low95_goods_tax_share_pp),
     tau5_goods_share_high95 = mean_na(sub5$m2_5y_tau_high95_goods_tax_share_pp),
     # +10y Continuous Slopes per +10 pp (Model M2b, Scaling A)
     tau10_tax_gdp = mean_na(sub10$m2_10y_tau_tax_gdp_pp),
+    tau10_tax_gdp_sd = mean_na(sub10$m2_10y_tau_sd_tax_gdp_pp),
     tau10_tax_gdp_low80 = mean_na(sub10$m2_10y_tau_low80_tax_gdp_pp),
     tau10_tax_gdp_high80 = mean_na(sub10$m2_10y_tau_high80_tax_gdp_pp),
     tau10_tax_gdp_low95 = mean_na(sub10$m2_10y_tau_low95_tax_gdp_pp),
     tau10_tax_gdp_high95 = mean_na(sub10$m2_10y_tau_high95_tax_gdp_pp),
     tau10_inc_gdp = mean_na(sub10$m2_10y_tau_inc_tax_gdp_pp),
+    tau10_inc_gdp_sd = mean_na(sub10$m2_10y_tau_sd_inc_tax_gdp_pp),
     tau10_inc_gdp_low80 = mean_na(sub10$m2_10y_tau_low80_inc_tax_gdp_pp),
     tau10_inc_gdp_high80 = mean_na(sub10$m2_10y_tau_high80_inc_tax_gdp_pp),
     tau10_inc_gdp_low95 = mean_na(sub10$m2_10y_tau_low95_inc_tax_gdp_pp),
     tau10_inc_gdp_high95 = mean_na(sub10$m2_10y_tau_high95_inc_tax_gdp_pp),
     tau10_inc_share = mean_na(sub10$m2_10y_tau_inc_tax_share_pp),
+    tau10_inc_share_sd = mean_na(sub10$m2_10y_tau_sd_inc_tax_share_pp),
     tau10_inc_share_low80 = mean_na(sub10$m2_10y_tau_low80_inc_tax_share_pp),
     tau10_inc_share_high80 = mean_na(sub10$m2_10y_tau_high80_inc_tax_share_pp),
     tau10_inc_share_low95 = mean_na(sub10$m2_10y_tau_low95_inc_tax_share_pp),
     tau10_inc_share_high95 = mean_na(sub10$m2_10y_tau_high95_inc_tax_share_pp),
     tau10_goods_share = mean_na(sub10$m2_10y_tau_goods_tax_share_pp),
+    tau10_goods_share_sd = mean_na(sub10$m2_10y_tau_sd_goods_tax_share_pp),
     tau10_goods_share_low80 = mean_na(sub10$m2_10y_tau_low80_goods_tax_share_pp),
     tau10_goods_share_high80 = mean_na(sub10$m2_10y_tau_high80_goods_tax_share_pp),
     tau10_goods_share_low95 = mean_na(sub10$m2_10y_tau_low95_goods_tax_share_pp),
     tau10_goods_share_high95 = mean_na(sub10$m2_10y_tau_high95_goods_tax_share_pp),
+    prob_net_pos_y1 = if (has_pol) round(pol$prob_net_pos_y1[1], 3) else NA_real_,
+    prob_net_pos_y2 = if (has_pol) round(pol$prob_net_pos_y2[1], 3) else NA_real_,
     stringsAsFactors = FALSE
   )
 })
