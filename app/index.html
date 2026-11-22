@@ -4,6 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>University Funding: Return on Investment</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="alternate icon" type="image/png" href="favicon.png" />
+  <link rel="apple-touch-icon" href="favicon.png" />
   <link rel="stylesheet" href="styles.css" />
   <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 </head>
@@ -44,12 +47,11 @@
     </div>
   </header>
 
-  <!-- 3-Tab Navigation -->
+  <!-- 2-Tab Navigation -->
   <nav class="tabs-nav" aria-label="Main navigation">
     <div class="tabs-inner">
-      <button class="tab-btn active" data-tab="tab1" id="btn-tab1" type="button">1. Compare Countries</button>
-      <button class="tab-btn" data-tab="tab2" id="btn-tab2" type="button">2. Historical Data</button>
-      <button class="tab-btn" data-tab="tab3" id="btn-tab3" type="button">3. Country Calculator</button>
+      <button class="tab-btn active" data-tab="tab1" id="btn-tab1" type="button">Compare Countries</button>
+      <button class="tab-btn" data-tab="tab2" id="btn-tab2" type="button">Country Explorer</button>
     </div>
   </nav>
 
@@ -165,92 +167,9 @@
     </section>
 
     <!-- =================================================================== -->
-    <!-- TAB 2: Historical Data                                              -->
+    <!-- TAB 2: Country Explorer                                             -->
     <!-- =================================================================== -->
     <section class="tab-pane" id="tab2">
-      <div class="workspace-grid">
-        <aside class="panel-card">
-          <div class="control-group">
-            <label class="control-label" for="t2-x-select">University Funding</label>
-            <select id="t2-x-select"></select>
-          </div>
-
-          <div class="control-group">
-            <label class="control-label" for="t2-y-select">Tax Revenue</label>
-            <select id="t2-y-select"></select>
-          </div>
-
-          <div class="control-group">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.35rem;">
-              <span class="control-label" style="margin:0;">Highlighted Countries</span>
-              <span id="t2-selected-count" class="country-tag">6 selected</span>
-            </div>
-
-            <div class="preset-pills">
-              <button type="button" class="preset-pill active" data-t2preset="default">Key Mix</button>
-              <button type="button" class="preset-pill" data-t2preset="risers">Risers</button>
-              <button type="button" class="preset-pill" data-t2preset="decliners">Decliners</button>
-              <button type="button" class="preset-pill adv-only" data-t2preset="trap">Denominator Trap</button>
-              <button type="button" class="preset-pill" data-t2preset="clear">Clear</button>
-            </div>
-
-            <input type="text" id="t2-country-search" placeholder="Search country..." />
-            <div class="country-list-box" id="t2-country-list"></div>
-          </div>
-
-          <!-- Advanced Historical Controls -->
-          <div class="adv-box adv-only">
-            <span class="adv-badge">Advanced Options</span>
-            <div class="control-group">
-              <span class="control-label">Data Transformation</span>
-              <div class="segmented-group" id="t2-mode-group">
-                <button type="button" class="seg-btn active" data-mode="levels">Levels</button>
-                <button type="button" class="seg-btn" data-mode="changes">5-Yr Changes</button>
-              </div>
-            </div>
-          </div>
-        </aside>
-
-        <div>
-          <div class="player-bar">
-            <button type="button" class="play-btn" id="t2-play-btn">&#9654; Play</button>
-            <div class="wave-slider-wrap">
-              <input type="range" id="t2-wave-slider" min="2" max="8" step="1" value="8" aria-label="Time period" />
-              <div class="wave-ticks">
-                <span>1990-94</span>
-                <span>1995-99</span>
-                <span>2000-04</span>
-                <span>2005-09</span>
-                <span>2010-14</span>
-                <span>2015-19</span>
-                <span>2020-24</span>
-              </div>
-            </div>
-            <span class="wave-badge" id="t2-wave-badge">2020-2024</span>
-          </div>
-
-          <div class="panel-card">
-            <div class="chart-header">
-              <div class="chart-title-block">
-                <h2 id="t2-chart-title">University Spending vs Tax Revenue</h2>
-                <p class="chart-subtitle" id="t2-chart-subtitle">Click any bubble to trace a country over time.</p>
-              </div>
-              <div class="segmented-group compact" id="t2-view-group">
-                <button type="button" class="seg-btn active" data-t2view="bubbles">Cross-Country Map</button>
-                <button type="button" class="seg-btn" data-t2view="trends">Time Trends</button>
-              </div>
-            </div>
-
-            <div id="t2-main-plot" class="plot-box"></div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- =================================================================== -->
-    <!-- TAB 3: Country Calculator                                           -->
-    <!-- =================================================================== -->
-    <section class="tab-pane" id="tab3">
       <div class="workspace-grid">
         <aside class="panel-card">
           <div class="control-group">
@@ -276,7 +195,7 @@
             </div>
           </div>
 
-          <!-- Advanced Country Calculator Options (Hidden by default) -->
+          <!-- Advanced Country Explorer Options (Hidden by default) -->
           <div class="adv-box adv-only">
             <span class="adv-badge">Advanced Options</span>
 

@@ -38,7 +38,7 @@ bash run_all.sh
   * `paper/references.bib`: Verified BibTeX bibliography.
   * `reviews/`: Ten independent specialist referee and author review reports (`reviewer1_methodology.md` through `reviewer10_roi_peer_review.md`) and point-by-point response letter (`response_to_reviewers.md`).
 * **Interactive Web Application (`app/`):**
-  * `app/index.html`, `app/app.js`, `app/styles.css`, and `app/app.R`: Three-tab interactive Return on Investment (ROI) web application allowing users to compare single-cohort degree input costs against 40-year career tax outputs (with 95% credible intervals, benefit-cost ratios, and net-profit probabilities), explore an interactive Investment Variable vs 40-Year Career ROI scatter plot with country filtering, play a Gapminder-style animated trajectory of historical tertiary spending and tax revenue (`1985-1989` to `2020-2024`), and generate ready-to-use Treasury ROI Pitch cards and custom policy scenarios.
+  * `app/index.html`, `app/app.js`, `app/styles.css`, `app/favicon.svg`, and `app/app.R`: Two-tab interactive Return on Investment (ROI) web application (**Compare Countries** and **Country Explorer**, with an **Advanced** toggle switch) allowing users to compare single-cohort degree input costs against expected 40-year career tax returns with 80% and 95% credible intervals, explore diminishing returns across tertiary enrolment levels, and test custom national policy scenarios.
   * `app/prepare_app_data.R`: Exports the self-contained data bundle in `app/data/`.
 
 ### Ethics, Licensing, and Data Redistribution

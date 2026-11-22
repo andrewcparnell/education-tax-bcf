@@ -1,7 +1,7 @@
 // =============================================================================
 // Script: app/app.js
-// Purpose: Streamlined Interactive Explorer for University Funding ROI
-//          Simple by default with clear error bars; Advanced options via toggle.
+// Purpose: Streamlined 2-Tab Interactive Explorer for University Funding ROI
+//          (Compare Countries + Country Explorer, with Advanced Mode switch)
 // Author: Andrew C. Parnell
 // =============================================================================
 
@@ -15,7 +15,6 @@
   }
 
   const COUNTRIES = DATA.countries || [];
-  const HISTORICAL = DATA.historical || [];
   const SURROGATES = DATA.surrogates || {};
 
   const COUNTRY_MAP = {};
@@ -23,7 +22,7 @@
     COUNTRY_MAP[c.iso3] = c;
   });
 
-  // Exchange rates relative to 2021 PPP USD (note: gdp_2024_eur_bn is already in EUR)
+  // Exchange rates relative to 2021 PPP USD (gdp_2024_eur_bn is already in EUR)
   const CURR_META = {
     EUR: { code: "EUR", symbol: "\u20ac", usdRate: 0.92, eurFactor: 1.0, label: "EUR (\u20ac)" },
     USD: { code: "USD", symbol: "$",      usdRate: 1.0,  eurFactor: 1.0 / 0.92, label: "USD ($)" },
@@ -70,27 +69,6 @@
     }
   };
 
-  const REGION_COLOURS = {
-    "Europe & Central Asia": "#0b2545",
-    "East Asia & Pacific": "#136f63",
-    "Latin America & Caribbean": "#d97706",
-    "North America": "#2563eb",
-    "Sub-Saharan Africa": "#be123c",
-    "Middle East & North Africa": "#7c3aed",
-    "South Asia": "#059669"
-  };
-
-  const WAVE_LABELS = {
-    1: "1985-1989",
-    2: "1990-1994",
-    3: "1995-1999",
-    4: "2000-2004",
-    5: "2005-2009",
-    6: "2010-2014",
-    7: "2015-2019",
-    8: "2020-2024"
-  };
-
   // ===========================================================================
   // Core Math & Formatting Helpers
   // ===========================================================================
@@ -132,7 +110,6 @@
     const n = Number(valBn);
     const sign = signed ? (n >= 0 ? "+" : "-") : n < 0 ? "-" : "";
     const a = Math.abs(n);
-    if (a >= 10) return `${sign}${cm.symbol}${a.toFixed(1)} bn`;
     if (a >= 0.1) return `${sign}${cm.symbol}${a.toFixed(1)} bn`;
     if (a >= 0.005) return `${sign}${cm.symbol}${Math.round(a * 1000)} m`;
     return `${sign}${cm.symbol}${(a * 1000).toFixed(1)} m`;
@@ -238,7 +215,6 @@
     syncMetricButtonLabels();
     if (lastActiveTab === "tab1") renderTab1();
     if (lastActiveTab === "tab2") renderTab2();
-    if (lastActiveTab === "tab3") renderTab3();
   }
 
   function showPane(paneId) {
@@ -273,7 +249,7 @@
         .querySelectorAll("#currency-pills .curr-btn")
         .forEach((b) => b.classList.toggle("active", b === btn));
 
-      // Rescale Tab 3 GDP input smoothly when currency switches
+      // Rescale Country Explorer GDP input smoothly when currency switches
       if (prevCurr !== activeCurr && t3State.baseGdpBn > 0) {
         const prevMeta = CURR_META[prevCurr] || CURR_META.EUR;
         const nextMeta = CURR_META[activeCurr] || CURR_META.EUR;
@@ -303,7 +279,6 @@
     document.body.classList.toggle("advanced-mode", advancedMode);
 
     if (!advancedMode) {
-      // Return cleanly to streamlined defaults when Advanced Mode is turned off
       activeScale = "TOTAL";
       advScaleSel.value = "TOTAL";
 
@@ -319,19 +294,11 @@
       document.getElementById("t1-accounting-select").value = "8.0";
       document.getElementById("t1-scatter-x-select").value = "enrolment";
 
-      if (t2State.mode !== "levels") {
-        t2State.mode = "levels";
-        document
-          .querySelectorAll("#t2-mode-group .seg-btn")
-          .forEach((b) => b.classList.toggle("active", b.getAttribute("data-mode") === "levels"));
-        populateTab2AxisMenus();
-      }
-
       t3State.zMeasure = "Z1";
       t3State.careerMult = 8.0;
       document.getElementById("t3-z-select").value = "Z1";
       document.getElementById("t3-accounting-select").value = "8.0";
-      loadCountryDefaultsIntoTab3(t3State.iso3);
+      loadCountryDefaultsIntoTab2(t3State.iso3);
     }
 
     renderActiveTab();
@@ -407,7 +374,6 @@
       ? normCdf((careerMeanBn - cost.costBn) / careerSdBn)
       : normCdf(ppMean / Math.max(0.001, ppSd));
 
-    // Use exact posterior draw probability from table when at standard 8.0x baseline
     if (mult === 8.0 && outKey === "tax_gdp" && Number.isFinite(Number(c.prob_net_pos_y1))) {
       probNet = Number(c.prob_net_pos_y1);
     } else if (mult === 8.0 && outKey === "inc_gdp" && Number.isFinite(Number(c.prob_net_pos_y2))) {
@@ -667,7 +633,6 @@
 
     const traces = [];
 
-    // Smooth log-trend diminishing returns curve when plotting Enrolment vs ROI Multiplier
     if (useBcr && xKey === "enrolment" && pts.length >= 4) {
       const xs = pts.map((p) => Math.log(Math.max(2, p.xVal)));
       const ys = pts.map((p) => p.yMean);
@@ -782,6 +747,7 @@
       });
     }
 
+    plotDiv.style.height = "500px";
     Plotly.newPlot(
       plotDiv,
       traces,
@@ -816,7 +782,6 @@
     const meta = OUTCOME_META[outKey] || OUTCOME_META.tax_gdp;
     const cm = CURR_META[activeCurr] || CURR_META.EUR;
 
-    // Hide metric toggle when viewing share outcomes or annual horizons
     const metricGroup = document.getElementById("t1-metric-group");
     if (metricGroup) {
       metricGroup.style.display =
@@ -834,13 +799,11 @@
 
     plotDiv.innerHTML = "";
 
-    // View 2: Scatter plot (Enrolment vs ROI)
     if (t1State.view === "scatter" && t1State.horizon === "career") {
       renderTab1Scatter(plotDiv, selected, outKey, meta);
       return;
     }
 
-    // View 1A: 40-Year Career Country Ranking (Default)
     if (t1State.horizon === "career") {
       const useBcr = t1State.metric === "bcr" && !meta.isShareOfTax && activeScale === "TOTAL";
       const rows = selected
@@ -1027,7 +990,7 @@
       return;
     }
 
-    // View 1B (Advanced): Annual 5y, 10y, or 5 vs 10y Flow
+    // Advanced Annual Flow Views (5y, 10y, or 5 vs 10y)
     plotDiv.style.height = `${Math.max(460, selected.length * 36 + 110)}px`;
     if (t1State.horizon === "both") {
       document.getElementById("t1-chart-title").textContent =
@@ -1178,437 +1141,7 @@
   }
 
   // ===========================================================================
-  // TAB 2: Historical Data
-  // ===========================================================================
-  const t2State = {
-    mode: "levels",
-    view: "bubbles", // bubbles | trends
-    xVar: "tert_spend_per_student_winsor",
-    yVar: "income_profit_tax_share_rev_pct",
-    wave: 8,
-    playing: false,
-    timer: null,
-    selectedIsos: ["IRL", "GBR", "NOR", "CHL", "AUT", "ZAF"],
-    searchQuery: ""
-  };
-
-  const T2_AXIS_OPTIONS = {
-    levels: {
-      x: [
-        { value: "tert_spend_per_student_winsor", label: "Per-Student Spending (% of GDP/person)" },
-        { value: "real_tert_spend_per_student_ppp", label: "Real Dollars per Student (2021 PPP)" },
-        { value: "tert_spend_gdp_pct", label: "Total University Budget (% of GDP)" },
-        { value: "gross_tert_enrolment_pct", label: "Tertiary Enrolment (%)" }
-      ],
-      y: [
-        { value: "income_profit_tax_share_rev_pct", label: "Income Tax Share (% of total tax)" },
-        { value: "non_resource_tax_gdp_pct", label: "Total Tax Revenue (% of GDP)" },
-        { value: "inc_tax_gdp_pct", label: "Income Tax Revenue (% of GDP)" },
-        { value: "goods_services_tax_share_rev_pct", label: "Goods & VAT Share (% of total tax)" }
-      ]
-    },
-    changes: {
-      x: [
-        { value: "tert_spend_abs_change", label: "5-Yr Change in Per-Student Spend (pp)" },
-        { value: "d_log_real_spend_stu_pct", label: "5-Yr % Change in Real Spend per Student" },
-        { value: "d_tert_spend_gdp_pp", label: "5-Yr Change in University Budget (pp)" }
-      ],
-      y: [
-        { value: "d_prev_inc_tax_share_pp", label: "5-Yr Change in Income Tax Share (pp)" },
-        { value: "d_prev_nonres_tax_gdp_pp", label: "5-Yr Change in Total Tax (% GDP, pp)" },
-        { value: "d_prev_inc_tax_gdp_pp", label: "5-Yr Change in Income Tax (% GDP, pp)" },
-        { value: "d_prev_goods_tax_share_pp", label: "5-Yr Change in Goods / VAT Share (pp)" }
-      ]
-    }
-  };
-
-  const t2VarLabels = {};
-  Object.values(T2_AXIS_OPTIONS).forEach((grp) => {
-    grp.x.forEach((o) => {
-      t2VarLabels[o.value] = o.label;
-    });
-    grp.y.forEach((o) => {
-      t2VarLabels[o.value] = o.label;
-    });
-  });
-
-  const t2Presets = {
-    default: ["IRL", "GBR", "NOR", "CHL", "AUT", "ZAF"],
-    risers: ["NOR", "CHL", "AUT", "DNK", "MEX"],
-    decliners: ["IRL", "LTU", "COL", "ZAF", "SWE"],
-    trap: ["IRL", "CHL", "NOR", "AUT", "ETH", "MWI"],
-    clear: []
-  };
-
-  function populateTab2AxisMenus() {
-    const xSel = document.getElementById("t2-x-select");
-    const ySel = document.getElementById("t2-y-select");
-    const opts = T2_AXIS_OPTIONS[t2State.mode] || T2_AXIS_OPTIONS.levels;
-
-    xSel.innerHTML = "";
-    opts.x.forEach((o) => {
-      const el = document.createElement("option");
-      el.value = o.value;
-      el.textContent = o.label;
-      xSel.appendChild(el);
-    });
-
-    ySel.innerHTML = "";
-    opts.y.forEach((o) => {
-      const el = document.createElement("option");
-      el.value = o.value;
-      el.textContent = o.label;
-      ySel.appendChild(el);
-    });
-
-    t2State.xVar = opts.x.some((o) => o.value === t2State.xVar) ? t2State.xVar : opts.x[0].value;
-    t2State.yVar = opts.y.some((o) => o.value === t2State.yVar) ? t2State.yVar : opts.y[0].value;
-    xSel.value = t2State.xVar;
-    ySel.value = t2State.yVar;
-  }
-
-  function buildTab2CountryList() {
-    const box = document.getElementById("t2-country-list");
-    const q = t2State.searchQuery.trim().toLowerCase();
-    box.innerHTML = "";
-
-    COUNTRIES.filter((c) => !q || c.country_name.toLowerCase().includes(q) || c.iso3.toLowerCase().includes(q)).forEach((c) => {
-      const div = document.createElement("div");
-      div.className = "country-item";
-      const checked = t2State.selectedIsos.includes(c.iso3);
-      div.innerHTML = `
-        <label>
-          <input type="checkbox" value="${c.iso3}" ${checked ? "checked" : ""} />
-          <span>${c.country_name}</span>
-        </label>
-        <span class="country-tag">${c.iso3}</span>
-      `;
-      const cb = div.querySelector("input");
-      cb.addEventListener("change", () => {
-        if (cb.checked) {
-          if (!t2State.selectedIsos.includes(c.iso3)) t2State.selectedIsos.push(c.iso3);
-        } else {
-          t2State.selectedIsos = t2State.selectedIsos.filter((x) => x !== c.iso3);
-        }
-        document.getElementById("t2-selected-count").textContent = `${t2State.selectedIsos.length} selected`;
-        renderTab2();
-      });
-      box.appendChild(div);
-    });
-
-    document.getElementById("t2-selected-count").textContent = `${t2State.selectedIsos.length} selected`;
-  }
-
-  function stopTab2Animation() {
-    const playBtn = document.getElementById("t2-play-btn");
-    t2State.playing = false;
-    playBtn.innerHTML = "&#9654; Play";
-    if (t2State.timer) {
-      clearInterval(t2State.timer);
-      t2State.timer = null;
-    }
-  }
-
-  function startTab2Animation() {
-    const playBtn = document.getElementById("t2-play-btn");
-    const slider = document.getElementById("t2-wave-slider");
-    t2State.playing = true;
-    playBtn.innerHTML = "&#10074;&#10074; Pause";
-
-    if (t2State.wave >= 8 || t2State.wave < 2) {
-      t2State.wave = 2;
-      slider.value = "2";
-      renderTab2();
-    }
-
-    t2State.timer = setInterval(() => {
-      if (t2State.wave < 8) {
-        t2State.wave += 1;
-        slider.value = String(t2State.wave);
-        renderTab2();
-      } else {
-        stopTab2Animation();
-      }
-    }, 1050);
-  }
-
-  function initTab2Controls() {
-    populateTab2AxisMenus();
-
-    document.getElementById("t2-x-select").addEventListener("change", (e) => {
-      t2State.xVar = e.target.value;
-      renderTab2();
-    });
-
-    document.getElementById("t2-y-select").addEventListener("change", (e) => {
-      t2State.yVar = e.target.value;
-      renderTab2();
-    });
-
-    document.querySelectorAll("#t2-mode-group .seg-btn").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        document
-          .querySelectorAll("#t2-mode-group .seg-btn")
-          .forEach((b) => b.classList.toggle("active", b === btn));
-        t2State.mode = btn.getAttribute("data-mode");
-        populateTab2AxisMenus();
-        renderTab2();
-      });
-    });
-
-    document.querySelectorAll("#t2-view-group .seg-btn").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        document
-          .querySelectorAll("#t2-view-group .seg-btn")
-          .forEach((b) => b.classList.toggle("active", b === btn));
-        t2State.view = btn.getAttribute("data-t2view");
-        renderTab2();
-      });
-    });
-
-    const slider = document.getElementById("t2-wave-slider");
-    slider.addEventListener("input", () => {
-      t2State.wave = Number(slider.value);
-      renderTab2();
-    });
-
-    document.getElementById("t2-play-btn").addEventListener("click", () => {
-      if (t2State.playing) stopTab2Animation();
-      else startTab2Animation();
-    });
-
-    document.querySelectorAll("[data-t2preset]").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const key = btn.getAttribute("data-t2preset");
-        document.querySelectorAll("[data-t2preset]").forEach((b) => b.classList.toggle("active", b === btn));
-        if (t2Presets[key]) {
-          t2State.selectedIsos = t2Presets[key].filter((iso) => COUNTRY_MAP[iso]);
-          if (key === "trap" && t2State.mode === "levels") {
-            t2State.xVar = "tert_spend_per_student_winsor";
-            document.getElementById("t2-x-select").value = t2State.xVar;
-          }
-          buildTab2CountryList();
-          renderTab2();
-        }
-      });
-    });
-
-    const searchInput = document.getElementById("t2-country-search");
-    searchInput.addEventListener("input", () => {
-      t2State.searchQuery = searchInput.value;
-      buildTab2CountryList();
-    });
-
-    buildTab2CountryList();
-  }
-
-  function renderTab2() {
-    document.getElementById("t2-wave-badge").textContent = WAVE_LABELS[t2State.wave];
-    const plotDiv = document.getElementById("t2-main-plot");
-    const xCol = t2State.xVar;
-    const yCol = t2State.yVar;
-    const activeWave = t2State.wave;
-
-    if (t2State.view === "trends") {
-      document.getElementById("t2-chart-title").textContent = "Historical Trends for Highlighted Countries";
-      document.getElementById("t2-chart-subtitle").textContent =
-        "Left: University funding | Right: Tax revenue (dotted line marks active five-year period).";
-
-      const isos = t2State.selectedIsos.length ? t2State.selectedIsos : ["IRL", "GBR", "NOR", "CHL"];
-      const palette = ["#be123c", "#0b2545", "#136f63", "#d97706", "#2563eb", "#7c3aed"];
-      const traces = [];
-
-      isos.forEach((iso, idx) => {
-        const cRows = HISTORICAL.filter((r) => r.iso3 === iso && Number(r.wave_index) >= 2).sort(
-          (a, b) => Number(a.wave_index) - Number(b.wave_index)
-        );
-        if (!cRows.length) return;
-        const col = palette[idx % palette.length];
-        const name = cRows[0].country_name;
-
-        traces.push({
-          type: "scatter",
-          mode: "lines+markers",
-          name,
-          legendgroup: iso,
-          x: cRows.map((r) => r.wave_label),
-          y: cRows.map((r) => r[xCol]),
-          xaxis: "x",
-          yaxis: "y",
-          line: { color: col, width: 2.5 },
-          marker: { size: 7, color: col },
-          hovertemplate: `<b>${name}</b> (%{x})<br>${t2VarLabels[xCol]}: %{y:.2f}<extra></extra>`
-        });
-
-        traces.push({
-          type: "scatter",
-          mode: "lines+markers",
-          name,
-          legendgroup: iso,
-          showlegend: false,
-          x: cRows.map((r) => r.wave_label),
-          y: cRows.map((r) => r[yCol]),
-          xaxis: "x2",
-          yaxis: "y2",
-          line: { color: col, width: 2.5 },
-          marker: { size: 7, color: col, symbol: "diamond" },
-          hovertemplate: `<b>${name}</b> (%{x})<br>${t2VarLabels[yCol]}: %{y:.2f}<extra></extra>`
-        });
-      });
-
-      const allWaves = ["1990-1994", "1995-1999", "2000-2004", "2005-09", "2010-2014", "2015-2019", "2020-2024"];
-      const waveCat = ["1990-1994", "1995-1999", "2000-2004", "2005-2009", "2010-2014", "2015-2019", "2020-2024"];
-      const activeWaveLabel = WAVE_LABELS[activeWave];
-
-      Plotly.newPlot(
-        plotDiv,
-        traces,
-        {
-          grid: { rows: 1, columns: 2, pattern: "independent" },
-          margin: { t: 32, r: 24, b: 50, l: 60 },
-          xaxis: { title: "Five-Year Period", type: "category", categoryorder: "array", categoryarray: waveCat },
-          yaxis: { title: t2VarLabels[xCol], gridcolor: "#f1f5f9" },
-          xaxis2: { title: "Five-Year Period", type: "category", categoryorder: "array", categoryarray: waveCat },
-          yaxis2: { title: t2VarLabels[yCol], gridcolor: "#f1f5f9" },
-          shapes: [
-            { type: "line", xref: "x", yref: "paper", x0: activeWaveLabel, x1: activeWaveLabel, y0: 0, y1: 1, line: { color: "#be123c", width: 1.6, dash: "dot" } },
-            { type: "line", xref: "x2", yref: "paper", x0: activeWaveLabel, x1: activeWaveLabel, y0: 0, y1: 1, line: { color: "#be123c", width: 1.6, dash: "dot" } }
-          ],
-          legend: { orientation: "h", y: 1.12, x: 0 },
-          paper_bgcolor: "#ffffff",
-          plot_bgcolor: "#ffffff"
-        },
-        { responsive: true, displayModeBar: false }
-      );
-      void allWaves;
-      return;
-    }
-
-    document.getElementById("t2-chart-title").textContent = "University Spending vs Tax Revenue";
-    document.getElementById("t2-chart-subtitle").textContent =
-      "Bubble size reflects population; click any bubble to trace a country over time.";
-
-    const allValid = HISTORICAL.filter(
-      (r) => r[xCol] !== null && r[yCol] !== null && Number.isFinite(Number(r[xCol])) && Number.isFinite(Number(r[yCol]))
-    );
-    const xVals = allValid.map((r) => Number(r[xCol])).sort((a, b) => a - b);
-    const yVals = allValid.map((r) => Number(r[yCol])).sort((a, b) => a - b);
-    const q = (arr, p) => (arr.length ? arr[Math.max(0, Math.min(arr.length - 1, Math.floor(p * arr.length)))] : 0);
-
-    const xMin = q(xVals, 0.015);
-    const xMax = q(xVals, 0.985);
-    const yMin = q(yVals, 0.015);
-    const yMax = q(yVals, 0.985);
-    const xPad = (xMax - xMin) * 0.1 || 1;
-    const yPad = (yMax - yMin) * 0.1 || 2;
-
-    const waveRows = allValid.filter((r) => Number(r.wave_index) === activeWave);
-    const regions = [...new Set(COUNTRIES.map((c) => c.region).filter(Boolean))];
-    const traces = [];
-
-    regions.forEach((reg) => {
-      const sub = waveRows.filter((r) => r.region === reg);
-      if (!sub.length) return;
-      traces.push({
-        type: "scatter",
-        mode: "markers+text",
-        name: reg,
-        x: sub.map((r) => r[xCol]),
-        y: sub.map((r) => r[yCol]),
-        text: sub.map((r) => (t2State.selectedIsos.includes(r.iso3) ? "" : r.iso3)),
-        textposition: "top center",
-        textfont: { size: 9, color: t2State.selectedIsos.length > 0 ? "rgba(71,85,105,0.38)" : "rgba(15,23,42,0.6)" },
-        customdata: sub.map((r) => [r.iso3, `${r.country_name} (${r.wave_label})`, r.income_group || ""]),
-        marker: {
-          color: REGION_COLOURS[reg] || "#475569",
-          opacity: t2State.selectedIsos.length > 0 ? 0.3 : 0.78,
-          size: sub.map((r) => Math.max(8, Math.min(30, Math.sqrt((Number(r.population_total) || 5e6) / 1e6) * 2.1))),
-          line: { color: "#ffffff", width: 1 }
-        },
-        hovertemplate:
-          "<b>%{customdata[1]}</b> (%{customdata[2]})<br>" +
-          `${t2VarLabels[xCol]}: <b>%{x:.2f}</b><br>` +
-          `${t2VarLabels[yCol]}: <b>%{y:.2f}</b><extra></extra>`
-      });
-    });
-
-    const trailPalette = ["#be123c", "#0b2545", "#136f63", "#d97706", "#2563eb", "#7c3aed"];
-    t2State.selectedIsos.forEach((iso, idx) => {
-      const cRows = allValid
-        .filter((r) => r.iso3 === iso && Number(r.wave_index) <= activeWave)
-        .sort((a, b) => Number(a.wave_index) - Number(b.wave_index));
-      if (!cRows.length) return;
-      const col = trailPalette[idx % trailPalette.length];
-      const cName = cRows[0].country_name;
-
-      traces.push({
-        type: "scatter",
-        mode: "lines+markers+text",
-        name: cName,
-        x: cRows.map((r) => r[xCol]),
-        y: cRows.map((r) => r[yCol]),
-        text: cRows.map((_, i) => (i === cRows.length - 1 ? cName : "")),
-        textposition: "top center",
-        textfont: { size: 11, color: col, weight: "bold" },
-        line: { color: col, width: 2.8 },
-        marker: {
-          color: col,
-          size: cRows.map((_, i) => (i === cRows.length - 1 ? 12.5 : 6.5)),
-          symbol: cRows.map((_, i) => (i === cRows.length - 1 ? "diamond" : "circle")),
-          line: { color: "#ffffff", width: 1.4 }
-        },
-        customdata: cRows.map((r) => [iso, r.wave_label]),
-        hovertemplate:
-          `<b>${cName} (%{customdata[1]})</b><br>` +
-          `${t2VarLabels[xCol]}: <b>%{x:.2f}</b><br>` +
-          `${t2VarLabels[yCol]}: <b>%{y:.2f}</b><extra></extra>`
-      });
-    });
-
-    Plotly.newPlot(
-      plotDiv,
-      traces,
-      {
-        margin: { t: 25, r: 24, b: 54, l: 64 },
-        xaxis: { title: t2VarLabels[xCol], range: [xMin - xPad, xMax + xPad], gridcolor: "#f1f5f9", zeroline: true, zerolinecolor: "#cbd5e1" },
-        yaxis: { title: t2VarLabels[yCol], range: [yMin - yPad, yMax + yPad], gridcolor: "#f1f5f9", zeroline: true, zerolinecolor: "#cbd5e1" },
-        annotations: [
-          {
-            x: 0.98,
-            y: 0.05,
-            xref: "paper",
-            yref: "paper",
-            text: WAVE_LABELS[activeWave],
-            showarrow: false,
-            font: { size: 30, color: "rgba(15, 23, 42, 0.12)", weight: "bold" }
-          }
-        ],
-        legend: { orientation: "h", y: 1.11, x: 0 },
-        paper_bgcolor: "#ffffff",
-        plot_bgcolor: "#ffffff"
-      },
-      { responsive: true, displayModeBar: false }
-    );
-
-    if (typeof plotDiv.on === "function") {
-      plotDiv.on("plotly_click", (evt) => {
-        if (!evt || !evt.points || !evt.points.length) return;
-        const cd = evt.points[0].customdata;
-        const iso = Array.isArray(cd) ? cd[0] : null;
-        if (!iso || !COUNTRY_MAP[iso]) return;
-        if (t2State.selectedIsos.includes(iso)) {
-          t2State.selectedIsos = t2State.selectedIsos.filter((x) => x !== iso);
-        } else {
-          t2State.selectedIsos.push(iso);
-        }
-        buildTab2CountryList();
-        renderTab2();
-      });
-    }
-  }
-
-  // ===========================================================================
-  // TAB 3: Country Calculator
+  // TAB 2: Country Explorer
   // ===========================================================================
   const t3State = {
     iso3: "IRL",
@@ -1630,10 +1163,10 @@
   };
 
   const Z_MEASURE_META = {
-    Z1: { model5y: "M2a_Direct_10pp_5y", model10y: "M2b_Direct_10pp_10y", desc: "per-student spend" },
-    Z2: { model5y: "M3a_Delta10pp_5y", model10y: "M3b_Delta10pp_10y", desc: "5-yr per-student expansion" },
-    Z3: { model5y: "M3c_RealPPP_5y", model10y: "M3d_RealPPP_10y", desc: "real PPP spend/student" },
-    Z4: { model5y: "M3e_TertGDP_5y", model10y: "M3f_TertGDP_10y", desc: "total budget only" }
+    Z1: { model5y: "M2a_Direct_10pp_5y", model10y: "M2b_Direct_10pp_10y" },
+    Z2: { model5y: "M3a_Delta10pp_5y", model10y: "M3b_Delta10pp_10y" },
+    Z3: { model5y: "M3c_RealPPP_5y", model10y: "M3d_RealPPP_10y" },
+    Z4: { model5y: "M3e_TertGDP_5y", model10y: "M3f_TertGDP_10y" }
   };
 
   const T3_MOD_SLIDERS = [
@@ -1643,7 +1176,7 @@
     { id: "gini_disp_harmonised", field: "gini_disp", fmt: (v) => `${Number(v).toFixed(1)}` }
   ];
 
-  function updateTab3SliderLabels() {
+  function updateTab2SliderLabels() {
     T3_MOD_SLIDERS.forEach((s) => {
       const inEl = document.getElementById(`mod-${s.id}`);
       const valEl = document.getElementById(`val-${s.id}`);
@@ -1653,7 +1186,7 @@
     });
   }
 
-  function loadCountryDefaultsIntoTab3(iso3) {
+  function loadCountryDefaultsIntoTab2(iso3) {
     const c = COUNTRY_MAP[iso3] || COUNTRIES[0];
     const defaults = SURROGATES.sample_defaults || {};
 
@@ -1678,7 +1211,7 @@
       t3State.baselineModerators[s.id] = val;
       t3State.moderators[s.id] = val;
     });
-    updateTab3SliderLabels();
+    updateTab2SliderLabels();
   }
 
   function hasBaselineOverride() {
@@ -1703,7 +1236,7 @@
     return Number(altRow.ate_mean || 0) - Number(refRow.ate_mean || 0);
   }
 
-  function evalTab3Outcome(c, outKey, horizonYears) {
+  function evalExplorerOutcome(c, outKey, horizonYears) {
     const hKey = horizonYears === 5 ? "h5" : "h10";
     const pref = horizonYears === 5 ? "tau5_" : "tau10_";
     const sur = SURROGATES[hKey] && SURROGATES[hKey][outKey];
@@ -1743,7 +1276,6 @@
 
     const sdPP = absU * rawSd;
 
-    // Preserve asymmetric posterior quantiles when near baseline
     const rawL95 = c[`${pref}${outKey}_low95`];
     const rawH95 = c[`${pref}${outKey}_high95`];
     let low95PP;
@@ -1759,12 +1291,12 @@
     return { simPP, sdPP, low95PP, high95PP };
   }
 
-  function applyTab3Preset(scen) {
+  function applyTab2Preset(scen) {
     t3State.scenarioPreset = scen;
     document.querySelectorAll("#t3-scenario-pills .preset-pill").forEach((b) => {
       b.classList.toggle("active", b.getAttribute("data-scen") === scen);
     });
-    loadCountryDefaultsIntoTab3(t3State.iso3);
+    loadCountryDefaultsIntoTab2(t3State.iso3);
 
     if (scen === "boost") {
       t3State.zMeasure = "Z1";
@@ -1788,7 +1320,7 @@
     document.getElementById("t3-change-select").value = String(t3State.signedUnits);
   }
 
-  function initTab3Controls() {
+  function initTab2Controls() {
     const cSel = document.getElementById("t3-country-select");
     cSel.innerHTML = "";
     COUNTRIES.forEach((c) => {
@@ -1801,14 +1333,14 @@
 
     cSel.addEventListener("change", () => {
       t3State.iso3 = cSel.value;
-      loadCountryDefaultsIntoTab3(t3State.iso3);
-      renderTab3();
+      loadCountryDefaultsIntoTab2(t3State.iso3);
+      renderTab2();
     });
 
     const chSel = document.getElementById("t3-change-select");
     chSel.addEventListener("change", () => {
       t3State.signedUnits = Number(chSel.value || 1.0);
-      renderTab3();
+      renderTab2();
     });
 
     document.querySelectorAll("#t3-view-group .seg-btn").forEach((btn) => {
@@ -1817,24 +1349,24 @@
           .querySelectorAll("#t3-view-group .seg-btn")
           .forEach((b) => b.classList.toggle("active", b === btn));
         t3State.view = btn.getAttribute("data-t3view");
-        renderTab3();
+        renderTab2();
       });
     });
 
     document.getElementById("t3-z-select").addEventListener("change", (e) => {
       t3State.zMeasure = e.target.value || "Z1";
-      renderTab3();
+      renderTab2();
     });
 
     document.getElementById("t3-accounting-select").addEventListener("change", (e) => {
       t3State.careerMult = Number(e.target.value || 8.0);
-      renderTab3();
+      renderTab2();
     });
 
     document.querySelectorAll("#t3-scenario-pills .preset-pill").forEach((btn) => {
       btn.addEventListener("click", () => {
-        applyTab3Preset(btn.getAttribute("data-scen"));
-        renderTab3();
+        applyTab2Preset(btn.getAttribute("data-scen"));
+        renderTab2();
       });
     });
 
@@ -1844,7 +1376,7 @@
         const v = Number(el.value);
         if (Number.isFinite(v) && v >= minVal) {
           t3State[key] = v;
-          renderTab3();
+          renderTab2();
         }
       });
     };
@@ -1857,20 +1389,20 @@
       const el = document.getElementById(`mod-${s.id}`);
       el.addEventListener("input", () => {
         t3State.moderators[s.id] = Number(el.value);
-        updateTab3SliderLabels();
-        renderTab3();
+        updateTab2SliderLabels();
+        renderTab2();
       });
     });
 
     document.getElementById("t3-reset-btn").addEventListener("click", () => {
-      applyTab3Preset("boost");
-      renderTab3();
+      applyTab2Preset("boost");
+      renderTab2();
     });
 
-    loadCountryDefaultsIntoTab3(t3State.iso3);
+    loadCountryDefaultsIntoTab2(t3State.iso3);
   }
 
-  function renderTab3() {
+  function renderTab2() {
     const c = COUNTRY_MAP[t3State.iso3] || COUNTRIES[0];
     const signedU = Number(t3State.signedUnits || 1.0);
     const absU = Math.abs(signedU);
@@ -1887,8 +1419,8 @@
       : null;
 
     const cost = computeFundingCost(c, t3State.zMeasure, absU, overrides);
-    const ev10Tax = evalTab3Outcome(c, "tax_gdp", 10);
-    const ev10Inc = evalTab3Outcome(c, "inc_gdp", 10);
+    const ev10Tax = evalExplorerOutcome(c, "tax_gdp", 10);
+    const ev10Inc = evalExplorerOutcome(c, "inc_gdp", 10);
 
     const mult = t3State.careerMult;
     const taxCareerBn = mult * cost.gdpBn * (ev10Tax.simPP / 100);
@@ -1901,7 +1433,6 @@
     const incH95Bn = mult * cost.gdpBn * (ev10Inc.high95PP / 100);
 
     const bcrTax = cost.costBn > 0 ? Math.abs(taxCareerBn) / cost.costBn : 0;
-    const bcrInc = cost.costBn > 0 ? Math.abs(incCareerBn) / cost.costBn : 0;
 
     let probNet = isCut
       ? normCdf((-taxCareerBn - cost.costBn) / taxSdBn)
@@ -1918,7 +1449,6 @@
       probNet = Number(c.prob_net_pos_y1);
     }
 
-    // Populate the 3 clean KPI cards
     document.getElementById("kpi-cost-label").textContent = isCut ? "Cohort Budget Cut" : "Cohort Degree Cost";
     document.getElementById("kpi-cost-val").textContent = formatMoneyBn(cost.costBn, false);
     document.getElementById("kpi-cost-sub").textContent =
@@ -1939,11 +1469,9 @@
       : formatProb(probNet);
     document.getElementById("kpi-prob-sub").textContent =
       `Income tax alone: ${formatMoneyBn(incCareerBn, true)} (${(incCareerBn / Math.max(1e-6, cost.costBn)).toFixed(1)}x)`;
-    void bcrInc;
 
     const plotDiv = document.getElementById("t3-main-plot");
 
-    // View A (Default): Clean 3-Bar Career Comparison with 95% Error Bars
     if (t3State.view === "career") {
       document.getElementById("t3-chart-title").textContent = isCut
         ? `${c.country_name}: Budget Cut vs Expected 40-Year Tax Change`
@@ -2046,18 +1574,17 @@
       return;
     }
 
-    // View B: 5-Year vs 10-Year Annual Impact with 95% Error Bars
     document.getElementById("t3-chart-title").textContent =
       `${c.country_name}: Annual Tax Impact After 5 Years vs 10 Years`;
     document.getElementById("t3-chart-subtitle").textContent =
       "Left: Annual revenue flow | Right: Tax-mix shift (% of total tax), with 95% credible intervals.";
 
-    const ev5Inc = evalTab3Outcome(c, "inc_gdp", 5);
-    const ev5Tax = evalTab3Outcome(c, "tax_gdp", 5);
-    const ev5ShInc = evalTab3Outcome(c, "inc_share", 5);
-    const ev5ShGds = evalTab3Outcome(c, "goods_share", 5);
-    const ev10ShInc = evalTab3Outcome(c, "inc_share", 10);
-    const ev10ShGds = evalTab3Outcome(c, "goods_share", 10);
+    const ev5Inc = evalExplorerOutcome(c, "inc_gdp", 5);
+    const ev5Tax = evalExplorerOutcome(c, "tax_gdp", 5);
+    const ev5ShInc = evalExplorerOutcome(c, "inc_share", 5);
+    const ev5ShGds = evalExplorerOutcome(c, "goods_share", 5);
+    const ev10ShInc = evalExplorerOutcome(c, "inc_share", 10);
+    const ev10ShGds = evalExplorerOutcome(c, "goods_share", 10);
 
     const toAnn = (ev, outKey) => ({
       m: formatScaledAmount(ev.simPP, c, outKey, 1, cost.gdpBn),
@@ -2181,7 +1708,6 @@
   // ===========================================================================
   initTab1Controls();
   initTab2Controls();
-  initTab3Controls();
   syncMetricButtonLabels();
   renderTab1();
 })();
